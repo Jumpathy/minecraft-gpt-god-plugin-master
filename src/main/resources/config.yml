@@ -1,0 +1,156 @@
+# Configuration file for gptgodmc
+# Make sure you update this before running!
+
+# your OpenAi API key from https://platform.openai.com/api-keys
+# the plugin won't work without this (still required for TTS and voice transcription)
+
+openAiKey: ""
+
+# Anthropic API key (from https://console.anthropic.com/)
+# When set, Claude will be used for chat completions instead of OpenAI GPT
+# OpenAI is still required for TTS and voice transcription
+claudeApiKey: ""
+
+# Claude model to use for chat completions (only used when claudeApiKey is set)
+# Options: claude-sonnet-4-6, claude-haiku-4-5-20251001, claude-opus-4-6
+claude-model-name: claude-sonnet-4-5-20250929
+
+# Context window budget for Claude (how many tokens of game logs to send)
+# Claude supports up to 200k, but 100k keeps costs reasonable
+claude-model-token-limit: 100000
+
+# Max output tokens for Claude responses (required by Anthropic API)
+claude-max-output-tokens: 4096
+
+# Model used for log summarization — a cheaper/faster model reduces cost significantly.
+# Defaults to gpt-4o-mini (OpenAI) or claude-haiku-4-5-20251001 (Claude) when left blank.
+# Set summary-model-token-limit to 0 to use the default limit for the chosen model.
+summary-model-name: "claude-haiku-4-5-20251001"
+summary-model-token-limit: 0
+
+# language in ISO-639 format https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes
+language: en
+
+# if set to true:
+# - When players die they are put in spectator mode
+# - When everyone dies the map is reset
+# This is the intended way to play
+# only set to false for testing and debugging
+Rounds: true
+
+# the world the server will load on starting
+# worlds are stored in plugins/gptgodmc/worlds
+# if empty or invalid the Round System won't work
+startingWorld: "island"
+
+# name of the gpt model to use
+# can be found here: https://openai.com/api/pricing/
+gpt-model-name: gpt-4o
+
+# gpt model token limit
+gpt-model-token-limit: 100000
+
+# whether or not the mod will make calls to GPT
+enabled: true
+
+# The gamemode, here are the current options:
+# this is case sensitive
+#[SANDBOX, DEATHMATCH]
+gamemode: SANDBOX
+
+
+
+# The potential behaviors to be given to GPT. A specified amount will be chosen to either be liked, or disliked.
+potentialBehaviors: ["killing animals",
+                     "fighting other players",
+                     "slaying monsters",
+                     "using hostile language",
+                     "using vulgar language",
+                     "using friendly language",
+                     "building structures of worship",
+                     "building non-religious structures",
+                     "materialistic wants",
+                     "helping other players",
+                     "connecting with animals",
+                     "growing plants",
+                     "using fire and explosions",
+                     "love between players",
+                     "sexual behaviour",
+                     "generosity",
+                     "ritual sacrifice",
+                     "eating meat"]
+
+# X behaviors will be selected as disliked/liked.
+# A behavior cannot be both liked and disliked, nor can there be duplicates.
+# The total required behaviors must be equal to or less than the amount of potential behaviors.
+
+likedBehaviors: 3
+dislikedBehaviors: 3
+
+
+# How long the objectives given by GPT last
+# (in minutes)
+objectiveDecay: 6
+
+# the amount of time that will pass between calls to ChatGPT (in seconds)
+# can't be less that 1 second
+# I really don't reccomend going lower than 20
+# default 40
+rate: 40
+
+# The voice used by the TTS
+# https://platform.openai.com/docs/guides/text-to-speech/voice-options
+voice: onyx
+
+# use AI Text to Speech voice for god (uses OpenAI and will cost a bit more money)
+tts: true
+
+# ============================================================
+# PROMPT CONFIGURATION
+# Customize the personality and behavior of the god.
+# ============================================================
+
+# Override the prompt for ALL game modes with a single custom prompt.
+# When set, sandboxPrompt and deathmatchPrompt are ignored.
+# Leave blank to use the game-mode specific prompts below.
+promptOverride: ""
+
+# Sandbox mode prompt (used when gamemode: SANDBOX).
+# Default if left blank:
+#   "You will roleplay as the god of a small minecraft island world, give individual players
+#    challenges to test their merit and reward them if they succeed. You will receive information
+#    about what has happened on the island. Only use tool calls, other responses will be ignored."
+sandboxPrompt: ""
+
+# Deathmatch mode prompt (used when gamemode: DEATHMATCH).
+# Default if left blank:
+#   "You will roleplay as the god of a small minecraft world, the players are split into two teams
+#    that must fight to the death. Each team spawns on their own floating island. You will give the
+#    teams challenges to complete and reward the teams that succeed. Only use tool calls, other
+#    responses will be ignored."
+deathmatchPrompt: ""
+
+# Personality briefing - instructs the god how to act on its likes/dislikes list.
+# This is appended to the prompt along with the generated likes/dislikes.
+# Default if left blank:
+#   "The following are behaviours you must reward or punish players for doing. Don't explicitly
+#    tell the players this list. When punishing players, reserve directly damaging players for
+#    repeat offenders. If most of the players disobey you punish everyone"
+personalityBriefing: ""
+
+# ============================================================
+# DEBUG WEBHOOK
+# When enableDebug is true, every AI request and its matching
+# response are POSTed to debugUrl as JSON objects.
+# Each pair shares the same requestId so you can correlate them.
+#
+# Payload fields:
+#   type      - "request" or "response"
+#   api       - "openai" or "claude"
+#   model     - model name string
+#   requestId - UUID shared by the request/response pair
+#   timestamp - ISO-8601 UTC timestamp
+#   body      - the full request or response JSON
+# ============================================================
+enableDebug: false
+debugUrl: ""

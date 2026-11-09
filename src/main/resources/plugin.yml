@@ -1,0 +1,30 @@
+name: gptgodmc
+version: ${version}
+main: net.bigyous.gptgodmc.GPTGOD
+api-version: ${bukkit_api_version}
+prefix: gptgodmc
+authors: [ "YOUS", "Anders" ]
+description: Minecraft is not so godless anymore...
+website: https://bigyous.net
+depend: [ voicechat ]
+
+commands:
+  try:
+    description: tests out a GPTFunction as if called by OpenAi for debug purposes, can only be used in the server console
+    usage: /try [function name] [Json formatted args]
+  
+  nickname:
+    description: if you are reffered to by a name other than your username specify it here for GPT. edgy inputs will break the plugin
+    usage: /nickname [name]
+
+  godinfo:
+    description: shows the god's current likes and dislikes to the sender only (operator only)
+    usage: /godinfo
+
+  tokens:
+    description: shows the total input/output token usage for the current round (operator only)
+    usage: /tokens
+
+  sudogod:
+    description: inject a directive into the god's next prompt as THE SYSTEM (operator only), forces an immediate cycle
+    usage: /sudogod <message>

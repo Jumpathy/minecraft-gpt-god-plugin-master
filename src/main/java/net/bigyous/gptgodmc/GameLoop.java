@@ -1,0 +1,148 @@
+package net.bigyous.gptgodmc;
+
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitTask;
+
+import net.bigyous.gptgodmc.GPT.GPTModels;
+import net.bigyous.gptgodmc.GPT.IGptAPI;
+import net.bigyous.gptgodmc.GPT.GptActions;
+import net.bigyous.gptgodmc.GPT.GenerateCommands;
+import net.bigyous.gptgodmc.GPT.Personality;
+import net.bigyous.gptgodmc.GPT.Prompts;
+import net.bigyous.gptgodmc.GPT.Json.GptTool;
+import net.bigyous.gptgodmc.utils.GPTUtils;
+import net.bigyous.gptgodmc.utils.TokenTracker;
+
+import java.util.ArrayList;
+
+public class GameLoop {
+    private static JavaPlugin plugin = JavaPlugin.getPlugin(GPTGOD.class);
+    private static FileConfiguration config = JavaPlugin.getPlugin(GPTGOD.class).getConfig();
+    private static IGptAPI Action_GPT_API;
+    private static IGptAPI Speech_GPT_API;
+    private static int staticTokens = 0;
+    private static int taskId;
+    public static boolean isRunning = false;
+    private static String PROMPT;
+    private static String SPEECH_PROMPT_TEPLATE = "%s%s, You can now communicate with the players. Use the server history as a reference to note the change in player behavior %s";
+    private static String ACTION_PROMPT_TEMPLATE = "%s Use this information and the tools provided to reward or punish the players. Only react to events listed under Current, Use the server history as a reference to note the change in player behavior %s";
+    private static ArrayList<String> previousActions = new ArrayList<String>();
+    private static String personality;
+    private static int rate = config.getInt("rate") < 1 ? 40 : config.getInt("rate");
+
+    // converts seconds into ticks
+    private static long seconds(long seconds) {
+        return seconds * 20;
+    }
+
+    public static void init() {
+        if (isRunning || !config.getBoolean("enabled"))
+            return;
+        Action_GPT_API = GPTModels.createAPI(GptActions.GetActionTools());
+        Speech_GPT_API = GPTModels.createAPI(GptActions.GetSpeechTools());
+        BukkitTask task = GPTGOD.SERVER.getScheduler().runTaskTimerAsynchronously(plugin, new GPTTask(), seconds(30),
+                seconds(rate));
+        taskId = task.getTaskId();
+        personality = Personality.generatePersonality();
+        PROMPT = Prompts.getGamemodePrompt(GPTGOD.gameMode);
+        String actionPrompt = String.format(ACTION_PROMPT_TEMPLATE, PROMPT, personality);
+        Action_GPT_API.addContext(actionPrompt, "prompt");
+
+        // the roles system and user are each one token so we add two to this number
+        staticTokens = GPTUtils.countTokens(actionPrompt) + 2;
+        isRunning = true;
+        GPTGOD.LOGGER.info("GameLoop Started, the minecraft god has awoken");
+    }
+
+    public static void forceCycle() {
+        if (!isRunning)
+            return;
+        GPTGOD.SERVER.getScheduler().cancelTask(taskId);
+        BukkitTask task = GPTGOD.SERVER.getScheduler().runTaskTimerAsynchronously(plugin, new GPTTask(), 0L, seconds(rate));
+        taskId = task.getTaskId();
+    }
+
+    public static void stop() {
+        if (!isRunning)
+            return;
+        GPTGOD.SERVER.getScheduler().cancelTask(taskId);
+        EventLogger.reset();
+        TokenTracker.reset();
+        Action_GPT_API = null;
+        Speech_GPT_API = null;
+        isRunning = false;
+        GPTGOD.LOGGER.info("GameLoop Stoppped");
+    }
+
+    public static void logAction(String actionLog) {
+        previousActions.add(actionLog);
+    }
+
+    private static String getPreviousActions() {
+        if (previousActions.isEmpty()) {
+            return "";
+        }
+        String out = " You Just: " + String.join(",", previousActions);
+        previousActions = new ArrayList<String>();
+        return out;
+    }
+
+    private static void sendSpeechActions() {
+        Speech_GPT_API.addContext(String.format(SPEECH_PROMPT_TEPLATE, PROMPT, getPreviousActions(), personality),
+                "prompt", 0);
+        if(EventLogger.hasSummary()){
+            Speech_GPT_API.addLogs("Server History: " + EventLogger.getSummary(), "summary", 1);
+        }
+        Speech_GPT_API.send();
+    }
+
+    private static class GPTTask implements Runnable {
+
+        @Override
+        public void run() {
+            while (EventLogger.isGeneratingSummary() && !EventLogger.hasSummary()) {
+                Thread.onSpinWait();
+            }
+            int nonLogTokens = staticTokens;
+            if (EventLogger.hasSummary()) {
+                Action_GPT_API.addLogs("Server History: " + EventLogger.getSummary(), "summary", 1);
+                nonLogTokens += GPTUtils.countTokens(EventLogger.getSummary()) + 1;
+            }
+            GptTool[] actionTools = GptActions.GetActionTools();
+            Action_GPT_API.setTools(actionTools);
+            nonLogTokens += GPTUtils.calculateToolTokens(actionTools);
+            EventLogger.cull(Action_GPT_API.getMaxTokens() - nonLogTokens);
+            String[] splitLogs = EventLogger.dumpSplit();
+            String playerLog = splitLogs[0];
+            String godActions = splitLogs[1];
+            Action_GPT_API.addLogs("Current: " + playerLog, "log");
+            Speech_GPT_API.addLogs("Current: " + playerLog, "log");
+            Action_GPT_API.addContext(
+                godActions.isEmpty() ? "" : "Actions you took last cycle (do not repeat unless player behavior has meaningfully changed): " + godActions,
+                "prevGodActions"
+            );
+            previousActions = new ArrayList<>();
+            Action_GPT_API.send();
+            while (Action_GPT_API.isSending()) {
+                Thread.onSpinWait();
+            }
+            // Wait for any 'command' function's secondary API call to finish generating
+            // Minecraft commands before sending speech, so the god's words match the
+            // actions that have already landed in-game
+            long commandWaitStart = System.currentTimeMillis();
+            while (GenerateCommands.isActive()) {
+                Thread.onSpinWait();
+                if (System.currentTimeMillis() - commandWaitStart > 30000) {
+                    GenerateCommands.reset();
+                    GPTGOD.LOGGER.warn("Timed out waiting for command generation, sending speech anyway");
+                    break;
+                }
+            }
+            sendSpeechActions();
+            Thread.currentThread().interrupt();
+
+        }
+
+    }
+}

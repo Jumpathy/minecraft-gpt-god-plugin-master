@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPTGOD Debug</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background: #09090b; }
+        details > summary { list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
+        details[open] .chevron { transform: rotate(90deg); }
+        .chevron { transition: transform 0.15s; display: inline-block; }
+        .tool-badge { font-family: ui-monospace, monospace; }
+        pre { white-space: pre-wrap; word-break: break-word; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #18181b; }
+        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 3px; }
+        .fade-in { animation: fadeIn 0.2s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+    </style>
+</head>
+<body class="text-zinc-100 min-h-screen">
+
+<!-- ── Header ─────────────────────────────────────────────────────────── -->
+<header class="border-b border-zinc-800 bg-zinc-950 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
+        <div class="flex items-center gap-2">
+            <span class="text-violet-400 text-xl">⚡</span>
+            <span class="font-bold text-lg tracking-tight">GPTGOD</span>
+            <span class="text-zinc-500 text-sm font-mono">debug</span>
+        </div>
+
+        <div class="flex items-center gap-2 ml-2" id="stats-bar">
+            <span class="text-zinc-500 text-xs">loading...</span>
+        </div>
+
+        <div class="ml-auto flex items-center gap-3">
+            <span class="text-zinc-500 text-xs" id="last-updated"></span>
+            <button id="reload-btn"
+                onclick="loadData()"
+                class="flex items-center gap-1.5 px-3 py-1.5 bg-violet-600 hover:bg-violet-500 active:bg-violet-700 text-white text-sm font-medium rounded-lg transition-colors">
+                <svg id="reload-icon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Reload
+            </button>
+        </div>
+    </div>
+
+    <!-- Tab bar -->
+    <div class="max-w-7xl mx-auto px-4 flex items-center gap-1 pb-0">
+        <button class="tab-btn active px-4 py-2 text-sm font-medium border-b-2 border-violet-500 text-violet-400 transition-colors" data-tab="cycles">
+            Cycles
+        </button>
+        <button class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-zinc-400 hover:text-zinc-200 transition-colors" data-tab="tools">
+            Tool Summary
+        </button>
+        <button class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-zinc-400 hover:text-zinc-200 transition-colors" data-tab="commands">
+            Commands
+        </button>
+        <button class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-zinc-400 hover:text-zinc-200 transition-colors" data-tab="speech">
+            Speech
+        </button>
+    </div>
+</header>
+
+<!-- ── Filter bar ──────────────────────────────────────────────────────── -->
+<div class="max-w-7xl mx-auto px-4 py-3 flex items-center gap-2 flex-wrap" id="filter-bar">
+    <span class="text-xs text-zinc-500 mr-1">API:</span>
+    <button class="filter-btn active text-xs px-2.5 py-1 rounded-full border border-zinc-700 bg-zinc-800 text-zinc-100 hover:border-zinc-500 transition-colors" data-filter="all">All</button>
+    <button class="filter-btn text-xs px-2.5 py-1 rounded-full border border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200 transition-colors" data-filter="openai">OpenAI</button>
+    <button class="filter-btn text-xs px-2.5 py-1 rounded-full border border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200 transition-colors" data-filter="claude">Claude</button>
+    <div class="w-px h-4 bg-zinc-700 mx-1"></div>
+    <label class="flex items-center gap-1.5 text-xs text-zinc-400 cursor-pointer select-none">
+        <input type="checkbox" id="filter-tools-only" class="rounded border-zinc-600 bg-zinc-800 text-violet-500">
+        Has tool calls
+    </label>
+    <label class="flex items-center gap-1.5 text-xs text-zinc-400 cursor-pointer select-none">
+        <input type="checkbox" id="filter-pending" class="rounded border-zinc-600 bg-zinc-800 text-violet-500">
+        Missing response
+    </label>
+</div>
+
+<!-- ── Main content ────────────────────────────────────────────────────── -->
+<main class="max-w-7xl mx-auto px-4 pb-12">
+
+    <!-- Cycles Tab -->
+    <div id="tab-cycles">
+        <div id="cycles-list" class="space-y-3"></div>
+        <div id="empty-state" class="hidden text-center py-20 text-zinc-600">
+            <div class="text-4xl mb-3">🌩</div>
+            <div class="text-lg font-medium">No cycles yet</div>
+            <div class="text-sm mt-1">Set <code class="bg-zinc-800 px-1 py-0.5 rounded text-zinc-300">enableDebug: true</code> and <code class="bg-zinc-800 px-1 py-0.5 rounded text-zinc-300">debugUrl: http://...</code> in config.yml</div>
+        </div>
+        <div id="loading-state" class="text-center py-20 text-zinc-600">
+            <div class="text-2xl mb-3">⏳</div>
+            <div class="text-sm">Loading...</div>
+        </div>
+    </div>
+
+    <!-- Tool Summary Tab -->
+    <div id="tab-tools" class="hidden">
+        <div id="tools-table"></div>
+    </div>
+
+    <!-- Commands Tab -->
+    <div id="tab-commands" class="hidden">
+        <div id="commands-list" class="space-y-3"></div>
+        <div id="commands-empty" class="hidden text-center py-20 text-zinc-600">
+            <div class="text-4xl mb-3">💬</div>
+            <div class="text-sm">No command function calls recorded</div>
+        </div>
+    </div>
+
+    <!-- Speech Tab -->
+    <div id="tab-speech" class="hidden">
+        <div id="speech-list" class="space-y-3"></div>
+        <div id="speech-empty" class="hidden text-center py-20 text-zinc-600">
+            <div class="text-4xl mb-3">🔊</div>
+            <div class="text-sm">No speech actions recorded</div>
+        </div>
+    </div>
+
+</main>
+
+<script>
+// ── Tool metadata ─────────────────────────────────────────────────────────
+const TOOL_META = {
+    announce:           { color: 'bg-violet-900/60 border-violet-700 text-violet-300',   icon: '📢', cat: 'speech' },
+    whisper:            { color: 'bg-purple-900/60 border-purple-700 text-purple-300',   icon: '🤫', cat: 'speech' },
+    command:            { color: 'bg-orange-900/60 border-orange-700 text-orange-300',   icon: '⚙️', cat: 'command' },
+    smite:              { color: 'bg-red-900/60 border-red-700 text-red-300',            icon: '⚡', cat: 'punishment' },
+    detonateStructure:  { color: 'bg-red-900/60 border-red-700 text-red-300',            icon: '💥', cat: 'punishment' },
+    giveItem:           { color: 'bg-green-900/60 border-green-700 text-green-300',      icon: '🎁', cat: 'reward' },
+    summonSupplyChest:  { color: 'bg-green-900/60 border-green-700 text-green-300',      icon: '📦', cat: 'reward' },
+    revive:             { color: 'bg-emerald-900/60 border-emerald-700 text-emerald-300',icon: '✨', cat: 'reward' },
+    teleport:           { color: 'bg-cyan-900/60 border-cyan-700 text-cyan-300',         icon: '🌀', cat: 'reward' },
+    spawnEntity:        { color: 'bg-blue-900/60 border-blue-700 text-blue-300',         icon: '🐾', cat: 'world' },
+    transformStructure: { color: 'bg-sky-900/60 border-sky-700 text-sky-300',            icon: '🏗️', cat: 'world' },
+    setObjective:       { color: 'bg-yellow-900/60 border-yellow-700 text-yellow-300',   icon: '🎯', cat: 'objective' },
+    clearObjective:     { color: 'bg-amber-900/60 border-amber-700 text-amber-300',      icon: '✅', cat: 'objective' },
+};
+
+function toolMeta(name) {
+    return TOOL_META[name] || { color: 'bg-zinc-800 border-zinc-600 text-zinc-300', icon: '🔧', cat: 'other' };
+}
+
+// ── Data parsers ──────────────────────────────────────────────────────────
+function parseTokens(cycle) {
+    if (!cycle.response) return null;
+    if (cycle.api === 'openai') {
+        const u = cycle.response.usage || {};
+        return { input: u.prompt_tokens || 0, output: u.completion_tokens || 0 };
+    }
+    const u = cycle.response.usage || {};
+    return { input: u.input_tokens || 0, output: u.output_tokens || 0 };
+}
+
+function parseToolCalls(cycle) {
+    const calls = [];
+    if (!cycle.response) return calls;
+    if (cycle.api === 'openai') {
+        for (const choice of cycle.response.choices || []) {
+            for (const tc of choice.message?.tool_calls || []) {
+                let args = {};
+                try { args = JSON.parse(tc.function?.arguments || '{}'); } catch {}
+                calls.push({ name: tc.function?.name || 'unknown', args });
+            }
+        }
+    } else {
+        for (const block of cycle.response.content || []) {
+            if (block.type === 'tool_use') {
+                calls.push({ name: block.name || 'unknown', args: block.input || {} });
+            }
+        }
+    }
+    return calls;
+}
+
+function getSystemContext(cycle) {
+    if (!cycle.request) return [];
+    if (cycle.api === 'openai') {
+        return (cycle.request.messages || []).filter(m => m.role === 'system').map(m => m.content);
+    }
+    return cycle.request.system ? [cycle.request.system] : [];
+}
+
+function getUserMessages(cycle) {
+    if (!cycle.request) return [];
+    return (cycle.request.messages || []).filter(m => m.role === 'user').map(m => m.content);
+}
+
+function getTextResponse(cycle) {
+    if (!cycle.response) return '';
+    if (cycle.api === 'openai') {
+        return (cycle.response.choices || []).map(c => c.message?.content || '').filter(Boolean).join('\n');
+    }
+    return (cycle.response.content || []).filter(b => b.type === 'text').map(b => b.text || '').join('\n');
+}
+
+function formatTime(ts) {
+    if (!ts) return '—';
+    const d = new Date(ts);
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) +
+           ' ' + d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+}
+
+function esc(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function truncate(str, n = 300) {
+    return str.length > n ? str.slice(0, n) + '…' : str;
+}
+
+// ── Renderers ─────────────────────────────────────────────────────────────
+function renderApiBadge(api) {
+    if (api === 'openai') return `<span class="text-xs font-mono px-1.5 py-0.5 rounded bg-emerald-900/50 border border-emerald-700 text-emerald-400">OpenAI</span>`;
+    if (api === 'claude') return `<span class="text-xs font-mono px-1.5 py-0.5 rounded bg-amber-900/50 border border-amber-700 text-amber-400">Claude</span>`;
+    return `<span class="text-xs font-mono px-1.5 py-0.5 rounded bg-zinc-800 border border-zinc-600 text-zinc-400">${esc(api)}</span>`;
+}
+
+function renderModelBadge(model) {
+    const short = model.replace('claude-', '').replace('gpt-', 'gpt-').slice(0, 20);
+    return `<span class="text-xs font-mono px-1.5 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-zinc-400" title="${esc(model)}">${esc(short)}</span>`;
+}
+
+function renderTokenBadge(tokens) {
+    if (!tokens) return `<span class="text-xs text-zinc-600 italic">no response</span>`;
+    const total = tokens.input + tokens.output;
+    return `<span class="text-xs font-mono text-zinc-400">
+        <span class="text-blue-400" title="input tokens">↑${tokens.input.toLocaleString()}</span>
+        <span class="text-zinc-600 mx-0.5">/</span>
+        <span class="text-green-400" title="output tokens">↓${tokens.output.toLocaleString()}</span>
+        <span class="text-zinc-600 mx-0.5">=</span>
+        <span class="text-zinc-300" title="total tokens">${total.toLocaleString()}</span>
+    </span>`;
+}
+
+function renderArgValue(val) {
+    if (typeof val === 'object' && val !== null) {
+        return `<span class="text-yellow-300">${esc(JSON.stringify(val))}</span>`;
+    }
+    if (typeof val === 'number') return `<span class="text-orange-300">${esc(val)}</span>`;
+    if (typeof val === 'boolean') return `<span class="text-sky-300">${esc(val)}</span>`;
+    return `<span class="text-green-300">"${esc(val)}"</span>`;
+}
+
+function renderToolCall(call, i) {
+    const meta = toolMeta(call.name);
+    const argEntries = Object.entries(call.args || {});
+
+    return `
+    <div class="rounded-lg border ${meta.color} p-3 font-mono text-sm fade-in">
+        <div class="flex items-center gap-2 mb-2">
+            <span>${meta.icon}</span>
+            <span class="font-semibold">${esc(call.name)}</span>
+            <span class="ml-auto text-xs opacity-50">#${i + 1}</span>
+        </div>
+        ${argEntries.length === 0 ? '<span class="text-xs opacity-50 italic">no args</span>' :
+            argEntries.map(([k, v]) => `
+            <div class="flex gap-2 text-xs">
+                <span class="text-zinc-400 shrink-0 w-28 truncate" title="${esc(k)}">${esc(k)}</span>
+                <span class="text-zinc-500">:</span>
+                <span class="break-all">${renderArgValue(v)}</span>
+            </div>`).join('')}
+    </div>`;
+}
+
+function renderSection(label, icon, content, defaultOpen = false) {
+    return `
+    <details ${defaultOpen ? 'open' : ''} class="group">
+        <summary class="flex items-center gap-2 px-4 py-2.5 cursor-pointer select-none
+                        hover:bg-zinc-800/50 rounded-lg transition-colors text-sm text-zinc-400 hover:text-zinc-200">
+            <span class="chevron text-zinc-600 text-xs">▶</span>
+            <span>${icon}</span>
+            <span class="font-medium">${label}</span>
+        </summary>
+        <div class="px-4 py-2">${content}</div>
+    </details>`;
+}
+
+function renderSystemContext(cycle) {
+    const prompts = getSystemContext(cycle);
+    if (!prompts.length) return renderSection('System Context', '📋', '<span class="text-xs text-zinc-600 italic">no system prompt</span>');
+
+    const inner = prompts.map((p, i) => `
+        <div class="mb-2 last:mb-0">
+            ${prompts.length > 1 ? `<div class="text-xs text-zinc-600 mb-1 font-mono">block ${i + 1}</div>` : ''}
+            <pre class="text-xs text-zinc-400 bg-zinc-900 rounded-lg p-3 border border-zinc-800 max-h-48 overflow-y-auto leading-relaxed">${esc(p)}</pre>
+        </div>`).join('');
+
+    return renderSection(`System Context <span class="text-zinc-600">(${prompts.length})</span>`, '📋', inner);
+}
+
+function renderPlayerEvents(cycle) {
+    const msgs = getUserMessages(cycle);
+    if (!msgs.length) return renderSection('Player Events', '📜', '<span class="text-xs text-zinc-600 italic">no events</span>');
+
+    const inner = msgs.map(m => `
+        <pre class="text-xs text-zinc-300 bg-zinc-900 rounded-lg p-3 border border-zinc-800 max-h-64 overflow-y-auto leading-relaxed font-mono">${esc(m)}</pre>
+    `).join('');
+
+    return renderSection(`Player Events <span class="text-zinc-600">(${msgs.length})</span>`, '📜', inner, true);
+}
+
+function renderToolCalls(calls) {
+    if (!calls.length) return renderSection('Tool Calls', '🔧', '<span class="text-xs text-zinc-600 italic">no tool calls</span>');
+
+    const inner = calls.map((c, i) => renderToolCall(c, i)).join('');
+    return renderSection(`Tool Calls <span class="text-zinc-600">(${calls.length})</span>`, '🔧', `<div class="space-y-2">${inner}</div>`, true);
+}
+
+function renderTextResponse(cycle) {
+    const text = getTextResponse(cycle);
+    if (!text) return '';
+    return renderSection('Text Response', '💬',
+        `<pre class="text-xs text-zinc-300 bg-zinc-900 rounded-lg p-3 border border-zinc-800 leading-relaxed">${esc(text)}</pre>`
+    );
+}
+
+function renderCycleCard(cycle, index, totalCount) {
+    const tokens = parseTokens(cycle);
+    const calls = parseToolCalls(cycle);
+    const isPending = !cycle.response;
+    const isError = cycle.response?.error;
+
+    const cardNum = totalCount - index;
+
+    return `
+    <div class="rounded-xl border border-zinc-800 bg-zinc-900/50 overflow-hidden fade-in"
+         data-api="${esc(cycle.api)}"
+         data-has-tools="${calls.length > 0}"
+         data-pending="${isPending}">
+
+        <!-- Card header -->
+        <div class="flex items-center gap-3 px-4 py-3 bg-zinc-900 border-b border-zinc-800 flex-wrap gap-y-2">
+            <span class="text-zinc-600 font-mono text-xs">#${cardNum}</span>
+            <span class="text-zinc-400 text-xs">${formatTime(cycle.timestamp)}</span>
+            ${renderApiBadge(cycle.api)}
+            ${renderModelBadge(cycle.model)}
+            <div class="ml-auto flex items-center gap-2">
+                ${isPending ? '<span class="text-xs text-amber-500 font-mono">⏳ pending response</span>' :
+                  isError   ? '<span class="text-xs text-red-500 font-mono">❌ error</span>' :
+                  renderTokenBadge(tokens)}
+                ${calls.length > 0 ? `<span class="text-xs font-mono px-2 py-0.5 rounded-full bg-violet-900/50 border border-violet-700 text-violet-400">${calls.length} call${calls.length !== 1 ? 's' : ''}</span>` : ''}
+            </div>
+        </div>
+
+        <!-- Card body -->
+        <div class="divide-y divide-zinc-800/50">
+            ${renderSystemContext(cycle)}
+            ${renderPlayerEvents(cycle)}
+            ${calls.length > 0 ? renderToolCalls(calls) : ''}
+            ${renderTextResponse(cycle)}
+            ${isPending ? '<div class="px-4 py-3 text-xs text-zinc-600 italic font-mono">Response not yet received</div>' : ''}
+            ${isError ? `<div class="px-4 py-3"><pre class="text-xs text-red-400 bg-red-950/30 rounded p-2 border border-red-900">${esc(JSON.stringify(cycle.response.error, null, 2))}</pre></div>` : ''}
+        </div>
+    </div>`;
+}
+
+// ── Tool Summary Tab ──────────────────────────────────────────────────────
+function renderToolSummary(allCycles) {
+    const counts = {};
+    for (const cycle of allCycles) {
+        for (const call of parseToolCalls(cycle)) {
+            counts[call.name] = (counts[call.name] || 0) + 1;
+        }
+    }
+
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+
+    if (!sorted.length) {
+        return '<div class="text-center py-20 text-zinc-600"><div class="text-4xl mb-3">🔧</div><div class="text-sm">No tool calls recorded</div></div>';
+    }
+
+    const rows = sorted.map(([name, count]) => {
+        const meta = toolMeta(name);
+        const pct = Math.round((count / allCycles.length) * 100);
+        return `
+        <tr class="border-b border-zinc-800 hover:bg-zinc-800/30 transition-colors">
+            <td class="px-4 py-3">
+                <span class="inline-flex items-center gap-2 font-mono text-sm ${meta.color} px-2 py-0.5 rounded border">
+                    ${meta.icon} ${esc(name)}
+                </span>
+            </td>
+            <td class="px-4 py-3 text-sm text-zinc-300 font-mono text-right">${count}</td>
+            <td class="px-4 py-3 text-xs text-zinc-500 capitalize">${meta.cat}</td>
+            <td class="px-4 py-3 w-40">
+                <div class="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                    <div class="h-full bg-violet-500 rounded-full" style="width:${Math.min(pct * 3, 100)}%"></div>
+                </div>
+            </td>
+        </tr>`;
+    }).join('');
+
+    return `
+    <div class="rounded-xl border border-zinc-800 overflow-hidden">
+        <table class="w-full">
+            <thead>
+                <tr class="bg-zinc-900 text-xs text-zinc-500 uppercase tracking-wider">
+                    <th class="px-4 py-2.5 text-left">Tool</th>
+                    <th class="px-4 py-2.5 text-right">Uses</th>
+                    <th class="px-4 py-2.5 text-left">Category</th>
+                    <th class="px-4 py-2.5"></th>
+                </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+        </table>
+    </div>`;
+}
+
+// ── Commands Tab ──────────────────────────────────────────────────────────
+function renderCommandsTab(allCycles) {
+    const commands = [];
+    for (const cycle of allCycles) {
+        for (const call of parseToolCalls(cycle)) {
+            if (call.name === 'command') {
+                commands.push({ prompt: call.args.prompt, timestamp: cycle.timestamp, model: cycle.model, api: cycle.api });
+            }
+        }
+    }
+
+    const el = document.getElementById('commands-list');
+    const empty = document.getElementById('commands-empty');
+
+    if (!commands.length) {
+        el.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+    }
+
+    empty.classList.add('hidden');
+    el.innerHTML = commands.map((cmd, i) => `
+        <div class="rounded-xl border border-orange-900/50 bg-orange-950/20 p-4 fade-in">
+            <div class="flex items-center gap-2 mb-2 text-xs text-zinc-500">
+                <span class="text-orange-400">⚙️</span>
+                <span class="font-mono text-orange-300">command</span>
+                <span class="ml-auto">${formatTime(cmd.timestamp)}</span>
+                ${renderApiBadge(cmd.api)}
+                ${renderModelBadge(cmd.model)}
+            </div>
+            <pre class="text-sm text-orange-200 leading-relaxed font-mono bg-zinc-900/50 rounded-lg p-3 border border-orange-900/30">${esc(cmd.prompt || '(no prompt)')}</pre>
+        </div>`).join('');
+}
+
+// ── Speech Tab ────────────────────────────────────────────────────────────
+function renderSpeechTab(allCycles) {
+    const speeches = [];
+    for (const cycle of allCycles) {
+        for (const call of parseToolCalls(cycle)) {
+            if (call.name === 'announce' || call.name === 'whisper') {
+                speeches.push({ ...call, timestamp: cycle.timestamp, model: cycle.model, api: cycle.api });
+            }
+        }
+    }
+
+    const el = document.getElementById('speech-list');
+    const empty = document.getElementById('speech-empty');
+
+    if (!speeches.length) {
+        el.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+    }
+
+    empty.classList.add('hidden');
+    el.innerHTML = speeches.map(s => {
+        const meta = toolMeta(s.name);
+        const isWhisper = s.name === 'whisper';
+        return `
+        <div class="rounded-xl border ${meta.color} p-4 fade-in">
+            <div class="flex items-center gap-2 mb-2 text-xs text-zinc-500">
+                <span>${meta.icon}</span>
+                <span class="font-mono font-semibold ${meta.color.split(' ').find(c => c.startsWith('text-'))}">${esc(s.name)}</span>
+                ${isWhisper ? `<span class="text-xs text-zinc-400">→ <span class="text-zinc-200">${esc(s.args.playerName || '?')}</span></span>` : ''}
+                <span class="ml-auto">${formatTime(s.timestamp)}</span>
+                ${renderApiBadge(s.api)}
+            </div>
+            <p class="text-sm leading-relaxed font-medium">${esc(s.args.message || '(no message)')}</p>
+        </div>`;
+    }).join('');
+}
+
+// ── Stats bar ─────────────────────────────────────────────────────────────
+function renderStats(cycles) {
+    const total = cycles.length;
+    const withTools = cycles.filter(c => parseToolCalls(c).length > 0).length;
+    let totalInput = 0, totalOutput = 0;
+    for (const c of cycles) {
+        const t = parseTokens(c);
+        if (t) { totalInput += t.input; totalOutput += t.output; }
+    }
+    const totalTokens = totalInput + totalOutput;
+
+    document.getElementById('stats-bar').innerHTML = `
+        <span class="text-xs px-2 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-zinc-300">${total} cycles</span>
+        <span class="text-xs px-2 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-zinc-300">${withTools} with tools</span>
+        <span class="text-xs px-2 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-blue-400" title="total input tokens">↑${totalInput.toLocaleString()}</span>
+        <span class="text-xs px-2 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-green-400" title="total output tokens">↓${totalOutput.toLocaleString()}</span>
+        <span class="text-xs px-2 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-zinc-300">∑${totalTokens.toLocaleString()} tok</span>
+    `;
+}
+
+// ── Filter & render ───────────────────────────────────────────────────────
+let ALL_CYCLES = [];
+let currentApiFilter = 'all';
+let filterToolsOnly = false;
+let filterPending = false;
+
+function applyFilters() {
+    let filtered = ALL_CYCLES.filter(c => {
+        if (currentApiFilter !== 'all' && c.api !== currentApiFilter) return false;
+        if (filterToolsOnly && parseToolCalls(c).length === 0) return false;
+        if (filterPending && c.response) return false;
+        return true;
+    });
+
+    const list = document.getElementById('cycles-list');
+    const empty = document.getElementById('empty-state');
+
+    if (!filtered.length) {
+        list.innerHTML = '';
+        empty.classList.remove('hidden');
+    } else {
+        empty.classList.add('hidden');
+        list.innerHTML = filtered.map((c, i) => renderCycleCard(c, i, filtered.length)).join('');
+    }
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────────
+const TABS = ['cycles', 'tools', 'commands', 'speech'];
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => {
+            b.classList.remove('active', 'border-violet-500', 'text-violet-400');
+            b.classList.add('border-transparent', 'text-zinc-400');
+        });
+        btn.classList.add('active', 'border-violet-500', 'text-violet-400');
+        btn.classList.remove('border-transparent', 'text-zinc-400');
+
+        const tab = btn.dataset.tab;
+        TABS.forEach(t => {
+            const el = document.getElementById(`tab-${t}`);
+            el.classList.toggle('hidden', t !== tab);
+        });
+
+        document.getElementById('filter-bar').classList.toggle('hidden', tab !== 'cycles');
+    });
+});
+
+// ── API filter buttons ────────────────────────────────────────────────────
+document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => {
+            b.classList.remove('active', 'bg-zinc-800', 'text-zinc-100');
+            b.classList.add('text-zinc-400');
+        });
+        btn.classList.add('active', 'bg-zinc-800', 'text-zinc-100');
+        btn.classList.remove('text-zinc-400');
+        currentApiFilter = btn.dataset.filter;
+        applyFilters();
+    });
+});
+
+document.getElementById('filter-tools-only').addEventListener('change', e => {
+    filterToolsOnly = e.target.checked;
+    applyFilters();
+});
+
+document.getElementById('filter-pending').addEventListener('change', e => {
+    filterPending = e.target.checked;
+    applyFilters();
+});
+
+// ── Load data ─────────────────────────────────────────────────────────────
+async function loadData() {
+    const btn = document.getElementById('reload-btn');
+    const icon = document.getElementById('reload-icon');
+    btn.disabled = true;
+    icon.style.animation = 'spin 0.6s linear infinite';
+    icon.style.animationName = 'reload-spin';
+
+    const style = document.createElement('style');
+    style.textContent = '@keyframes reload-spin { to { transform: rotate(360deg); } }';
+    document.head.appendChild(style);
+
+    try {
+        const res = await fetch('/api/cycles?limit=100');
+        const data = await res.json();
+
+        if (!data.ok) throw new Error(data.error || 'API error');
+
+        ALL_CYCLES = data.cycles || [];
+
+        document.getElementById('loading-state').classList.add('hidden');
+        renderStats(ALL_CYCLES);
+        applyFilters();
+
+        // Render other tabs
+        document.getElementById('tools-table').innerHTML = renderToolSummary(ALL_CYCLES);
+        renderCommandsTab(ALL_CYCLES);
+        renderSpeechTab(ALL_CYCLES);
+
+        document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString();
+
+    } catch (err) {
+        console.error(err);
+        document.getElementById('loading-state').innerHTML =
+            `<div class="text-red-500 text-sm">Error: ${esc(err.message)}</div>`;
+    } finally {
+        btn.disabled = false;
+        icon.style.animation = '';
+        icon.style.animationName = '';
+        if (style.parentNode) style.parentNode.removeChild(style);
+    }
+}
+
+// Auto-load on page open
+loadData();
+
+// Auto-refresh every 30 seconds
+setInterval(loadData, 30000);
+</script>
+</body>
+</html>
