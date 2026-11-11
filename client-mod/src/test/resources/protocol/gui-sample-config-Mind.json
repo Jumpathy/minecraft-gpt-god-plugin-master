@@ -1,0 +1,241 @@
+{
+  "t": "gui_data",
+  "part": "config",
+  "tab": "Mind",
+  "options": [
+    {
+      "key": "brain.enabled",
+      "label": "Thinking",
+      "type": "bool",
+      "fallback": "true",
+      "help": "Off: it never calls Claude. Powers, body and menu still work.",
+      "value": "true"
+    },
+    {
+      "key": "brain.wake-on-any-chat",
+      "label": "Answer every message",
+      "type": "bool",
+      "fallback": "false",
+      "help": "On: every chat message wakes it, not just ones naming it or praying. Livelier, but it thinks far more often.",
+      "value": "false"
+    },
+    {
+      "key": "brain.always-answer",
+      "label": "Always answer",
+      "type": "bool",
+      "fallback": "true",
+      "help": "On: whoever speaks to it always gets words back, even a refusal. Off: it may stay silent.",
+      "value": "true"
+    },
+    {
+      "key": "brain.silence-below-favor",
+      "label": "Silence for the hated",
+      "type": "int",
+      "min": -11,
+      "max": 10,
+      "step": 1,
+      "fallback": "-7",
+      "unit": "favor",
+      "help": "With always-answer on, it may still ignore mortals this hated or worse (-11: it answers everyone).",
+      "value": "-7"
+    },
+    {
+      "key": "purpose.enabled",
+      "label": "Goals & missions",
+      "type": "bool",
+      "fallback": "true",
+      "help": "It keeps goals of its own and sets missions for mortals, so it is never merely there.",
+      "value": "true"
+    },
+    {
+      "key": "purpose.max-goals",
+      "label": "Goals at once",
+      "type": "int",
+      "min": 1,
+      "max": 6,
+      "step": 1,
+      "fallback": "3",
+      "help": "How many goals it pursues at the same time.",
+      "value": "3"
+    },
+    {
+      "key": "purpose.nudge-minutes",
+      "label": "Neglect reminder",
+      "type": "int",
+      "min": 1,
+      "max": 240,
+      "step": 1,
+      "fallback": "30",
+      "unit": "min",
+      "help": "A goal untouched this long is flagged so it acts on it.",
+      "value": "30"
+    },
+    {
+      "key": "purpose.bossbar",
+      "label": "Mission bar",
+      "type": "bool",
+      "fallback": "true",
+      "help": "Show its leading mission as a boss bar.",
+      "value": "true"
+    },
+    {
+      "key": "initiative.level",
+      "label": "Free will",
+      "type": "choice",
+      "choices": [
+        "watch",
+        "semi",
+        "free"
+      ],
+      "fallback": "semi",
+      "help": "Watch: it only watches and answers. Semi: pastimes in quiet moments. Free: it lives by its own whims, building, wandering, fishing.",
+      "value": "semi"
+    },
+    {
+      "key": "initiative.work-per-minute",
+      "label": "Handiwork pace",
+      "type": "int",
+      "min": 1,
+      "max": 60,
+      "step": 1,
+      "fallback": "16",
+      "unit": "/min",
+      "help": "Blocks it may dig, place or plant with its own hands each minute.",
+      "value": "16"
+    },
+    {
+      "key": "operator.revere-ops",
+      "label": "Obey operators",
+      "type": "bool",
+      "fallback": "false",
+      "help": "On: server operators stand above other mortals. It grants what they ask readily, almost as a command.",
+      "value": "false"
+    },
+    {
+      "key": "brain.acknowledge",
+      "label": "\"I hear you\" sign",
+      "type": "bool",
+      "fallback": "true",
+      "help": "A spark and chime the moment someone addresses it, before it answers.",
+      "value": "true"
+    },
+    {
+      "key": "anthropic.model",
+      "label": "Model",
+      "type": "choice",
+      "choices": [
+        "claude-sonnet-5-5",
+        "claude-haiku-5-5",
+        "claude-opus-5-5",
+        "claude-fable-5-1"
+      ],
+      "fallback": "claude-sonnet-5-5",
+      "help": "The Claude model that plays the god. Haiku is quickest and lightest, Fable the strongest.",
+      "value": "claude-sonnet-5-5"
+    },
+    {
+      "key": "anthropic.effort",
+      "label": "Effort",
+      "type": "choice",
+      "choices": [
+        "auto",
+        "low",
+        "medium",
+        "high"
+      ],
+      "fallback": "auto",
+      "help": "How hard it thinks. Auto: high for prayers, commands and deaths, low for idle looks.",
+      "value": "auto"
+    },
+    {
+      "key": "brain.max-steps",
+      "label": "Steps per thought",
+      "type": "int",
+      "min": 1,
+      "max": 12,
+      "step": 1,
+      "fallback": "6",
+      "help": "Rounds of acting and seeing results in one thought. More lets it finish harder tasks.",
+      "value": "6"
+    },
+    {
+      "key": "anthropic.max-output-tokens",
+      "label": "Longest reply",
+      "type": "int",
+      "min": 1000,
+      "max": 32000,
+      "step": 1000,
+      "fallback": "8000",
+      "help": "The longest one reply (thinking included) may be.",
+      "value": "8000"
+    },
+    {
+      "key": "brain.web-search",
+      "label": "Web search",
+      "type": "bool",
+      "fallback": "true",
+      "help": "It may look up songs, shows, memes and news it does not know.",
+      "value": "true"
+    },
+    {
+      "key": "brain.web-search-max-uses",
+      "label": "Searches per reply",
+      "type": "int",
+      "min": 1,
+      "max": 10,
+      "step": 1,
+      "fallback": "3",
+      "help": "At most this many web searches in one reply.",
+      "value": "3"
+    },
+    {
+      "key": "anthropic.refusal-fallback",
+      "label": "Refusal fallback",
+      "type": "bool",
+      "fallback": "true",
+      "help": "If the model declines, a fallback model answers instead of silence.",
+      "value": "true"
+    },
+    {
+      "key": "god.language",
+      "label": "Language",
+      "type": "choice",
+      "choices": [
+        "en",
+        "es",
+        "fr",
+        "de",
+        "pt",
+        "it",
+        "nl",
+        "pl",
+        "ru",
+        "ja",
+        "ko",
+        "zh"
+      ],
+      "fallback": "en",
+      "help": "The language the god speaks (and voice chat listens for).",
+      "value": "en"
+    },
+    {
+      "key": "personality.archetype",
+      "label": "Archetype at birth",
+      "type": "choice",
+      "choices": [
+        "random",
+        "benevolent",
+        "chill",
+        "trickster",
+        "evil",
+        "wrathful",
+        "cosmic"
+      ],
+      "fallback": "random",
+      "help": "What kind of god is born when one is created. A different one means a new god.",
+      "restart": true,
+      "locked": true,
+      "value": "random"
+    }
+  ]
+}

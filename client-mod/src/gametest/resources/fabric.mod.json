@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "gptgod-test",
+  "version": "1.0.0",
+  "name": "GPTGOD client tests",
+  "environment": "client",
+  "entrypoints": {
+    "fabric-client-gametest": [
+      "net.bigyous.gptgod.test.E2ETest", "net.bigyous.gptgod.test.VideoTest","net.bigyous.gptgod.test.ShotsTest", "net.bigyous.gptgod.test.ManagerShotsTest",
+      "net.bigyous.gptgod.test.RelicShotsTest", "net.bigyous.gptgod.test.GuideShotsTest"]
+  }
+}

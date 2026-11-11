@@ -74,7 +74,8 @@ public class Structure {
     }
 
     public List<Block> getBlocks(){
-        return blocks.stream().map((Vector vector) -> {return WorldManager.getCurrentWorld().getBlockAt(vector.getBlockX(), vector.getBlockY(), vector.getBlockZ());}).toList();
+        World target = world != null ? world : WorldManager.getCurrentWorld();
+        return blocks.stream().map((Vector vector) -> target.getBlockAt(vector.getBlockX(), vector.getBlockY(), vector.getBlockZ())).toList();
     }
 
     public HashSet<Vector> getVectors(){

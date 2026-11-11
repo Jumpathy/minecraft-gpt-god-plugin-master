@@ -1,0 +1,22 @@
+{
+  "name": "gptgod-harness",
+  "version": "0.2.0",
+  "private": true,
+  "description": "End-to-end test harness for the GPTGOD Paper plugin: local sandbox server control, mineflayer player bots, debug-bridge client and real-client screenshots, exposed as an MCP server.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "mcp": "node src/mcp-server.js",
+    "scenario": "node run-scenario.js",
+    "smoke": "node run-scenario.js smoke",
+    "selftest": "node scripts/selftest.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "mineflayer": "4.39.0",
+    "mineflayer-pathfinder": "2.4.5",
+    "zod": "4.6.7"
+  }
+}

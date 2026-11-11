@@ -1,0 +1,53 @@
+{
+  "t": "gui_data",
+  "part": "mortal",
+  "realm": "main",
+  "name": "Korvath",
+  "favor": -8,
+  "tier": "despised",
+  "online": true,
+  "title": "the Faithless",
+  "summary": "He came humbly at first, built a chapel, then burned it when a prayer for diamonds went unanswered. Since then he mocks every rite and dares the god to strike him.",
+  "offerings": 2,
+  "notes": [
+    {
+      "at": 1699999400000,
+      "text": "He mocked you before the others; never forgive him.",
+      "age": "10m"
+    },
+    {
+      "at": 1699992800000,
+      "text": "Burned the chapel at the crossroads.",
+      "age": "2h"
+    },
+    {
+      "at": 1699910000000,
+      "text": "Asked for diamonds three times in one hour.",
+      "age": "1d"
+    }
+  ],
+  "deeds": [
+    {
+      "at": 1699999700000,
+      "text": "Insulted the god in chat: \"some god you are\".",
+      "age": "5m"
+    },
+    {
+      "at": 1699996400000,
+      "text": "Killed Mirelle near the river.",
+      "age": "1h"
+    },
+    {
+      "at": 1699992800000,
+      "text": "Set fire to the chapel.",
+      "age": "2h"
+    },
+    {
+      "at": 1699913600000,
+      "text": "Offered rotten flesh at the vessel's feet.",
+      "age": "1d"
+    }
+  ],
+  "notes_total": 3,
+  "deeds_total": 4
+}

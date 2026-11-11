@@ -1,0 +1,32 @@
+{
+  "t": "gui_data",
+  "part": "commands",
+  "realm": "main",
+  "pending": [
+    {
+      "n": 12,
+      "text": "Build a temple of blackstone on the hill east of spawn, then speak of it to everyone.",
+      "status": "Seen in 1 of 3 thoughts",
+      "issuer": "Tyler (God Manager)"
+    },
+    {
+      "n": 13,
+      "text": "For the next 10 minutes you are WRATHFUL: your patience is spent. Let fury colour every word and act.",
+      "standing": true,
+      "status": "8 min left",
+      "issuer": "Tyler (God Manager)"
+    }
+  ],
+  "reports": [
+    {
+      "seq": 801,
+      "time": 1699999580000,
+      "text": "Command #10 done: I blessed all four mortals with haste and told them why."
+    },
+    {
+      "seq": 822,
+      "time": 1699999820000,
+      "text": "Command #11 impossible: no mortal has slain another; there is no killer to punish."
+    }
+  ]
+}

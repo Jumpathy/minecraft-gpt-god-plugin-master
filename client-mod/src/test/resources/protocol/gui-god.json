@@ -1,0 +1,105 @@
+{
+  "t": "gui_data",
+  "part": "god",
+  "realm": "main",
+  "god": {
+    "id": "main",
+    "name": "Vaelor",
+    "epithet": "the Ember Judge",
+    "archetype": "wrathful",
+    "color": "#FF5A30",
+    "power": "supreme",
+    "state": "awake",
+    "thinking": true,
+    "mood": "wrathful",
+    "heart": [
+      64,
+      5,
+      12,
+      20,
+      31
+    ],
+    "body": "walks",
+    "pending": 2,
+    "health": 62,
+    "max": 100,
+    "look": "infernal"
+  },
+  "born": true,
+  "awake": true,
+  "paused": false,
+  "dormant": false,
+  "heart_lines": [
+    "strong wrath (64)",
+    "some glory (31)"
+  ],
+  "aware_lines": [
+    "Moved by: joy ← the sky cleared (3m ago); wrath ← Korvath insulted you (12m ago)",
+    "Sky: a waning crescent moon; the rain stopped 4 min ago.",
+    "Memory (8m ago): Ashwyn is here now. You remember: Ashwyn built a shrine of gold near spawn (12d ago)."
+  ],
+  "model": "claude-opus-5-5",
+  "config_model": "claude-sonnet-5-5",
+  "config_effort": "auto",
+  "look_setting": "auto",
+  "voice": "bm_george",
+  "effect": "auto",
+  "engine": "kokoro",
+  "voice_on": true,
+  "gaze": "smite",
+  "body_on": true,
+  "true_form_allowed": true,
+  "dials": [
+    {
+      "key": "generosity",
+      "value": 3,
+      "base": 4
+    },
+    {
+      "key": "wrath",
+      "value": 10,
+      "base": 9
+    },
+    {
+      "key": "chattiness",
+      "value": 4,
+      "base": 4
+    },
+    {
+      "key": "humor",
+      "value": 0,
+      "base": 1
+    },
+    {
+      "key": "meddling",
+      "value": 6,
+      "base": 6
+    },
+    {
+      "key": "patience",
+      "value": 2,
+      "base": 2
+    },
+    {
+      "key": "mercy",
+      "value": 2,
+      "base": 2
+    },
+    {
+      "key": "pride",
+      "value": 9,
+      "base": 9
+    },
+    {
+      "key": "curiosity",
+      "value": 5,
+      "base": 3
+    },
+    {
+      "key": "vanity",
+      "value": 8,
+      "base": 8
+    }
+  ],
+  "mood_minutes": 10
+}

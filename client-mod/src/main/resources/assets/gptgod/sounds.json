@@ -1,0 +1,7 @@
+{
+  "synth": {
+    "sounds": [
+      { "name": "minecraft:random/click", "stream": true, "attenuation_distance": 48 }
+    ]
+  }
+}

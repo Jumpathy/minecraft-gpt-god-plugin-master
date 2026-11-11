@@ -1,30 +1,93 @@
 name: gptgodmc
 version: ${version}
 main: net.bigyous.gptgodmc.GPTGOD
-api-version: ${bukkit_api_version}
+api-version: '${bukkit_api_version}'
 prefix: gptgodmc
 authors: [ "YOUS", "Anders" ]
-description: Minecraft is not so godless anymore...
+description: An omniscient AI god (Claude) that watches, judges, speaks and walks your world.
 website: https://bigyous.net
-depend: [ voicechat ]
+# Simple Voice Chat is optional: with it, the god hears voices and speaks aloud.
+# Multiverse-Core is optional: listed so its worlds exist before the gods of those worlds wake.
+# WorldEdit (or FastAsyncWorldEdit) is optional: with it, the god has the `worldedit` power.
+softdepend: [ voicechat, Multiverse-Core, WorldEdit, FastAsyncWorldEdit, WorldGuard, GriefPrevention, Towny, CoreProtect, LibsDisguises ]
+# Downloaded by Paper from Maven Central on first start (kept out of the jar).
+libraries:
+  - com.anthropic:anthropic-java:${anthropic_sdk_version}
+  - io.github.givimad:whisper-jni:${whisper_jni_version}
+  - org.mozilla:rhino:${rhino_version}
 
 commands:
-  try:
-    description: tests out a GPTFunction as if called by OpenAi for debug purposes, can only be used in the server console
-    usage: /try [function name] [Json formatted args]
-  
+  god:
+    description: Control the god (manager menu, binding commands, status, say, wake, persona, vessel, view, tool, memory...)
+    usage: /god <subcommand>  (/god help lists them)
+    aliases: [ gptgod ]
+    # No permission here on purpose: everyone may use /god tutorial; every other subcommand checks
+    # gptgodmc.admin itself (GodCommand).
+  pray:
+    description: Speak directly to the god. With no words, sense how it regards you.
+    usage: /pray [god,] [words]
   nickname:
-    description: if you are reffered to by a name other than your username specify it here for GPT. edgy inputs will break the plugin
-    usage: /nickname [name]
-
-  godinfo:
-    description: shows the god's current likes and dislikes to the sender only (operator only)
-    usage: /godinfo
-
-  tokens:
-    description: shows the total input/output token usage for the current round (operator only)
-    usage: /tokens
-
+    description: Tell the god what to call you.
+    usage: /nickname <name>
+  offer:
+    description: Offer the god what you hold (all of it, or some). Sneak + right-click its vessel works too.
+    usage: /offer [@god] [amount]
+  swear:
+    description: Swear an oath before the god. With no words, see the oaths that bind you.
+    usage: /swear [god,] [what you swear]
+    aliases: [ vow, oaths ]
+  gods:
+    description: See which gods watch over this world, and how to pray to one of them.
+    usage: /gods
+    aliases: [ pantheon ]
+  guide:
+    description: Open the guide to the gods (and get the book back). Operators may give it to a player.
+    usage: /guide [player]
+    aliases: [ tutorial ]
+  commandments:
+    description: Read the laws of the god who rules this world.
+    usage: /commandments
+    aliases: [ laws ]
+  side:
+    description: Choose a side in a holy war between gods (with no god named, see the wars).
+    usage: /side [god]
+  holydays:
+    description: See the festivals, trials, hunts, raids, omens and holy wars the gods have proclaimed.
+    usage: /holydays
+    aliases: [ festivals ]
+  bonds:
+    description: See or set how the gods regard each other (allies, friends, neutral, rivals, enemies, +N, -N).
+    usage: /bonds [god] [god] [allies|friends|neutral|rivals|enemies|+N|-N]
+    permission: gptgodmc.admin
+  relics:
+    description: "The gods' forge: see relics they made, turn it on or off, give, show or unmake one."
+    usage: /relics [list|on|off|give|show|dismiss|delete|samples|forge|powers|imbue]
+    permission: gptgodmc.admin
+  godslayer:
+    description: Give the Godslayer, the one blade that can wound and kill a god.
+    usage: /godslayer [player|@a] | /godslayer ascended [player|@a] | /godslayer preview [supernova|unraveling|shattering|abyssal|random]
+    permission: gptgodmc.admin
   sudogod:
-    description: inject a directive into the god's next prompt as THE SYSTEM (operator only), forces an immediate cycle
-    usage: /sudogod <message>
+    description: (old) same as /god say
+    usage: /sudogod <directive>
+    permission: gptgodmc.admin
+  try:
+    description: (old) same as /god tool
+    usage: /try <power> <json>
+    permission: gptgodmc.admin
+  tokens:
+    description: (old) same as /god usage
+    permission: gptgodmc.admin
+  godinfo:
+    description: (old) same as /god status
+    permission: gptgodmc.admin
+
+permissions:
+  gptgodmc.admin:
+    description: Command the god
+    default: op
+    children:
+      gptgodmc.pantheon: true
+  gptgodmc.pantheon:
+    description: Create and remove gods (/god create, /god remove, the God Manager's Pantheon page)
+    default: op

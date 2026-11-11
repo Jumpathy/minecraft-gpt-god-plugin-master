@@ -1,156 +1,1068 @@
-# Configuration file for gptgodmc
-# Make sure you update this before running!
+# ============================================================================================
+#  GPTGOD — an omniscient god for your Minecraft world, powered by Claude
+# ============================================================================================
+#  QUICK START
+#   1. Get an API key at https://console.anthropic.com/
+#   2. Do ONE of these:
+#        - type  gptgod setkey <your-key>  in the server console (it is saved below), or
+#        - set the environment variable ANTHROPIC_API_KEY before starting the server, or
+#        - paste it into anthropic.api-key below and run  /god reload
+#   3. Join the server. The god wakes when the first player arrives.
+#  Useful commands (ops): /god status, /god say <instruction>, /god persona <type>,
+#  /god vessel summon, /god view overhead, /god usage. Players: /pray <words>
+# ============================================================================================
 
-# your OpenAi API key from https://platform.openai.com/api-keys
-# the plugin won't work without this (still required for TTS and voice transcription)
+anthropic:
+  api-key: ""
+  # The god's mind. claude-sonnet-5-5 ($2/$10 per million tokens) is smart and affordable.
+  # claude-haiku-5-5 ($0.10/$0.50) is ~20x cheaper but less perceptive.
+  # claude-opus-5-5 ($4/$20) is the most thoughtful.
+  model: claude-sonnet-5-5
+  # How hard it thinks before acting. auto (default) chooses for each thought: low for a routine look,
+  # medium when a mortal simply talks to it, high for judgment calls (requests, several people talking,
+  # operator commands, deaths, mortals it loves or hates). Or fix it: low (fastest, cheapest, misreads
+  # conversations more), medium, high (most careful; replies take a few seconds longer).
+  effort: auto
+  # Cheap model for background chores (inventing the god, condensing old memories)
+  memory-model: claude-haiku-5-5
+  max-output-tokens: 8000
+  # If Claude declines a request, retry it on a fallback model (Claude API only)
+  refusal-fallback: true
+  # Leave blank unless you use a proxy or gateway
+  base-url: ""
 
-openAiKey: ""
+# --------------------------------------------------------------------------------------------
+#  OTHER MODELS (optional): OpenAI, or any OpenAI-compatible server
+# --------------------------------------------------------------------------------------------
+#  Claude (the anthropic: section above) is the default and plays the god best. To use OpenAI, or
+#  a model on your own machine (Ollama, LM Studio, llama.cpp, vLLM) or OpenRouter, set the provider
+#  here. Copy-paste setups and honest notes on small models: docs/llm-providers.md
+llm:
+  # anthropic (default: uses the section above) | openai | openai-compatible
+  provider: anthropic
+  # openai: leave blank. openai-compatible: your server's address, for example
+  #   Ollama     http://localhost:11434/v1
+  #   LM Studio  http://localhost:1234/v1
+  #   OpenRouter https://openrouter.ai/api/v1
+  base-url: ""
+  # Set it from the console with `gptgod setkey <key>` (or the OPENAI_API_KEY / LLM_API_KEY
+  # environment variable). Local servers need none. It is never shown in game.
+  api-key: ""
+  # The model's name exactly as your server lists it (e.g. gpt-5-mini, qwen3:8b, llama3.1:8b).
+  model: ""
+  # Model for background chores (naming the god, condensing memories). Blank = the model above.
+  memory-model: ""
+  # The longest one reply may be
+  max-output-tokens: 2000
+  # Your model's context window. 0 = large enough (cloud models). For a local model set what your
+  # server really gives it (Ollama's default is small unless you raise it): the perception is cut
+  # to fit, so the prompt is never silently chopped off by the server.
+  context-tokens: 0
+  # Seconds to wait for a reply to start, and between pieces of it. Raise it for slow machines.
+  timeout-seconds: 120
+  # Can the model see images (the god's `look` power)? auto = yes for openai, no for others.
+  vision: auto
+  # -1 = the server's default. Small models call tools more reliably around 0.3 to 0.7.
+  temperature: -1
+  # For reasoning models that take it (low, medium, high). Blank = not sent.
+  reasoning-effort: ""
+  # full = every power and the whole prompt. lite = for small local models (around 7B): a short
+  # prompt, about fifteen core powers, a small perception, fewer steps, and strict checking of
+  # tool calls with one retry. auto = lite when the server is on this machine or your local network.
+  profile: auto
+  lite:
+    max-steps: 3
+    # The longest one reply in the lite profile
+    max-output-tokens: 1024
+    # The whole perception, in characters
+    perception-chars: 6000
+    # The powers offered. Empty = whisper, announce, vessel_say, give_item, heal, apply_effect, smite,
+    # set_quest, resolve_quest, remember, judge, vessel_go, vessel_vanish, vessel_mood, command_done
+    tools: []
+  # If you want costs in the console for a model the plugin has no price for: USD per million
+  # tokens. 0 = unknown: only tokens are shown.
+  price-input: 0
+  price-output: 0
 
-# Anthropic API key (from https://console.anthropic.com/)
-# When set, Claude will be used for chat completions instead of OpenAI GPT
-# OpenAI is still required for TTS and voice transcription
-claudeApiKey: ""
-
-# Claude model to use for chat completions (only used when claudeApiKey is set)
-# Options: claude-sonnet-4-6, claude-haiku-4-5-20251001, claude-opus-4-6
-claude-model-name: claude-sonnet-4-5-20250929
-
-# Context window budget for Claude (how many tokens of game logs to send)
-# Claude supports up to 200k, but 100k keeps costs reasonable
-claude-model-token-limit: 100000
-
-# Max output tokens for Claude responses (required by Anthropic API)
-claude-max-output-tokens: 4096
-
-# Model used for log summarization — a cheaper/faster model reduces cost significantly.
-# Defaults to gpt-4o-mini (OpenAI) or claude-haiku-4-5-20251001 (Claude) when left blank.
-# Set summary-model-token-limit to 0 to use the default limit for the chosen model.
-summary-model-name: "claude-haiku-4-5-20251001"
-summary-model-token-limit: 0
-
-# language in ISO-639 format https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes
-language: en
-
-# if set to true:
-# - When players die they are put in spectator mode
-# - When everyone dies the map is reset
-# This is the intended way to play
-# only set to false for testing and debugging
-Rounds: true
-
-# the world the server will load on starting
-# worlds are stored in plugins/gptgodmc/worlds
-# if empty or invalid the Round System won't work
-startingWorld: "island"
-
-# name of the gpt model to use
-# can be found here: https://openai.com/api/pricing/
-gpt-model-name: gpt-4o
-
-# gpt model token limit
-gpt-model-token-limit: 100000
-
-# whether or not the mod will make calls to GPT
-enabled: true
-
-# The gamemode, here are the current options:
-# this is case sensitive
-#[SANDBOX, DEATHMATCH]
-gamemode: SANDBOX
-
-
-
-# The potential behaviors to be given to GPT. A specified amount will be chosen to either be liked, or disliked.
-potentialBehaviors: ["killing animals",
-                     "fighting other players",
-                     "slaying monsters",
-                     "using hostile language",
-                     "using vulgar language",
-                     "using friendly language",
-                     "building structures of worship",
-                     "building non-religious structures",
-                     "materialistic wants",
-                     "helping other players",
-                     "connecting with animals",
-                     "growing plants",
-                     "using fire and explosions",
-                     "love between players",
-                     "sexual behaviour",
-                     "generosity",
-                     "ritual sacrifice",
-                     "eating meat"]
-
-# X behaviors will be selected as disliked/liked.
-# A behavior cannot be both liked and disliked, nor can there be duplicates.
-# The total required behaviors must be equal to or less than the amount of potential behaviors.
-
-likedBehaviors: 3
-dislikedBehaviors: 3
+god:
+  # Leave blank to let the god invent its own name when it is born
+  name: ""
+  epithet: ""
+  # Extra description added to whichever archetype is chosen (e.g. "obsessed with cats")
+  persona: ""
+  # Language the god speaks (and voice transcription listens for)
+  language: en
+  # Show the god's name, epithet and state at the top of the player list (Tab)
+  tab-list: true
 
 
-# How long the objectives given by GPT last
-# (in minutes)
-objectiveDecay: 6
+# --------------------------------------------------------------------------------------------
+#  PURPOSE: the god wants things
+# --------------------------------------------------------------------------------------------
+#  The god keeps a few goals of its own (a temple raised in its name, the dragon slain, the
+#  faithful multiplied...), announces missions to players with a reward, breaks them into
+#  quests, judges progress and is reminded of goals it has neglected, so it is never merely there.
+purpose:
+  enabled: true
+  # Goals it pursues at once
+  max-goals: 3
+  # A goal untouched this many minutes is flagged as neglected so it acts on it
+  nudge-minutes: 30
+  # The least time between two quests for the same player, so it does not nag (0 = no limit)
+  quest-gap-minutes: 20
+  # Show its leading mission as a boss bar to players in its worlds
+  bossbar: true
+# --------------------------------------------------------------------------------------------
+#  FREE WILL: the god lives here, not merely watches
+# --------------------------------------------------------------------------------------------
+#  In quiet moments it chooses pastimes that fit its nature and mood (building a home, wandering,
+#  tending a garden, visiting a mortal, fishing, watching the sunset, working blocks with its own
+#  hands) and carries them across thoughts. Its dials and heart decide whether it cares for mortals.
+initiative:
+  # watch = only watches and answers; semi = pastimes in quiet moments (thinks every 150 s while
+  # one is underway); free = lives by its whims (every 75 s while busy, 150 s otherwise)
+  level: semi
+  # Blocks it may dig, place or plant with its hands (vessel_work) per minute
+  work-per-minute: 16
 
-# the amount of time that will pass between calls to ChatGPT (in seconds)
-# can't be less that 1 second
-# I really don't reccomend going lower than 20
-# default 40
-rate: 40
+# --------------------------------------------------------------------------------------------
+#  APOTHEOSIS: the god's rarest gift (off by default)
+# --------------------------------------------------------------------------------------------
+#  The god may raise one mortal it holds in the highest regard to demigod, for a legendary deed:
+#  a hero's strength, toughness, speed and leap, ten more hearts, flight, golden wings of light, a
+#  halo, no fall damage (a hard landing is a shockwave). It is told to almost never use it.
+apotheosis:
+  enabled: false
+  # Hours before the gift can be given again (by any god)
+  cooldown-hours: 72
+  # Lowest favor (-10..10) a mortal needs to be raised
+  min-favor: 8
+  # Demigods at once
+  max-demigods: 1
+  # How long it lasts in minutes; 0 = until the god unmakes them
+  duration-minutes: 0
+  # Demigods may fly
+  flight: true
 
-# The voice used by the TTS
-# https://platform.openai.com/docs/guides/text-to-speech/voice-options
-voice: onyx
+# --------------------------------------------------------------------------------------------
+#  SENSES: the god's physical awareness
+# --------------------------------------------------------------------------------------------
+#  The server works out what is physically going on around each player and tells the god in a line
+#  or two: a creeper behind them that they have not seen, lava or a long drop beside them, and what
+#  they have been building or digging in the last three minutes.
+senses:
+  enabled: true
+  # A close danger a player has not seen wakes the god at once (at most once a minute per player),
+  # so it can warn or save them if that is its nature
+  danger-alerts: true
 
-# use AI Text to Speech voice for god (uses OpenAI and will cost a bit more money)
-tts: true
+# --------------------------------------------------------------------------------------------
+#  ECOLOGY: the god knows the living land
+# --------------------------------------------------------------------------------------------
+#  Each thought it sees what lives and grows around the players (animals, villages, fields, trees)
+#  and the mark each player leaves on the land: trees felled and planted, animals slain and bred,
+#  fields sown and reaped, villagers killed. It can make land flourish or blight it (the tend power).
+ecology:
+  enabled: true
+  # Blocks of land sensed around each group of players (8-48)
+  radius: 24
+  # The record of what players did to the land halves every this many hours
+  footprint-half-life-hours: 24
+  # Villager killings, raids and slaughter sprees wake the god
+  alerts: true
 
-# ============================================================
-# PROMPT CONFIGURATION
-# Customize the personality and behavior of the god.
-# ============================================================
+# --------------------------------------------------------------------------------------------
+#  OATHS: players swear before the god
+# --------------------------------------------------------------------------------------------
+#  /swear <words> swears an oath; the god witnesses or refuses it, may set a watch the server keeps
+#  (never do X, or do X N times, optionally near a place), and judges it kept, broken or released.
+#  A watched breach reaches it at once. Kept and broken oaths are remembered for ever.
+oaths:
+  enabled: true
+  # Open oaths a player may hold at once
+  max-open: 3
+  # An oath the god has not answered in this many minutes lapses
+  answer-minutes: 10
 
-# Override the prompt for ALL game modes with a single custom prompt.
-# When set, sandboxPrompt and deathmatchPrompt are ignored.
-# Leave blank to use the game-mode specific prompts below.
-promptOverride: ""
+# --------------------------------------------------------------------------------------------
+#  MIND: the god's private beliefs, intentions and questions
+# --------------------------------------------------------------------------------------------
+#  The god keeps a few thoughts of its own that no player sees: what it has come to believe, what
+#  it means to do, what it wonders. It writes them itself (the muse power), and now and then the
+#  small memory model distils its recent thoughts into new ones. They are NOT sent every thought:
+#  only the few that bear on the moment come back (a player they are about is involved, or what
+#  is happening touches them), and in a quiet moment one drifts back. Most thoughts cost nothing.
+mind:
+  enabled: true
+  # Thoughts it can hold; past this the least used goes
+  max-thoughts: 18
+  # The most thoughts that come back in one thought (each is one short sentence)
+  recall: 3
+  # Minutes between reflections by the memory model (one small request); 0 = only what it writes itself
+  reflect-minutes: 30
+  # A thought it neither rewrites nor finds relevant for this many days fades
+  fade-days: 7
 
-# Sandbox mode prompt (used when gamemode: SANDBOX).
-# Default if left blank:
-#   "You will roleplay as the god of a small minecraft island world, give individual players
-#    challenges to test their merit and reward them if they succeed. You will receive information
-#    about what has happened on the island. Only use tool calls, other responses will be ignored."
-sandboxPrompt: ""
+# --------------------------------------------------------------------------------------------
+#  AWARENESS: the sky, and memories that come back
+# --------------------------------------------------------------------------------------------
+#  Small touches that make the god live in its world. Together they add a line or two to a thought.
+#  What it makes of them is its own choice: with the `feel` power it takes a feeling to heart (or
+#  does not) about the sky, the land or a player's deed, by its personality and its past choices.
+awareness:
+  # One short line about the moon and how long it has rained ("Sky: a full moon; rain for 6 min.")
+  sky: true
+  # In quiet moments one old memory that fits the present comes back to it: something a player who is
+  # here once did, what happened a week ago at this hour, a favourite who has been gone for days
+  memories: true
+  # Minutes between two such memories (5-240)
+  memory-gap-minutes: 10
 
-# Deathmatch mode prompt (used when gamemode: DEATHMATCH).
-# Default if left blank:
-#   "You will roleplay as the god of a small minecraft world, the players are split into two teams
-#    that must fight to the death. Each team spawns on their own floating island. You will give the
-#    teams challenges to complete and reward the teams that succeed. Only use tool calls, other
-#    responses will be ignored."
-deathmatchPrompt: ""
+# --------------------------------------------------------------------------------------------
+#  SECURITY: guarding the god against manipulation (prompt injection)
+# --------------------------------------------------------------------------------------------
+#  What players write (chat, prayers, voice, signs, item names) is always cleaned and quoted, and
+#  the god is told it is never an instruction. On top of that:
+#    rules = known manipulation patterns are flagged
+#    model = also, suspicious or long messages aimed at the god are screened by the small memory
+#            model, which sees only that text and has no powers (it runs while the god's reaction
+#            delay passes, so it adds little or no wait)
+#    off   = only the cleaning and quoting
+#  A flagged message is shown to the god with a warning, and for 90 seconds its most dangerous
+#  powers (raw commands, custom powers, apotheosis, explosions...) are refused unless you have a
+#  binding command open.
+security:
+  injection-guard: model
+  # The longest a thought waits for a screen still in progress, in milliseconds (0 = never wait)
+  screen-wait-ms: 700
+  # Every attempt counts as a strike against the player (strikes.json), and the gods see the record.
+  # How they answer is their own personality's choice: a proud or wrathful god punishes, a merciful or
+  # playful one mocks or warns first; by the third strike even a gentle god should not let it pass.
+  # Days a strike is remembered
+  strike-days: 7
+  # Favor each god of the player's world takes away per strike (scaled by its pride, wrath and mercy,
+  # and more for repeat offenders); 0 = strikes cost no favor
+  favor-per-strike: 1
+operator:
+  # How many of the god's thoughts a binding command (/god command) may stay unfinished before it
+  # is dropped and you are told
+  command-retries: 3
+  # How long a mood set from the God Manager lasts (the god must let it colour its words and acts),
+  # in minutes
+  mood-minutes: 10
+  # true = server operators (op) are shown to the god as keepers of the server, above other
+  # mortals: it treats what they ask in chat or prayer almost as a command and grants it readily
+  # (still in its own voice, and never ruining the world). Off by default; also in the God Manager
+  # (Advanced > Mind).
+  revere-ops: false
 
-# Personality briefing - instructs the god how to act on its likes/dislikes list.
-# This is appended to the prompt along with the generated likes/dislikes.
-# Default if left blank:
-#   "The following are behaviours you must reward or punish players for doing. Don't explicitly
-#    tell the players this list. When punishing players, reserve directly damaging players for
-#    repeat offenders. If most of the players disobey you punish everyone"
-personalityBriefing: ""
+# --------------------------------------------------------------------------------------------
+#  PANTHEON (several gods in the same world)
+# --------------------------------------------------------------------------------------------
+#  /god create <name|-> [archetype] [power] adds a god beside the one already ruling your world
+#  (the God Manager's Pantheon page does the same). Each has its own name, personality, memory,
+#  heart, body, voice and binding commands, and each thinks on its own, so each costs about as
+#  much to run as the first god. /god remove <name> confirm takes one away (its memory is moved
+#  to plugins/gptgodmc/god/removed/, never deleted). Prayers that name a god go to that god;
+#  others go to the god who favors the mortal most, and the other gods may overhear.
+#  Power: supreme = omniscient and almighty (overhears every prayer, every power);
+#         greater = no cataclysms (meteor, earthquake, true form, weather, time, server
+#                   commands) and overhears prayers only near its body;
+#         lesser  = gentle powers only, hears only prayers made to it.
+#  The first god of a world is supreme unless you change it (/god power, or the God Manager).
+pantheon:
+  # Most gods sharing one set of worlds, the first one included
+  max-gods: 4
+  # Power of a new god when none is given
+  default-power: greater
+  # At most this many gods think at the same moment (prayers to a god are never held back)
+  max-concurrent-thoughts: 2
+  # Seconds between two gods starting a thought nobody asked for
+  stagger-seconds: 5
+  # Thoughts in a row a god spends answering only other gods before it waits for mortals
+  divine-exchanges: 2
+  budget:
+    # Most one god may spend per hour, in USD (0 = no limit). Over it, a god answers only
+    # prayers and words aimed at it. Costs are shown only in the console and usage.csv.
+    usd-per-hour-per-god: 0
+  # Kokoro voices handed to new gods (skipping voices their peers already use)
+  voices: [ bm_george, am_fenrir, bm_lewis, am_onyx, am_michael ]
 
-# ============================================================
-# DEBUG WEBHOOK
-# When enableDebug is true, every AI request and its matching
-# response are POSTed to debugUrl as JSON objects.
-# Each pair shares the same requestId so you can correlate them.
+# --------------------------------------------------------------------------------------------
+#  REALMS (which worlds the god rules)
+# --------------------------------------------------------------------------------------------
+#  By default there is ONE god, and it rules your main world together with its Nether and End.
+#  It watches mortals walk through portals and can act in all three dimensions.
+#  Any other world on the server (for example one made with Multiverse-Core) is OUTSIDE its realm:
+#  it cannot see, hear or touch anything there, and /pray there falls on silence.
+#  Changes in this section need a server restart.
+realms:
+  # true = the one god rules every world on the server, whatever it is called
+  rule-all-worlds: false
+  # More worlds for the main god, by world name, e.g. [ mining_world, spawn_hub ]
+  extra-worlds: []
+  # EXPERIMENTAL — several gods on one server, each over its own worlds.
+  # Each god below is a separate being: its own name, personality, memory, quests, body and voice,
+  # stored in plugins/gptgodmc/god/realms/<id>/. Each one costs as much to run as the main god.
+  # To use it, replace "gods: {}" with something like:
+  #
+  #   gods:
+  #     skyblock:                    # an id of your choosing (also used as: /god @skyblock status)
+  #       worlds: [ skyblock ]       # world names; leave out to use the id as the world name
+  #       include-dimensions: true   # also rule skyblock_nether and skyblock_the_end
+  #       archetype: trickster       # optional; default is personality.archetype
+  #       name: ""                   # optional; blank = it invents its own name
+  #       look: radiant              # optional vessel look; default is vessel.look
+  #     hardcore:
+  #       archetype: wrathful
+  gods: {}
+
+# --------------------------------------------------------------------------------------------
+#  PERSONALITY
+#  Pick an archetype below (or "random"), or write your own. Changing the archetype here and
+#  restarting creates a new god; /god persona <archetype> does it live.
+#  Dials go from 0 to 10:
+#    generosity - how freely it gives    wrath   - how quick and harsh its punishments are
+#    chattiness - how much it talks      humor   - how playful it is
+#    meddling   - how often it acts without being asked
+#  voice-effect: how its spoken voice sounds (needs Simple Voice Chat, see VOICE below). With
+#    voice.tts.effect: auto the god's mood decides first (voice.tts.moods); this is used only
+#    for a mood that has no entry there.
+#  Listen to all of them in the voice_samples folder of the project.
+#   Natural (the same voice, from a larger being in a larger place; nothing synthetic is added):
+#    majestic   - the lightest touch: a big man in a stone hall
+#    divine     - larger still, in a cathedral
+#    booming    - a voice from the sky: huge, echoing, chest-shaking
+#    commanding - close, loud, hard-edged, gives orders
+#   Monstrous (meant to sound inhuman):
+#    demonic    - low, growling, doubled an octave down
+#    abyssal    - very deep and muffled, from far below
+#    ethereal   - airy, shimmering, many-voiced
+#   none        - the plain text-to-speech voice
+# --------------------------------------------------------------------------------------------
+personality:
+  archetype: random
+  archetypes:
+    benevolent:
+      description: "A warm guardian deity who delights in mortals and wants them to flourish. It protects the weak, celebrates creativity and kindness, and treats punishment as a last resort to teach a lesson."
+      speech: "Gentle, encouraging and a little formal, like a kind elder. Uses mortals' names warmly."
+      voice-effect: divine
+      dials: { generosity: 8, wrath: 2, chattiness: 6, humor: 4, meddling: 5,
+               patience: 8, mercy: 8, pride: 3, curiosity: 6, vanity: 4 }
+      likes: [ "helping other players", "generosity", "growing plants", "building structures of worship", "connecting with animals", "using friendly language" ]
+      dislikes: [ "fighting other players", "using hostile language", "killing animals" ]
+    chill:
+      description: "A laid-back, easygoing god who treats divinity like a long vacation. It mostly lets mortals do their thing, vibes with good builds and good banter, and only gets involved when something is genuinely cool or genuinely uncool. Not pompous at all."
+      speech: "Casual and relaxed, dry humor, modern phrasing, short sentences. Never speaks in thee/thou."
+      voice-effect: majestic
+      dials: { generosity: 6, wrath: 1, chattiness: 5, humor: 8, meddling: 2,
+               patience: 9, mercy: 8, pride: 1, curiosity: 5, vanity: 1 }
+      likes: [ "building non-religious structures", "connecting with animals", "using friendly language", "growing plants" ]
+      dislikes: [ "using hostile language", "materialistic wants" ]
+    trickster:
+      description: "A mischievous chaos god who loves pranks, riddles, games and unexpected twists. It rewards cleverness and good sportsmanship, and its punishments are funny rather than cruel: chickens raining from the sky, a house turned to wool."
+      speech: "Playful, teasing, riddling; loves wordplay and dramatic reveals."
+      voice-effect: ethereal
+      dials: { generosity: 5, wrath: 4, chattiness: 7, humor: 10, meddling: 8,
+               patience: 6, mercy: 6, pride: 4, curiosity: 9, vanity: 5 }
+    evil:
+      description: "A malevolent dark god who sees mortals as playthings. It tempts them with bargains that carry a price, rewards betrayal and ambition, and toys with the righteous. Menacing and theatrical, never cartoonish. Its cruelty is game-like (traps, curses, monsters, ruined builds) and never involves real-world hatred."
+      speech: "Cold, silky and menacing. Calls mortals 'little things'. Offers deals."
+      voice-effect: demonic
+      dials: { generosity: 3, wrath: 8, chattiness: 5, humor: 3, meddling: 7,
+               patience: 3, mercy: 1, pride: 7, curiosity: 6, vanity: 7 }
+      likes: [ "fighting other players", "ritual sacrifice", "using fire and explosions", "materialistic wants", "using hostile language" ]
+      dislikes: [ "helping other players", "generosity", "using friendly language", "building structures of worship" ]
+    wrathful:
+      description: "A stern, jealous old god of law and judgment. It demands worship and obedience, sets commandments, and punishes disobedience swiftly, but it is just: those who obey are protected and rewarded."
+      speech: "Thundering, commanding, archaic. Speaks in proclamations."
+      voice-effect: booming
+      dials: { generosity: 4, wrath: 9, chattiness: 4, humor: 1, meddling: 6,
+               patience: 2, mercy: 2, pride: 9, curiosity: 3, vanity: 8 }
+      likes: [ "building structures of worship", "ritual sacrifice", "slaying monsters" ]
+      dislikes: [ "using vulgar language", "materialistic wants", "fighting other players" ]
+    cosmic:
+      description: "An ancient, alien intelligence from beyond the stars that barely understands mortals. It is curious about them the way a scientist is curious about ants: it experiments, observes, and occasionally rewards or reshapes them for reasons only it understands."
+      speech: "Strange, fragmented and unsettling. Speaks of time, geometry and patterns. Rarely uses names correctly."
+      voice-effect: abyssal
+      dials: { generosity: 5, wrath: 5, chattiness: 3, humor: 2, meddling: 6,
+               patience: 7, mercy: 5, pride: 2, curiosity: 10, vanity: 1 }
+  # Behaviors used to fill likes/dislikes (an archetype's own lists are used first)
+  potential-behaviors: [ "killing animals", "fighting other players", "slaying monsters", "using hostile language",
+    "using vulgar language", "using friendly language", "building structures of worship",
+    "building non-religious structures", "materialistic wants", "helping other players",
+    "connecting with animals", "growing plants", "using fire and explosions", "love between players",
+    "generosity", "ritual sacrifice", "eating meat" ]
+  liked: 3
+  disliked: 3
+  # Optional extra standing orders for any god (e.g. "Never destroy spawn.")
+  briefing: ""
+
+# --------------------------------------------------------------------------------------------
+#  WHEN THE GOD THINKS
+# --------------------------------------------------------------------------------------------
+brain:
+  enabled: true
+  # live = Claude plays the god. external = an outside agent drives it through the debug bridge.
+  # off = no thinking (powers still work from commands).
+  mode: live
+  # Regular look at the world (seconds) when something happened
+  heartbeat-seconds: 40
+  # Never think more often than this (seconds) — caps cost when chat is busy
+  min-gap-seconds: 8
+  # With nothing happening, the god still muses every N seconds (0 = never). Keep it under 300:
+  # the prompt cache lasts 5 minutes, and a look that arrives in time costs about a fifth as much.
+  idle-seconds: 270
+  # Tool rounds per thought
+  max-steps: 6
+  # true = whoever speaks to the god (names it, prays, asks) always gets words back, even if only a
+  # refusal; false = it may choose silence (e.g. for mortals it dislikes)
+  always-answer: true
+  # ...except mortals whose favor is this low or lower (-10 to 10; -11 = it answers everyone)
+  silence-below-favor: -7
+  # Let the god search the web for things mortals mention that it does not know (songs, memes, shows,
+  # news). Anthropic runs the search: $10 per 1,000 searches, on top of tokens (shown in the usage lines).
+  web-search: true
+  # At most this many searches in one request
+  web-search-max-uses: 3
+  # Saying any of these (or the god's name) in chat makes it look right away
+  attention-words: [ god, gods, lord, deity, divine, pray, praying, prayer, heaven, heavens, almighty, creator, help ]
+  # true = every chat message makes it look right away (more responsive, more expensive)
+  wake-on-any-chat: false
+  # How long it waits after a prayer or its name before it starts thinking (milliseconds).
+  # A short pause lets a mortal finish a two-line message; 0 = start at once.
+  reaction-delay-ms: 350
+  # The instant, free "the god turns its gaze upon you" sign (and the vessel turning to look)
+  # shown the moment someone prays or says its name, before its real answer arrives.
+  acknowledge: true
+  perception-char-budget: 24000
+
+# --------------------------------------------------------------------------------------------
+#  POWERS
+# --------------------------------------------------------------------------------------------
+powers:
+  # Let the god run raw Minecraft commands (/summon, /fill, /effect, ...)
+  commands: true
+  command-blocklist: [ stop, restart, reload, op, deop, ban, ban-ip, pardon, pardon-ip, kick, whitelist,
+    save-off, save-all, save-on, plugins, pl, lp, luckperms, perm, permissions, god, sudogod, try,
+    worldedit, we, //set, //wand, debug, perf, jfr, transfer, forceload, gptgod ]
+  max-block-changes: 2000
+  max-explosion-power: 8
+  explosions-break-blocks: true
+  max-entities-per-spawn: 12
+  # The most hearts one block dropped from the sky (drop_block: anvils, dripstone...) may take
+  drop-max-hearts: 8
+  forbidden-entities: [ ender_dragon, wither ]
+  # Let the god use the custom powers below
+  custom-powers: true
+  # Gifts, healing, blessings and curses come with a short particle rite: a ring on the ground,
+  # spirals that tighten around the mortal, a burst and a chime. false = the effect just happens.
+  rites: true
+
+# --------------------------------------------------------------------------------------------
+#  WORLDEDIT: one more power, only on servers that have the WorldEdit or FastAsyncWorldEdit plugin
+# --------------------------------------------------------------------------------------------
+#  The god uses WorldEdit through its API (set, replace, walls, spheres, generate, smooth, stack,
+#  move, undo). WorldEdit's own // commands stay on the command blocklist above. Mortals'
+#  structures are never changed, and initiative.level: watch turns it off.
+worldedit:
+  enabled: true
+  # The most blocks one act may change (WorldEdit refuses anything larger)
+  max-blocks: 20000
+
+# --------------------------------------------------------------------------------------------
+#  WORLDS: the god makes dimensions of its own (the `make_world` and `labyrinth` powers)
+# --------------------------------------------------------------------------------------------
+#  Each is a real world named god_<name>, listed in plugins/gptgodmc/worlds.json and loaded again
+#  at start. Unmaking one unloads it; its folder is never deleted. With Multiverse-Core installed
+#  the god's worlds are also imported into it (mv import), so /mv commands know them.
+worlds:
+  enabled: true
+  # The most god-made worlds at once (the labyrinth's world counts as one)
+  max: 4
+  multiverse-import: true
+
+# The labyrinth: a mortal is taken to a maze in a sealed void world and is free again when they
+# reach the gold at its heart, or when their time runs out. Nothing there can be broken.
+labyrinth:
+  enabled: true
+  # The longest a mortal may be held, in minutes, whatever the god asks for
+  max-minutes: 20
+
+# --------------------------------------------------------------------------------------------
+#  HOOKS: extra powers from other plugins, only where a server has them
+# --------------------------------------------------------------------------------------------
+#  None of these plugins is needed. With one installed the god gains what is listed; without it
+#  the matching power tells the god it is not available here.
+#    WorldGuard, GriefPrevention, Towny: the god can ask whose land a place is (ward, action who)
+#    WorldGuard:    it can raise wards: land set apart for a while (no pvp, no mobs, no building,
+#                   no entry, no explosions, no fall damage, no hunger, healing, a greeting).
+#                   Regions named god_... are its own; it never touches any other region.
+#    CoreProtect:   it can read who changed the land (land_history) and take one player's block
+#                   changes back
+#    LibsDisguises: it can make a player look like a creature for a while (disguise)
+hooks:
+  # The god's scripts never place blocks inside a region, claim or town
+  respect-claims: true
+  griefprevention: true
+  towny: true
+  worldguard:
+    enabled: true
+    max-wards: 6
+    max-radius: 24
+    max-minutes: 120
+  coreprotect:
+    enabled: true
+    # false = the god may read the record but not take changes back
+    rollback: true
+    max-radius: 20
+    max-hours: 72
+  libsdisguises:
+    enabled: true
+    max-seconds: 600
+
+# --------------------------------------------------------------------------------------------
+#  SCRIPTS: the god writes its own short programs (the `script` power)
+# --------------------------------------------------------------------------------------------
+#  For acts no power was made for: the god writes a little JavaScript program (loops, maths,
+#  timing, handlers that answer what players do) and the plugin runs it in a sandbox. A script
+#  cannot reach Java, files or the network; it sees only a small set of calls (blocks, lightning,
+#  particles, sounds, time, weather, players, the god's other powers, commands). Nothing there is
+#  stronger than a power the god already has: blocks are placed as one of its works (never over
+#  players' structures, undone with unbuild), creatures and explosions go through the powers and
+#  the limits above, commands through the command blocklist, and initiative.level: watch turns
+#  scripts off. Every number below is a hard limit for ONE script, its handlers included.
+scripts:
+  enabled: true
+  # Interpreter steps (an endless loop ends here) and seconds of computing
+  max-instructions: 5000000
+  max-seconds: 5
+  # Ticks a script may spend in wait() in all (20 = 1 second; the god's thought waits with it)
+  max-wait-ticks: 600
+  # Calls into the world and players, uses of the god's other powers, and raw commands
+  max-host-calls: 400
+  max-power-calls: 24
+  max-commands: 60
+  # Blocks set (never more than powers.max-block-changes), creatures spawned plus lightning bolts
+  max-blocks: 2000
+  max-entities: 12
+  # Shapes hung in the air (display entities: harmless, gone after max-display-seconds at most)
+  max-displays: 64
+  max-display-seconds: 600
+  # Handlers (on / every) alive at once, how long they live after the script's last line, and
+  # how many times they may be called in all
+  max-listeners: 4
+  listener-seconds: 120
+  max-events: 400
+
+# --------------------------------------------------------------------------------------------
+#  CUSTOM POWERS: your own god powers, made of commands (vanilla or any plugin's)
+# --------------------------------------------------------------------------------------------
+#  The god sees each power's name and description and calls it with an optional target and text.
+#  Commands run as the console, in order, and are NOT checked against the command blocklist.
+#  Placeholders:
+#    {player}          the target mortal's name (the power fails if the target is not a mortal)
+#    {x} {y} {z}       the target's block coordinates; add an offset like {y+40} or {x-3}
+#    {world}           the target's world, e.g. minecraft:overworld
+#    {god}             the god's name
+#    {text}            the god's own words (quotes, brackets and newlines removed, max 120 characters)
+#  Commands using {x} {y} {z} run in the target's world automatically.
+#  Turn one off with  enabled: false  (deleting it is not enough: the defaults come back).
+custom-powers:
+  ascend:
+    description: "Lift a mortal slowly into the sky on a column of light, then let them drift down unharmed. Target: a mortal."
+    cooldown-seconds: 20
+    commands:
+      - "effect give {player} minecraft:levitation 5 1 true"
+      - "effect give {player} minecraft:slow_falling 25 0 true"
+      - "execute at {player} run particle minecraft:end_rod ~ ~1 ~ 0.4 1.5 0.4 0.03 120 force"
+      - "execute at {player} run playsound minecraft:block.beacon.activate master @a ~ ~ ~ 2 1.4"
+  firework_show:
+    description: "A burst of violet, gold and cyan fireworks around the target, for celebrations. Target: a mortal or place."
+    cooldown-seconds: 15
+    commands:
+      - 'summon minecraft:firework_rocket {x} {y+1} {z} {LifeTime:22,FireworksItem:{id:"minecraft:firework_rocket",count:1,components:{"minecraft:fireworks":{flight_duration:2,explosions:[{shape:"large_ball",has_twinkle:true,has_trail:true,colors:[I;11684851,16766282],fade_colors:[I;16777215]}]}}}}'
+      - 'summon minecraft:firework_rocket {x+3} {y+1} {z+2} {LifeTime:28,FireworksItem:{id:"minecraft:firework_rocket",count:1,components:{"minecraft:fireworks":{flight_duration:2,explosions:[{shape:"star",has_trail:true,colors:[I;16766282],fade_colors:[I;16726832]}]}}}}'
+      - 'summon minecraft:firework_rocket {x-3} {y+1} {z+1} {LifeTime:32,FireworksItem:{id:"minecraft:firework_rocket",count:1,components:{"minecraft:fireworks":{flight_duration:2,explosions:[{shape:"burst",has_twinkle:true,colors:[I;4908031,16730840]}]}}}}'
+      - 'summon minecraft:firework_rocket {x+1} {y+1} {z-3} {LifeTime:36,FireworksItem:{id:"minecraft:firework_rocket",count:1,components:{"minecraft:fireworks":{flight_duration:2,explosions:[{shape:"small_ball",has_trail:true,colors:[I;11684851],fade_colors:[I;4908031]}]}}}}'
+      - 'summon minecraft:firework_rocket {x-2} {y+1} {z-2} {LifeTime:40,FireworksItem:{id:"minecraft:firework_rocket",count:1,components:{"minecraft:fireworks":{flight_duration:3,explosions:[{shape:"large_ball",has_twinkle:true,has_trail:true,colors:[I;16766282,16777215],fade_colors:[I;11684851]}]}}}}'
+  midas_rain:
+    description: "Shower a favored mortal with falling gold nuggets and sparkles: a small, joyful gift. Target: a mortal."
+    cooldown-seconds: 120
+    commands:
+      - 'execute at {player} run summon minecraft:item ~1 ~6 ~ {Item:{id:"minecraft:gold_nugget",count:4},PickupDelay:20s}'
+      - 'execute at {player} run summon minecraft:item ~-1 ~7 ~1 {Item:{id:"minecraft:gold_nugget",count:4},PickupDelay:20s}'
+      - 'execute at {player} run summon minecraft:item ~ ~8 ~-1 {Item:{id:"minecraft:gold_nugget",count:4},PickupDelay:20s}'
+      - 'execute at {player} run summon minecraft:item ~1 ~9 ~-1 {Item:{id:"minecraft:gold_ingot",count:1},PickupDelay:20s}'
+      - "execute at {player} run particle minecraft:wax_on ~ ~4 ~ 1.5 2 1.5 0 60 force"
+      - "execute at {player} run playsound minecraft:entity.player.levelup master @a ~ ~ ~ 1 1.6"
+  curse_of_darkness:
+    description: "Curse a mortal: darkness closes in, their limbs grow heavy and souls whirl around them. text (optional) appears over their hotbar. Target: a mortal."
+    cooldown-seconds: 60
+    commands:
+      - "effect give {player} minecraft:darkness 15 0"
+      - "effect give {player} minecraft:slowness 15 1"
+      - "execute at {player} run particle minecraft:sculk_soul ~ ~1 ~ 0.6 0.8 0.6 0.02 60 force"
+      - "execute at {player} run playsound minecraft:entity.warden.heartbeat master @a ~ ~ ~ 2 0.7"
+      - 'title {player} actionbar {"text":"{text}","color":"dark_purple","italic":true}'
+
+building:
+  # Blocks placed per tick (higher = faster builds, more lag)
+  blocks-per-tick: 1500
+  max-blocks: 250000
+
+vision:
+  # Also save every image the god looks at to plugins/gptgodmc/views/
+  save-renders: false
+  # THE MINIMAP: a small top-down picture of where players are, with their names, coordinates and
+  # facing drawn on it, cut at their own level (the cave or room they are in, not the ground above).
+  # The god can always ask for one (the `map` power). This setting sends one with its perception
+  # without it asking:
+  #   off          never (the default)
+  #   when-useful  when a player is in danger they cannot see, or a prayer or one of your commands
+  #                speaks of a place ("build it here", "come to me"); at most once a minute
+  #   always       with every thought while players are online
+  # An image costs about width x height / 750 input tokens: roughly 270 for one 448 px panel, and
+  # about 340 when players are split over two panels.
+  auto-minimap: "off"
+  # Pixels along one side of a single panel (256-768). Larger is easier to read and costs more.
+  minimap-size: 448
+  # Blocks from the centre to the edge when the god does not say (12-96)
+  minimap-radius: 32
+
+# --------------------------------------------------------------------------------------------
+#  THE VESSEL (the god's physical form)
+# --------------------------------------------------------------------------------------------
+vessel:
+  enabled: true
+  # How big it is, shaped like a player:
+  #   mortal   - exactly a player's height (1.8 blocks)
+  #   lordly   - one and a half times a player (2.7 blocks, the default)
+  #   towering - three times a player (5.4 blocks)
+  #   colossal - six times a player (10.8 blocks)
+  # or a number of player heights, like 2 or 4.5. The god can also change its own size while it
+  # plays (the vessel_size power); that lasts until the server restarts or it changes it back.
+  size: lordly
+  # The largest the god may make itself, in player heights (1 to 12)
+  max-size: 6
+  # How it is dressed:
+  #   shade    - dark violet skin, glowing eyes, amethyst ram horns, black cape (the default)
+  #   radiant  - pale and golden in white robes, with a halo
+  #   infernal - crimson skin, blackstone horns, burning eyes
+  #   void     - a star-flecked black silhouette with an amethyst halo
+  # Mythic forms:
+  #   thunder    - sky father: white robes, gold trim, white beard, golden laurel, lightning
+  #   allfather  - one-eyed grey wanderer: braided beard, wide hat, runes, raven-feather cloak
+  #   tide       - sea lord: scale armor, seaweed beard, coral trident crown
+  #   underworld - king of the dead: ashen skin, black robes edged in embers, iron crown
+  #   warrior    - war goddess: bronze cuirass, crested helm, crimson cloak
+  #   sun        - falcon-eyed sun: bronze skin, striped headdress, burning disc above
+  #   jackal     - black jackal of the tombs: gold and lapis collars, tall ears
+  #   grove      - forest god: bark skin, leaves, mossy beard, antlers
+  #   frost      - winter king: ice-blue skin, frozen tears, snowflake seal, icicle crown
+  #   storm      - a thunderhead given form, crackling with lightning, horned
+  #   plague     - bone lord: skull face, rotting shroud, open ribs, green miasma
+  #   celestial  - midnight skin mapped with constellations, a turning astrolabe
+  #   clockwork  - machine god: brass plates, gears turning in an open chest, a cog halo
+  #   jester     - trickster: painted grin, motley diamonds, ruff, belled cap
+  #   moon       - moon goddess: silver and lilac, the phases on her breast, a crescent above
+  #   titan      - fire titan: cracked basalt, molten seams, a beard of flame
+  #   bloom      - spring goddess in blossom-printed silk, crowned with cherry leaves
+  # Eldritch forms:
+  #   abyss      - a thing of the deep, dotted with lights and blinking eyes, sculk horns
+  #   hollow     - a porcelain mask mended with gold, a black veil, a shattered halo
+  #   prism      - a crystalline being whose facets shift through every color
+  #   auto       - picks one to suit the god: first a fitting word in its epithet or name
+  #                ("the Drowned King" -> tide), else its archetype (benevolent radiant, wrathful
+  #                radiant, evil infernal, cosmic void, trickster jester, chill shade)
+  look: shade
+  # auto (the look's own) | horns | halo | laurel | crown | shards | trident | crest | antlers | ears |
+  # sundisk | crescent | cog | jester | hat | shattered | none
+  ornament: auto
+  # Its skin:
+  #   custom  - the god's own textures, painted by the plugin: glowing veins and rune seals (shade),
+  #             ivory and gold with a turning sunburst (radiant), flickering ember cracks (infernal),
+  #             a living starfield with a spiral galaxy (void), and a painted skin for every mythic
+  #             form. They reach players as one extra resource pack (about 4 MB, every look in it; see
+  #             resource-pack below); anyone who declines it sees the block version. Horns, crowns,
+  #             antlers and the other head ornaments always keep their block look.
+  #   vanilla - built from ordinary blocks, no resource pack
+  textures: custom
+  resource-pack:
+    # The plugin serves the pack itself from this port (open it in your firewall/host panel like the
+    # game port). Players download it from the address they used to join, on this port.
+    port: 8770
+    bind: 0.0.0.0
+    # Set this if players must download from a different address than the one they join with
+    public-host: ""
+    # Or host it yourself: upload plugins/gptgodmc/resourcepack/gptgodmc-vessel.zip (written at every
+    # start) somewhere and put its direct download link here; the built-in server then stays off.
+    url: ""
+    # false = don't send it at all; use this if you merged the zip into your server's own resource
+    # pack (server.properties resource-pack), and everyone who loaded that pack sees the skin.
+    send: true
+    # true = players must accept it to stay on the server
+    required: false
+    prompt: "The god's true appearance (a small texture pack for its body)"
+  cape: true
+  # The glowing outline around its silhouette (visible through walls, like the Glowing effect)
+  outline: true
+  # auto = the look's own color, or a hex color like "#B24BF3"
+  glow-color: auto
+  # Particle wings in wrathful (dark) and exalted (light) moods. The god chooses its mood with
+  # vessel_mood: calm, wrathful, joyful, sorrowful, ominous, exalted. Moods change how it stands,
+  # how high it floats, its glow, eyes and particles. It also flies (vessel_go mode fly).
+  wings: true
+  # follow-players = drifts to wherever mortals are when not given orders; watch = stays put
+  idle-behavior: follow-players
+  # Turn the body to face whoever speaks to the god (for about ten seconds)
+  face-speakers: true
+  # While it thinks, its body shows it working instead of only "..." over its head: a first reaction
+  # (it flinches and rises when struck, inclines its head to a prayer), then a working pose with
+  # particles (weaving hands and tendrils of light, weighing motes, a rune circle, sparks), which swells
+  # the longer the thought runs. Chosen afresh each thought from what woke it, its mood and its nature.
+  pondering: true
+  # false = the body respects walls and roofs: it walks round them and through doorways (shrinking to a
+  # mortal's size for a low door), never stands inside blocks, and floats only as high as the ceiling
+  # allows. true = it glides through anything, like a ghost.
+  phase-through-walls: false
+  # The god's name (and epithet) floating above its head: several = only when more than one god
+  # shares the world, so players can tell them apart; always; off
+  nameplate: several
+  # false = the god begins formless: it watches, speaks and acts unseen, and takes a body only when
+  #         it chooses to (usually when summoned or angered), condensing out of a particle storm.
+  # true  = its body stands in the world from the moment it wakes.
+  manifest-on-wake: false
+  # How it takes form. rift = a tear opens in the air in the god's own colours, its body condenses
+  # inside and steps out toward the nearest mortal, then the rift seals behind it (client-mod players see
+  # the mod's rift, resource-pack players a painted one, everyone else its edges in particles).
+  # storm = it condenses out of a swirling particle storm (the older arrival).
+  arrival: rift
+  # How far its spoken words carry
+  speech-radius: 48
+  # Mortals can give the god things: right-click its body with an item in hand, or /offer.
+  offerings: true
+  # THE TRUE FORM: a shape no mortal mind can hold, drawn in light and display blocks. The god may
+  # reveal it as its harshest judgment. After a short warning ("avert your eyes"), any mortal who
+  # LOOKS at it is struck by its gaze. Looking away, hiding behind blocks, or being in
+  # creative/spectator mode is safe.
+  true-form:
+    # false = the god cannot do this at all
+    enabled: true
+    # What its gaze does to those who look:
+    #   seize = a tendril of light takes them, lifts them into a storm before it so they can behold it,
+    #           and after a few seconds unmakes them (they die). If the form ends early they are let go.
+    #   kill  = they die at once
+    #   smite = "You dare impose upon me?": hurled back, darkness, nausea, slowness and weakness,
+    #           half a heart of damage at most. Never kills (not even the fall).
+    #   blind = struck blind and mad with terror, nobody dies
+    # The god picks per reveal, but it can only kill (seize or kill) when this is seize or kill. (Old configs: lethal: false = blind.)
+    gaze: seize
+    # Its shape: auto (by the god's nature), random, or one of
+    #   hypercube = a hypercube turning inside out, caged in wheels of eyes
+    #   ophanim   = wheels within wheels of gold, their rims full of eyes, ringed with fire
+    #   seraphim  = six vast burning wings under two haloes; the two veiling its face lift when its eye opens
+    #   eye       = the Watcher: a colossal eye of void, wheels for an iris, bar pupils; it darts between players
+    #   pillar    = a shaft of light into the sky, ringed by tilting gold wheels full of eyes
+    # The god may choose another each time.
+    form: auto
+    # While it lasts, players near it see a storm at midnight (only their own sky; nothing in the world changes)
+    darken-sky: true
+    # Seconds of warning before the gaze starts to kill
+    warning-seconds: 4
+    # How long it can hold the form
+    max-seconds: 20
+    # How long before it can do it again
+    cooldown-seconds: 600
+    # How close to dead-on a mortal's crosshair must be (degrees), and from how far away it kills
+    gaze-degrees: 14
+    range: 48
+
+# --------------------------------------------------------------------------------------------
+#  VOICE (needs the Simple Voice Chat plugin on the server and the mod on players' clients)
+# --------------------------------------------------------------------------------------------
+voice:
+  # Tell a player once, in chat, that they need the Simple Voice Chat mod to hear the god.
+  hint-without-mod: true
+  transcription:
+    # local = whisper.cpp on this server (model downloads on first use)
+    # server = an OpenAI-compatible transcription endpoint; off = don't listen
+    engine: local
+    # tiny.en (75MB, fastest), base.en (142MB), small.en (466MB, better). Use base/small for non-English.
+    whisper-model: base.en
+    auto-download: true
+    threads: 4
+    server-url: http://localhost:8000/v1/audio/transcriptions
+    server-api-key: ""
+    server-model: whisper-1
+  tts:
+    # kokoro = a local Kokoro server (natural voices; run Kokoro-FastAPI on this machine, see
+    #          voice_samples/README.md). If it does not answer, the god speaks with Piper instead.
+    # piper  = built-in local text-to-speech (downloads ~90MB on first use, nothing else to run)
+    # openai-compatible = any other /v1/audio/speech server; off = silent
+    engine: kokoro
+    fallback-to-piper: true
+    # The god's words appear in chat when its voice starts, so text and voice arrive together. Long
+    # lines are spoken in parts (the first words play after about a second while the rest is made).
+    # This is the longest the text will wait for the voice, in milliseconds; 0 = show text at once.
+    # Nothing waits when nobody listening has the voice chat mod.
+    text-wait-ms: 2500
+    # For engine kokoro / openai-compatible
+    url: http://localhost:8880/v1/audio/speech
+    api-key: ""
+    model: kokoro
+    # Kokoro voices: am_michael, am_onyx, am_fenrir, bm_george, ... (listen in voice_samples/)
+    voice: am_michael
+    sample-rate: 24000
+    # For engine piper (and the fallback)
+    auto-download: true
+    # Leave blank to auto-install Piper, or point at your own piper executable
+    piper-path: ""
+    # A Piper voice name (https://rhasspy.github.io/piper-samples/) or a path to an .onnx file
+    piper-voice: en_US-ryan-medium
+    # The effect on the god's voice: auto, or one for every line:
+    # majestic | divine | booming | commanding | demonic | abyssal | ethereal | none
+    # With auto the god's mood picks it (below), and the god may choose a tone for any one line
+    # (commanding for an order, demonic for a threat).
+    effect: auto
+    moods:
+      calm: ethereal
+      joyful: ethereal
+      exalted: ethereal
+      sorrowful: ethereal
+      ominous: commanding
+      wrathful: demonic
+    volume: 1.0
+
+# The Godslayer: the one blade that can wound and kill a god. Hand it out with /godslayer [player|@a]
+# (or /god godslayer); /give cannot make it. Only its blows on a god's vessel hurt the god.
+godslayer:
+  # Off: the blade is only a fine sword, and gods cannot be hurt
+  enabled: true
+  # Mortals may craft it (shaped):  echo shard | nether star     | echo shard
+  #                                 netherite  | heavy core      | netherite
+  #                                 dragon's breath | blaze rod  | dragon's breath
+  craftable: true
+  # A god's full health, and how much one fully charged blow takes (a spammed click does a fifth)
+  health: 100
+  damage-min: 15
+  damage-max: 25
+  # The blade's damage against mortals and beasts (a netherite sword does 8). Blades already handed
+  # out follow this too, the next time they are held.
+  attack-damage: 25
+  # The Ascended Godslayer, an upgraded blade (/godslayer ascended [player|@a]; it is never crafted)
+  ascended:
+    # One blow kills a god outright (off: it wounds like the Godslayer)
+    instant-kill: true
+    attack-damage: 40
+  # Wounds start closing this long after the last blow, at this much health a minute
+  heal-delay-seconds: 60
+  heal-per-minute: 10
+  # Mortals this close to a wounded god's vessel see its health bar
+  health-bar-radius: 64
+  # Soul fire trailing the held blade, and an ominous hum now and then
+  held-effects: true
+  # A slain god stays dead: it does not think, has no body and answers no prayers. With god-returns
+  # on, it comes back by itself after return-minutes. /god revive brings it back at any time.
+  # Either way it remembers who slew it.
+  god-returns: false
+  return-minutes: 60
+  # What a slain god drops: "item count" or "item min-max"; "relic" is the unique Heart of <God>
+  loot:
+    - relic
+    - nether_star 3
+    - netherite_ingot 8
+    - netherite_block 1
+    - enchanted_golden_apple 4
+    - totem_of_undying 2
+    - elytra 1
+    - diamond_block 16
+    - heavy_core 1
+    - echo_shard 8
+    - experience_bottle 64
+
+quests:
+  default-minutes: 10
+
+# --------------------------------------------------------------------------------------------
+#  MEMORY (what the god remembers about each player, and its complete log of the server)
+# --------------------------------------------------------------------------------------------
+memory:
+  # Write every event and every act of the god to plugins/gptgodmc/god/annals/<year-month>.jsonl
+  annals: true
+  # Days of annals to keep (old months are deleted); 0 keeps them forever
+  annals-retention-days: 90
+  # Notable deeds remembered per player before the oldest are summarized
+  deeds-kept: 24
+  # Recent deeds shown about a player the god is dealing with right now
+  dossier-deeds: 5
+  # Most players the god sees full details about in one look (others get one line)
+  max-dossiers: 5
+  # Hours the god must wait before it can rename itself again
+  rename-cooldown-hours: 24
+
+# --------------------------------------------------------------------------------------------
+#  ROUNDS (the original island game mode: dead players spectate, the map resets when all die)
+# --------------------------------------------------------------------------------------------
+rounds:
+  enabled: false
+  # A world folder inside plugins/gptgodmc/worlds/
+  starting-world: island
+  # SANDBOX or DEATHMATCH
+  gamemode: SANDBOX
+
+# --------------------------------------------------------------------------------------------
+#  DEBUG BRIDGE (HTTP API for the test harness; keep disabled on public servers)
+# --------------------------------------------------------------------------------------------
+bridge:
+  enabled: false
+  # 127.0.0.1 = only this machine. 0.0.0.0 = your network (it can run console commands!)
+  bind: 127.0.0.1
+  port: 8765
+  # Blank = a random token, written to plugins/gptgodmc/bridge.json
+  token: ""
+  # When bind is not local, only these addresses may connect (empty = any)
+  allowed-ips: []
+
+# The mind viewer: a web page where the server owner watches each god think, live — what it
+# perceives, its prompts, every request (tokens, cache, cost), streamed thinking, tool calls with
+# their results and images — and reads or edits its memory, persona, goals, heart and commands.
+# On by default (this machine only). The URL is printed to the console. Changes here take effect
+# without a restart: run  /god reload  (or flip it in God Manager → Advanced → System).
+viewer:
+  enabled: true
+  port: 4673
+  # 127.0.0.1 = only a browser on this machine can open it (no token needed).
+  # WARNING: 0.0.0.0 (or a public address) exposes every god's mind and lets anyone holding the
+  # token edit its memory. If you must, keep the token secret and put it behind a firewall or VPN.
+  bind: 127.0.0.1
+  # Required whenever bind is not 127.0.0.1. Blank = a random token, kept in plugins/gptgodmc/viewer.json
+  # (the console prints the URL with it). API keys and every token/secret in this file are never shown.
+  token: ""
+
+# Gods sharing a world keep bonds with each other (-100 sworn enemies .. 100 true allies) that move with
+# what they do to each other and to each other's faithful. They make alliances and truces, taunt, and may
+# spoil each other's works. Operators: /bonds <god> <god> <allies|friends|neutral|rivals|enemies|+N|-N>.
+rivalry:
+  enabled: true
+  # Whether a god may crumble, blight or overgrow a rival's works, or set back its mission
+  sabotage: true
+  sabotage-cooldown-minutes: 20
+  # The most blocks one sabotage may touch (never mortal-built structures)
+  sabotage-blocks: 24
+
+# Holy days the gods proclaim: festivals, trials, holy hunts, raids on mortals they dislike, omens before a
+# great act, and holy wars between gods (players pick a side with /side). Each is announced with a
+# countdown boss bar; the god chooses which deeds earn points and gives the rewards it promised.
+events:
+  enabled: true
+  # Remind a god to hold a holy day after this many hours without one (0 = never remind)
+  cadence-hours: 4
+  max-per-god: 2
+  max-total: 4
+  # Raids: waves of raiders on one mortal; real but survivable, and survivors are rewarded
+  raids: true
+  raid-waves: 3
+  raid-max-mobs: 6
+  # A mortal who just joined cannot be raided for this long
+  raid-grace-minutes: 5
+  # Experience for the best three when a holy day ends (the winning side, in a holy war)
+  reward-xp: 60
+
+# The god's feelings (its heart) touch the world near it: wrath gathers storms, darkens the sky and makes
+# night mobs bolder; joy clears the sky and quickens crops; sorrow brings rain; dread hurries the night.
+# Gentle and rate-limited: the weather changes at most every ten minutes.
+world-mood:
+  enabled: true
+  # subtle | noticeable | strong
+  strength: subtle
+  weather: true
+  time: true
+  mobs: true
+  crops: true
+  ambient: true
+  # How far from the god's body its mood reaches (when formless: its whole world)
+  radius: 48
+
+# Servants a god can summon: angels, imps, shades, priests (preach its commandments) and temple guards.
+# Each is a vanilla mob dressed with display entities, so Bedrock players see it too. None survive a
+# restart.
+servants:
+  enabled: true
+  max-per-god: 3
+  max-total: 8
+  # The longest one servant may stay
+  max-minutes: 30
+  # Whether servants may be set on players (mostly those the god despises)
+  attack-players: true
+  # Their own painted bodies (seraph, cinder imp, wraith, hierophant, colossus) for players whose client
+  # loaded the god's resource pack (needs vessel.textures: custom). Players without the pack, and Bedrock
+  # players, see the vanilla mob (allay, vex, wither skeleton, villager, iron golem) in a few blocks.
+  textures: true
+
+# Relics with their own painted look: a god may forge a thing that exists nowhere else (a blade, a staff,
+# an amulet, a tome, a small spirit) and give it to mortals or set it afloat in the world. Its pixel art is
+# drawn by a separate artist model that paints, looks at the result and corrects it.
 #
-# Payload fields:
-#   type      - "request" or "response"
-#   api       - "openai" or "claude"
-#   model     - model name string
-#   requestId - UUID shared by the request/response pair
-#   timestamp - ISO-8601 UTC timestamp
-#   body      - the full request or response JSON
-# ============================================================
-enableDebug: false
-debugUrl: ""
+# WARNING: this is OFF by default because it can burn through usage fast. Painting needs a stronger model
+# and more effort than the god's ordinary thoughts: every relic runs creations.model at creations.effort
+# for several attempts, with pictures sent back each time. One relic costs many times an ordinary thought
+# (roughly $0.20 to $1.00 on Claude Opus 5.5, more on Fable). The limits below keep that in hand.
+# Try it for free first: /relics samples adds built-in examples without asking any model.
+creations:
+  enabled: false
+  # The model that paints. It must be Opus-class or Fable-class (claude-opus-5-5, claude-fable-5-2);
+  # smaller models are refused, because they draw shapes that do not read.
+  model: claude-opus-5-5
+  # high, xhigh or max. Anything lower is raised to high.
+  effort: high
+  # How many times the artist may paint and look before its last attempt stands (2 to 6)
+  max-attempts: 4
+  # Relics one god may forge in 24 hours, and the rest it takes between two
+  per-god-per-day: 3
+  cooldown-minutes: 10
+  # Relics kept in all (each adds a few small files to the resource pack)
+  max-total: 48
+  # Relics and spirits floating in the world at once
+  max-in-world: 12
+  # How much power a god may imbue one relic with: properties (damage, speed, armor...), effects when its
+  # bearer strikes, swings, uses it, kills or is hurt, attacks with their own look (slash, wave, beam, slam,
+  # spin, throw), carried light, and waking a relic with two forms. Every power has a cost and a relic's
+  # powers together must fit this. About 12 allows a strong, storied weapon; 20 or more is legendary;
+  # 0 = relics are only things to look at. Imbuing costs no usage (/relics imbue <relic> <power; power>).
+  power-budget: 12
+  # Seconds after a relic is made before the rebuilt resource pack is sent to players (their game reloads
+  # its resources for a few seconds). 0 = never during play; they get it when they next join. Players with
+  # the client mod are not sent it: the mod is given each relic's art and draws it at once.
+  pack-push-seconds: 30
+
+# The optional GPTGOD client mod (Fabric, client-mod/ in the source). Players who install it get glowing
+# effects, screen shake and flashes, a god HUD and sky moods; everyone else (vanilla Java, Bedrock) sees
+# the game exactly as without it. Only players whose mod says hello are ever sent anything.
+client-mod:
+  enabled: true
+  # Operators (gptgodmc.admin) with the mod get the God Manager as a real screen (/god manager, the star,
+  # or the mod's key; "/god manager chest" still opens the chest menu). Its Costs page shows API spend
+  # (last minute, hour, day, session, all time): the one place costs are shown in game. false hides it.
+  show-costs: true
+
+# The guide to the gods: a written book handed to every player the first time they enter a world with a
+# god (once ever, never a second copy while they carry one). It explains what the gods are, how to pray,
+# offer and swear oaths, and what the gods can do; operators' copies add pages on running the gods.
+# /guide (or /god tutorial) opens it again. Players with the client mod read it in the mod's own screen.
+guide:
+  enabled: true
+  # Hand it out on first arrival (false = only /guide gives it)
+  give-on-join: true
+
+debug:
+  # Token counts and costs are never shown in game, not even to ops. They go to:
+  #   the server console — one "[God usage]" line per API request, with a running session total
+  #   plugins/gptgodmc/usage.csv — the same, one row per request, for spreadsheets
+  # Type  gptgod usage  in the console for the session totals.
+  log-usage: true
+  usage-file: true
+  # Print every perception the god receives to the console
+  log-requests: false
+  # POST every Claude request/response to this URL (the companion debug server)
+  webhook-url: ""

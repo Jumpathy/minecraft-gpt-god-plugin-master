@@ -5,7 +5,6 @@ import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import net.bigyous.gptgodmc.GPT.Moderation;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 
 public class RenameItemLoggable extends BaseLoggable implements UserInputLoggable{
@@ -35,7 +34,7 @@ public class RenameItemLoggable extends BaseLoggable implements UserInputLoggabl
     public String getLog() {
         if(!isValid) return null;
 
-        return String.format("%s renamed their %s to \"%s\"", player, item, newName);
+        return String.format("%s renamed their %s to \"%s\"", player, item, net.bigyous.gptgodmc.god.Guard.clean(newName));
     }
 
     // @Override

@@ -1,16 +1,11 @@
 package net.bigyous.gptgodmc.utils;
 
-import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.time.Instant;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -19,51 +14,42 @@ import com.google.gson.JsonParser;
 
 import net.bigyous.gptgodmc.GPTGOD;
 
-public class DebugWebhook {
-    private static final ExecutorService pool = Executors.newCachedThreadPool();
-    private static final Gson gson = new Gson();
+/**
+ * Optional: POSTs every Claude request and response to debug.webhook-url (for the companion
+ * debug server). Each pair shares a requestId.
+ */
+public final class DebugWebhook {
+    private static final Gson GSON = new Gson();
+    private static final HttpClient HTTP = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
 
-    /**
-     * Fire-and-forget POST to the configured debug URL.
-     *
-     * @param type      "request" or "response"
-     * @param api       "openai" or "claude"
-     * @param model     model name string
-     * @param requestId UUID shared by the matching request/response pair
-     * @param bodyJson  raw JSON string of the request or response body
-     */
+    private DebugWebhook() {
+    }
+
     public static void send(String type, String api, String model, String requestId, String bodyJson) {
-        JavaPlugin plugin = JavaPlugin.getPlugin(GPTGOD.class);
-        if (!plugin.getConfig().getBoolean("enableDebug", false)) return;
-        String url = plugin.getConfig().getString("debugUrl", "");
+        String url = GPTGOD.get().getConfig().getString("debug.webhook-url", "");
         if (url == null || url.isBlank()) return;
-
-        pool.execute(() -> {
-            try {
-                JsonObject payload = new JsonObject();
-                payload.addProperty("type", type);
-                payload.addProperty("api", api);
-                payload.addProperty("model", model);
-                payload.addProperty("requestId", requestId);
-                payload.addProperty("timestamp", Instant.now().toString());
-
-                // Embed body as a real JSON value so the receiver doesn't need to double-parse
-                try {
-                    JsonElement body = JsonParser.parseString(bodyJson);
-                    payload.add("body", body);
-                } catch (Exception e) {
-                    payload.addProperty("body", bodyJson);
-                }
-
-                CloseableHttpClient client = HttpClientBuilder.create().build();
-                HttpPost post = new HttpPost(url);
-                post.setHeader("Content-Type", "application/json");
-                post.setEntity(new StringEntity(gson.toJson(payload), ContentType.APPLICATION_JSON));
-                client.execute(post);
-                client.close();
-            } catch (IOException e) {
-                GPTGOD.LOGGER.warn("Failed to send debug webhook: " + e.getMessage());
-            }
-        });
+        JsonObject payload = new JsonObject();
+        payload.addProperty("type", type);
+        payload.addProperty("api", api);
+        payload.addProperty("model", model);
+        payload.addProperty("requestId", requestId);
+        payload.addProperty("timestamp", Instant.now().toString());
+        try {
+            JsonElement body = JsonParser.parseString(bodyJson);
+            payload.add("body", body);
+        } catch (RuntimeException e) {
+            payload.addProperty("body", bodyJson);
+        }
+        try {
+            HttpRequest req = HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofSeconds(10))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(GSON.toJson(payload))).build();
+            HTTP.sendAsync(req, HttpResponse.BodyHandlers.discarding()).exceptionally(e -> {
+                GPTGOD.LOGGER.debug("Debug webhook failed: " + e.getMessage());
+                return null;
+            });
+        } catch (RuntimeException e) {
+            GPTGOD.LOGGER.debug("Debug webhook failed: " + e.getMessage());
+        }
     }
 }

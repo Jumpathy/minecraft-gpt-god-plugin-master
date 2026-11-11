@@ -1,7 +1,6 @@
 package net.bigyous.gptgodmc.loggables;
 import org.bukkit.event.block.SignChangeEvent;
 
-import net.bigyous.gptgodmc.GPT.Moderation;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 public class WriteOnSignLoggable extends BaseLoggable implements UserInputLoggable {
@@ -22,7 +21,7 @@ public class WriteOnSignLoggable extends BaseLoggable implements UserInputLoggab
 
     @Override
     public String getLog() {
-        return String.format("%s wrote %son a sign", playerName, text);
+        return String.format("%s wrote %son a sign", playerName, text == null ? "" : net.bigyous.gptgodmc.god.Guard.clean(text) + " ");
     }
 
     @Override

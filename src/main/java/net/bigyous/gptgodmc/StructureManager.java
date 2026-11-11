@@ -45,7 +45,7 @@ public class StructureManager implements Listener {
         String structure = getStructureThatContains(event.getBlock().getLocation());
         if (structure != null)
         {
-            EventLogger.addLoggable(new GenericEventLoggable(structure + " is on fire!"));
+            EventLogger.addLoggable(event.getBlock().getWorld(), structure + " is on fire!");
         }
     }
 
@@ -102,7 +102,7 @@ public class StructureManager implements Listener {
         structures = new ConcurrentHashMap<String,Structure>();
     }
 
-    private static String getStructureThatContains(Location block){
+    public static String getStructureThatContains(Location block){
         for(String key: structures.keySet()){
             Structure structure = structures.get(key);
             if(structure.containsBlock(block)){
@@ -123,11 +123,11 @@ public class StructureManager implements Listener {
     }
 
     public static String getClosestStructureToLocation(Location location){
-        if(!location.getWorld().getName().equals(WorldManager.getCurrentWorld().getName())) return "In a different dimension";
         if(getStructures().isEmpty()) return "";
         int distance = Integer.MAX_VALUE;
         String closest = "";
         for(String key : getStructures()){
+            if(!sameWorld(location, structures.get(key))) continue;
             int temp = Math.toIntExact(Math.round(location.distance(structures.get(key).getLocation())));
             if(temp< distance){
                 distance = temp;
@@ -146,11 +146,11 @@ public class StructureManager implements Listener {
     }
 
     public static StructureProximityData getStructureProximityData(Location location){
-        if(!location.getWorld().getName().equals(WorldManager.getCurrentWorld().getName())) return null;
         if(getStructures().isEmpty()) return null;
         int distance = Integer.MAX_VALUE;
         String closest = "";
         for(String key : getStructures()){
+            if(!sameWorld(location, structures.get(key))) continue;
             int temp = Math.toIntExact(Math.round(location.distance(structures.get(key).getLocation())));
             if(temp< distance){
                 distance = temp;
@@ -163,6 +163,11 @@ public class StructureManager implements Listener {
         else{
             return null;
         }
+    }
+
+    private static boolean sameWorld(Location location, Structure structure){
+        return structure != null && location.getWorld() != null
+                && location.getWorld().equals(structure.getLocation().getWorld());
     }
 
     public static boolean hasStructure(String key){

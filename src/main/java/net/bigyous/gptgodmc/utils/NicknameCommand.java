@@ -24,10 +24,14 @@ public class NicknameCommand implements CommandExecutor {
         }
 
         Player player = (Player) sender;
-
-        player.playerListName(player.name().append(Component.text(" - " + args[0]).color(NamedTextColor.YELLOW)));
+        if (args.length == 0) {
+            player.sendMessage(Component.text("Usage: /nickname <name>").color(NamedTextColor.YELLOW));
+            return true;
+        }
 
         NICK_NAMES.put(player.getUniqueId(), args[0]);
+        // Titles.apply rebuilds the tab-list name with the nickname, keeping any title the god bestowed.
+        net.bigyous.gptgodmc.god.Titles.apply(player);
 
         return true;
     }

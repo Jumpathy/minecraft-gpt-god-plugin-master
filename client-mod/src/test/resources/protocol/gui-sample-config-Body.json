@@ -1,0 +1,209 @@
+{
+  "t": "gui_data",
+  "part": "config",
+  "tab": "Body",
+  "options": [
+    {
+      "key": "vessel.enabled",
+      "label": "Body",
+      "type": "bool",
+      "fallback": "true",
+      "help": "Its vessel may walk the world.",
+      "value": "true"
+    },
+    {
+      "key": "vessel.manifest-on-wake",
+      "label": "Body on waking",
+      "type": "bool",
+      "fallback": "false",
+      "help": "It takes form by itself when mortals arrive.",
+      "value": "false"
+    },
+    {
+      "key": "vessel.offerings",
+      "label": "Offerings",
+      "type": "bool",
+      "fallback": "true",
+      "help": "Sneak + right-click the vessel with an item to offer it.",
+      "value": "true"
+    },
+    {
+      "key": "vessel.nameplate",
+      "label": "Name above head",
+      "type": "choice",
+      "choices": [
+        "several",
+        "always",
+        "off"
+      ],
+      "fallback": "several",
+      "help": "several: only when more than one god shares the world. always or off.",
+      "value": "several"
+    },
+    {
+      "key": "vessel.phase-through-walls",
+      "label": "Pass through walls",
+      "type": "bool",
+      "fallback": "false",
+      "help": "On: its body glides through walls like a ghost. Off: it walks round them and through doors.",
+      "value": "false"
+    },
+    {
+      "key": "vessel.face-speakers",
+      "label": "Face whoever speaks",
+      "type": "bool",
+      "fallback": "true",
+      "help": "Its body turns toward a mortal who speaks to it.",
+      "value": "true"
+    },
+    {
+      "key": "vessel.wings",
+      "label": "Wings",
+      "type": "bool",
+      "fallback": "true",
+      "help": "Particle wings in exalted moods and flight.",
+      "value": "true"
+    },
+    {
+      "key": "vessel.cape",
+      "label": "Cape",
+      "type": "bool",
+      "fallback": "true",
+      "help": "A cape that sways as it moves.",
+      "value": "true"
+    },
+    {
+      "key": "vessel.outline",
+      "label": "Outline",
+      "type": "bool",
+      "fallback": "true",
+      "help": "A glowing outline around it.",
+      "value": "true"
+    },
+    {
+      "key": "vessel.max-size",
+      "label": "Largest size",
+      "type": "double",
+      "min": 1,
+      "max": 6,
+      "step": 0.5,
+      "fallback": "6.0",
+      "unit": "x",
+      "help": "How large it may grow, in player heights (1, 1.5, 3, 6).",
+      "value": "6.0"
+    },
+    {
+      "key": "vessel.speech-radius",
+      "label": "Voice reach",
+      "type": "int",
+      "min": 8,
+      "max": 128,
+      "step": 8,
+      "fallback": "48",
+      "unit": "blocks",
+      "help": "How far its spoken words carry.",
+      "value": "48"
+    },
+    {
+      "key": "vessel.idle-behavior",
+      "label": "When idle",
+      "type": "choice",
+      "choices": [
+        "follow-players",
+        "watch"
+      ],
+      "fallback": "follow-players",
+      "help": "follow-players: drifts to where mortals are. watch: stays put.",
+      "value": "follow-players"
+    },
+    {
+      "key": "vessel.true-form.enabled",
+      "label": "True form",
+      "type": "bool",
+      "fallback": "true",
+      "help": "It may reveal its true form.",
+      "value": "true"
+    },
+    {
+      "key": "vessel.true-form.gaze",
+      "label": "True form gaze",
+      "type": "choice",
+      "choices": [
+        "seize",
+        "kill",
+        "smite",
+        "blind"
+      ],
+      "fallback": "seize",
+      "help": "seize: lifted, then unmade. kill: at once. smite: never kills. blind.",
+      "value": "seize"
+    },
+    {
+      "key": "vessel.true-form.form",
+      "label": "True form shape",
+      "type": "choice",
+      "choices": [
+        "auto",
+        "random",
+        "ophanim",
+        "seraphim",
+        "eye",
+        "pillar",
+        "hypercube"
+      ],
+      "fallback": "auto",
+      "help": "auto: by its nature. Wheels, wings, one eye, a pillar of eyes.",
+      "value": "auto"
+    },
+    {
+      "key": "vessel.true-form.cooldown-seconds",
+      "label": "True form cooldown",
+      "type": "int",
+      "min": 0,
+      "max": 7200,
+      "step": 60,
+      "fallback": "600",
+      "unit": "s",
+      "help": "Time between two revelations.",
+      "value": "600"
+    },
+    {
+      "key": "vessel.true-form.max-seconds",
+      "label": "True form length",
+      "type": "int",
+      "min": 5,
+      "max": 60,
+      "step": 1,
+      "fallback": "20",
+      "unit": "s",
+      "help": "How long the true form lasts at most.",
+      "value": "20"
+    },
+    {
+      "key": "vessel.size",
+      "label": "Default size",
+      "type": "choice",
+      "choices": [
+        "mortal",
+        "lordly",
+        "towering",
+        "colossal"
+      ],
+      "fallback": "lordly",
+      "help": "How large its body is unless it chooses (mortal 1, lordly 1.5, towering 3, colossal 6).",
+      "value": "lordly"
+    },
+    {
+      "key": "vessel.textures",
+      "label": "Body textures",
+      "type": "choice",
+      "choices": [
+        "custom",
+        "vanilla"
+      ],
+      "fallback": "custom",
+      "help": "custom: its own painted skins (resource pack). vanilla: plain blocks.",
+      "value": "custom"
+    }
+  ]
+}

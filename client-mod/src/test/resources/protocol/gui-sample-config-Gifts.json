@@ -1,0 +1,212 @@
+{
+  "t": "gui_data",
+  "part": "config",
+  "tab": "Gifts",
+  "options": [
+    {
+      "key": "godslayer.enabled",
+      "label": "Godslayer",
+      "type": "bool",
+      "fallback": "true",
+      "help": "The one blade that can wound and kill a god. Off: gods cannot be hurt.",
+      "value": "true"
+    },
+    {
+      "key": "godslayer.craftable",
+      "label": "Godslayer recipe",
+      "type": "bool",
+      "fallback": "true",
+      "help": "Mortals may craft it from a nether star, a heavy core and more.",
+      "value": "true"
+    },
+    {
+      "key": "godslayer.health",
+      "label": "God's health",
+      "type": "int",
+      "min": 10,
+      "max": 1000,
+      "step": 10,
+      "fallback": "100",
+      "help": "A god's full health against the Godslayer.",
+      "value": "100"
+    },
+    {
+      "key": "godslayer.damage-min",
+      "label": "Blow, weakest",
+      "type": "int",
+      "min": 1,
+      "max": 100,
+      "step": 1,
+      "fallback": "15",
+      "help": "Least health one full blow takes.",
+      "value": "15"
+    },
+    {
+      "key": "godslayer.damage-max",
+      "label": "Blow, strongest",
+      "type": "int",
+      "min": 1,
+      "max": 100,
+      "step": 1,
+      "fallback": "25",
+      "help": "Most health one full blow takes.",
+      "value": "25"
+    },
+    {
+      "key": "godslayer.attack-damage",
+      "label": "Blade damage",
+      "type": "int",
+      "min": 1,
+      "max": 100,
+      "step": 1,
+      "fallback": "25",
+      "help": "The Godslayer's damage to mortals and beasts.",
+      "value": "25"
+    },
+    {
+      "key": "godslayer.ascended.instant-kill",
+      "label": "Ascended kills",
+      "type": "bool",
+      "fallback": "true",
+      "help": "The Ascended Godslayer kills a god in one blow.",
+      "value": "true"
+    },
+    {
+      "key": "godslayer.ascended.attack-damage",
+      "label": "Ascended damage",
+      "type": "int",
+      "min": 1,
+      "max": 200,
+      "step": 1,
+      "fallback": "40",
+      "help": "The Ascended blade's damage to mortals.",
+      "value": "40"
+    },
+    {
+      "key": "godslayer.heal-delay-seconds",
+      "label": "Heals after",
+      "type": "int",
+      "min": 0,
+      "max": 3600,
+      "step": 10,
+      "fallback": "60",
+      "unit": "s",
+      "help": "Wounds start closing this long after the last blow.",
+      "value": "60"
+    },
+    {
+      "key": "godslayer.heal-per-minute",
+      "label": "Healing",
+      "type": "int",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "fallback": "10",
+      "unit": "/min",
+      "help": "Health a god regains each minute once healing.",
+      "value": "10"
+    },
+    {
+      "key": "godslayer.god-returns",
+      "label": "Slain god returns",
+      "type": "bool",
+      "fallback": "false",
+      "help": "Off: a slain god stays dead until /god revive.",
+      "value": "false"
+    },
+    {
+      "key": "godslayer.return-minutes",
+      "label": "Returns after",
+      "type": "int",
+      "min": 1,
+      "max": 10080,
+      "step": 5,
+      "fallback": "60",
+      "unit": "min",
+      "help": "How long a slain god stays dead when it returns.",
+      "value": "60"
+    },
+    {
+      "key": "godslayer.held-effects",
+      "label": "Blade's aura",
+      "type": "bool",
+      "fallback": "true",
+      "help": "Soul fire trails the held blade, which hums.",
+      "value": "true"
+    },
+    {
+      "key": "apotheosis.enabled",
+      "label": "Apotheosis",
+      "type": "bool",
+      "fallback": "false",
+      "help": "Its rarest gift: it may raise a beloved mortal to demigod (wings, strength, flight).",
+      "value": "false"
+    },
+    {
+      "key": "apotheosis.cooldown-hours",
+      "label": "Apotheosis wait",
+      "type": "int",
+      "min": 1,
+      "max": 720,
+      "step": 1,
+      "fallback": "72",
+      "unit": "h",
+      "help": "Hours before the gift can be given again.",
+      "value": "72"
+    },
+    {
+      "key": "apotheosis.min-favor",
+      "label": "Favor to ascend",
+      "type": "int",
+      "min": -10,
+      "max": 10,
+      "step": 1,
+      "fallback": "8",
+      "help": "Lowest favor a mortal needs to be raised.",
+      "value": "8"
+    },
+    {
+      "key": "apotheosis.duration-minutes",
+      "label": "Divinity lasts",
+      "type": "int",
+      "min": 0,
+      "max": 100000,
+      "step": 30,
+      "fallback": "0",
+      "unit": "min",
+      "help": "How long a demigod stays one (0 = until unmade).",
+      "value": "0"
+    },
+    {
+      "key": "apotheosis.flight",
+      "label": "Demigods fly",
+      "type": "bool",
+      "fallback": "true",
+      "help": "Demigods may fly.",
+      "value": "true"
+    },
+    {
+      "key": "apotheosis.max-demigods",
+      "label": "Demigods at once",
+      "type": "int",
+      "min": 1,
+      "max": 10,
+      "step": 1,
+      "fallback": "1",
+      "help": "How many demigods may live at the same time.",
+      "value": "1"
+    },
+    {
+      "key": "godslayer.health-bar-radius",
+      "label": "Health bar reach",
+      "type": "int",
+      "min": 8,
+      "max": 256,
+      "step": 8,
+      "fallback": "64",
+      "unit": "blocks",
+      "help": "How near players must be to see a wounded god's health.",
+      "value": "64"
+    }
+  ]
+}

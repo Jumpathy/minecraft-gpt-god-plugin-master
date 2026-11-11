@@ -1,0 +1,5 @@
+# Fixed line endings, so the files (and their SHA256SUMS) are identical on every checkout.
+*.sh   text eol=lf
+*.bat  text eol=crlf
+*.ps1  text eol=crlf
+SHA256SUMS text eol=lf

@@ -1,0 +1,10 @@
+: keep-alive comment lines are ignored
+
+data: {"choices":[{"index":0,"delta":{"role":"assistant","content":null,"tool_calls":[{"index":0,"id":"call_bad","type":"function","function":{"name":"give_item","arguments":"{\"player\": \"Ashwyn\", \"item\": \"diamond_sw"}}]},"finish_reason":null}]}
+
+data: {this chunk is garbled and must be skipped
+
+data: {"choices":[{"index":0,"delta":{},"finish_reason":"length"}]}
+
+data: [DONE]
+

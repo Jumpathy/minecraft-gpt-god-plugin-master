@@ -1,0 +1,66 @@
+{
+  "t": "gui_data",
+  "part": "switches",
+  "switches": [
+    {
+      "key": "vessel.enabled",
+      "label": "The god's body",
+      "help": "Whether the god can take a physical vessel at all.",
+      "on": true
+    },
+    {
+      "key": "vessel.manifest-on-wake",
+      "label": "Body on waking",
+      "help": "Take a body as soon as the first mortal arrives (off: it begins formless).",
+      "on": false
+    },
+    {
+      "key": "vessel.offerings",
+      "label": "Offerings",
+      "help": "Mortals may hand items to the vessel as offerings.",
+      "on": true
+    },
+    {
+      "key": "vessel.true-form.enabled",
+      "label": "True form allowed",
+      "help": "Whether the god may reveal its true form at all.",
+      "on": true
+    },
+    {
+      "key": "powers.rites",
+      "label": "Rites",
+      "help": "Gifts and blessings come with a particle rite and a chime.",
+      "on": true
+    },
+    {
+      "key": "powers.custom-powers",
+      "label": "Custom powers",
+      "help": "The god may use the custom powers written in config.yml.",
+      "on": true
+    },
+    {
+      "key": "powers.commands",
+      "label": "Server commands",
+      "help": "The god may run server commands (minus the blocklist).",
+      "on": false
+    },
+    {
+      "key": "powers.explosions-break-blocks",
+      "label": "Explosions break blocks",
+      "help": "Meteors, smiting and blasts may break blocks.",
+      "on": true
+    },
+    {
+      "key": "brain.acknowledge",
+      "label": "\"I hear you\" sign",
+      "help": "Mortals get an instant sign that the god heard them, before it answers.",
+      "on": true
+    },
+    {
+      "key": "god.tab-list",
+      "label": "God in the tab list",
+      "help": "Show the god's name and state at the top of the player list.",
+      "on": true
+    }
+  ]
+}

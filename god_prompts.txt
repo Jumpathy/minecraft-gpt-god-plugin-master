@@ -1,0 +1,135 @@
+GPTGOD - every prompt sent in this thread to make the god, in order.
+
+1. analyze this plugin, then suggest fixes, we want to make it more god-feeling, rght now the god feels disorganized and like it doesnt really understand, we want the mcp server or wtv the plugin uses behind the scene to have more tools, the ultimate goal is to make a plugin that just adds an omniscient god to the world, i want whisper to run locally though now instead of cloud-based, and the api key etc being easier to set, and for it to use new claude sdk / conventions, we likely want to default to sonnet 5.5 or haiku 5.5 for cost, if possible also make some sort of test harness that lets you test the god plugin, i can spin up a server w user w like baritone or something for you to control it for both ends, i optionally also would like the god to have a physical form, id like them to be a purple glowing being, similar to this, w horns if possible, i like the more ethereal / less human-like god, but it should be a god that can walk around the world, tp to chars, but also be omniscient outside of the 'body', thats just a vessel for us to see, it should still be able to chat, smite, run custom cmds etc, you can run wild, i want to make you a sandbox to be god lol
+
+2. 360 views too maybe, xray optiojs
+
+3. it should be able to take screenshots of players please and overhead etc, views from its body as well
+
+4. i dont wan tit to always be relic/traditional god based, maybe we want one thats just chill, or one thats straight up evil, that kind of thing, i wanna make it highly customizable personality wise, and is it possilbe to make it spak out loud in the game in a scary god voice thats like echoey / ethereal
+
+5. ill hav to test it on another device when its ready, so once the jars are built, lmk and ill put it on my server separately, since minecraft wont download to this device
+
+6. can it build structures? like houses / prison cells / cities / temples / etc that LOOK good? could we load it iwth some schematics you find online or
+
+7. the god doesn't look right model wise
+
+8. too stiff looking / blocky, make it more like a traditional minecraft skin w an ethereal aura
+
+9. should look more like a player but godlike
+
+10. are they able to fly? i want them to be able to like levitate if they get mad etc, have particles they should have lots of tools available to their disposal as well as ability to run custom commands if they don't already
+
+11. should get animations too n stuff
+
+12. how does its talking work? i want to be able to use some sort of text-to-speech thats not openai, maybe a local model if those exist, i want it to sound scary / echoey / booming / commanding or wtv, outline readme.md for USERS, not ai agents to be an outline of what the god is capable of, screenshots etc of it all, and then what version does this work on? can we bump it to newest minecraft version that paper supports
+
+13. add any other features you think'd make this god more fun, add tutorial.md for how to set it up for dummies etc
+
+14. also show token estimates in costs.md, and per-message counts, also this god responds quickly to events happening right? the old god plugin, it seemed to be quite delayed.. like responding to events 15s later, i want it to feel like this god is really there in the game lol
+
+15. token counts should remain hidden from users/opeerators but show in console / logs or similar, total cost too etc, and, lets make the god able to materialize / immaterialize itself, it could say start out in a new server as a formless being thats observing and doing stuff, and when summoned or angered only then does it materialize from thin air as a form, with a cool particle storm, it should also have an optional 'true form' option it uses when it wants to punish users, it instantly kills anyone who looks at it, and is like a particle-based outline form of it that supposedly represents the gods true form, should be near incomprehensible, maybe a really cool geometric warping shape or something idk, show previews of this too, have a whole previews/ folder
+
+16. make the god also compatible w multiple world,s like it can watch people go to nether / end, but maybe tell a mvp core separate world as different and not have jurisdiction there, so maybe i could have 3 worlds on the same server w a god over each worlds 3 dimensions, but not over all worlds
+
+17. the particles it does use should look cool, ie; rings and geometric shapes / twirls, like say its upgrading a player w diamond armor, it could lift the user up a bit w a levitation effect, upgrade their armor, and spin a spiral of particles around them, that concentrate into the user and explode w a cool noise, similar to a 'powerup complete' noise,
+
+18. previews/ folder should show gods, the particles, and more, and then lmk when its ready
+
+19. why cant i see what youre doing? i just see checklst, i wanna see what code ur writing etc..
+
+20. ive got 26.3 minecraft installed, C:\Users\tyler\Desktop\projects\minecraft\srv1 will have your server sandbox, can you also start an separate opus session to create an mcp server for automated end-to-end testing, you can use my minecraft client on device to join servers, take screenshots, idk if baritone or similar would help
+
+21. for the voice, make a voice_samples folder w a different couple options w the effects with an example of how the god would sound so i can choose the one i like more
+
+22. i don't want something robotic sounding should be more naturalistic
+
+23. continue, and utilize subagents like opus 5.5 (<5 / time) to knock out more work please, this single threaded work is killing me for time, just verify their work
+
+24. heres the anthropic api key btw "C:\Users\tyler\Desktop\api_key.txt"
+
+25. how does the god maintain memory? i want it to be able to remember players, specific things they did, so for example if a pplayer in chat comes in and says "god can you come here rq", it pulls up user context / memories for them if it doesnt like them it ignores them, and also there should be some sort of "compaction" like context tool, that compacts the history of the server to relavent events the god may respond to, but it can access ALL logs with tools, but prompting itself id imagine its given tons of context, so like memories and stuff, the god should also be able to name itself, and place itself in the player list when you hit tab, it could pick something generic or complex, like Azaeleus, we dont want generic names like John or wtv though, something ethereal sounding, and can there be a "god manager" tool server operators can receive, itd pull up a gui menu (for these things you can pull in external plugins for apis), itd let you choose in a like gui with different colored wools or player heads or something, the god's personality, and options, like "make angry" or the option to deliver a command directly to the god that it must follow, player chats (ie; "make me a fortress" can be denied by the god, it shouldnt give into users easily unless its a personality trait it decides for itself), but this one it would need to follow, so i could do like /god command "reveal true form to all players" or something and itd have to do that
+
+26. give it the option to scale itself, make it player-sized, 1.5x (default), and like massive, etc, and i dont want it to have any name over its head, it doesnt look right, just a name in player list / chat if it interacts
+
+27. Yes, download
+
+28. is it installed on the server
+
+29. kokoro michael should be default, in commanding or ethereal, it should be able to switch confiig based on context, if it gets mad it can go to the demonic variant, otherwise stay at ethereal or commanding etc as desired
+
+30. start a new session to initialize the srv1, with all required voicechat plugins, etc to get the god ready to start
+
+31. had this error randomly, 
+
+[pasted error log]
+
+ also is it on my server yet
+
+32. can the god manager chest let you mess w its memories, give it hatred/like for certain players / favoritism
+
+33. Yes, add it
+
+34. how do i know when its thinking or wtv, the god
+
+35. why my game hasnt had antything happen ive made multiple prayers and commands
+
+36. its kinda just standing there and staring at us lol
+
+37. like i havent heard it talk, interact, nothing
+
+38. it cant follow context well, why?
+
+39. Yes, fix it
+
+40. i dont care if it gets more context / tokens, accuracy is paramount, maybe it can have some thinking dots over its head when its thinking, in addition, and why cant i hear its voice, does it not have voice chat
+
+41. you need the client mod? i thought it was js a plugin
+
+42. can it come up w its own narratives? like if i ask where it came from will it have its own backstory, will it remember in the future?
+
+43. make sure it doesnt obey every whim, like a player asked for 32 cod and an ocelet and it did it, like sometimes yes this is okay if they do things it likes, but it shouldnt always give in, it should have its own perogative and ability to decide on a per-message basis or wtv what it wants to do
+
+44. the god still is real-time feeling right?
+
+45. can it choose effort dynamically? maybe it can think() internally and then depending on reply it can choose low effort, kind of like subagents, so it can be paralelized
+
+46. yes
+
+47. i want you to tackle its responsiveness speed, and cut it where applicable so that it responds faster, still maintaining context, right now, for example, the text-to-speech responds like 15s AFTER the message in chat shows, can it speed up tts or..? maybe wait to show msgs until tts generated etc, then rebuild and put new jar
+
+48. in srv
+
+49. wait sometimes latency isnt bad, im unsure why.. lol but stillt ry to make it faster
+
+50. replace it now
+
+51. also why was it choppy occasionally its voice (b4 this update), and can its emotion change over time, can the god manager let me make a new god or switch its skin etc too
+
+52. Yes, build both
+
+53. make me a list cslaled god_prompts.txt for all the prompts ive sent in this thread to make the god
+
+54. how do i see different particles the god can make
+
+55. can the god manager gui menu change its deep personality levels too, like if its chill, lenient etc
+
+56. Yes, add it
+
+57. what other dials could we add
+
+58. outline brain.md btw, as an overview for dummies for how the god keeps track of evens internally, how it comes up w messages, its prompts, etc, a whole tech breakdown of the brain, how it keeps persoanlity
+
+59. start a new session for skin overhaul, i love how the horns look, but the minecraft-textured parts make it feel less otherwordly, can you make your own textures for the god
+
+60. how hard would it be to support multiple gods in one world? as a /god add or something command or /god create idk
+
+61. Yes, add them
+
+62. also, its ability ot see seems janky, it called staircases a hut, how does it SEE visually
+
+63. begin a new session that plans the parallel gods, with fable 5.2 as the model
+
+64. can bedrock users see the gods
+
+65. is all of the messages i sent here prompt-wise in a .txt

@@ -51,13 +51,15 @@ public class RoundSystem implements Listener {
             player.displayName(Component.text(player.getName()).color(NamedTextColor.BLUE));
         }
         player.teleport(player.getRespawnLocation());
+        // Put the god's title (if any) back after the team color.
+        net.bigyous.gptgodmc.god.Titles.apply(player);
     }
     public static void removePlayerFromTeam(Player player){
         GPTGOD.SCOREBOARD.getPlayerTeam(player).removePlayer(player);
     }
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event){
-        if(!config.getBoolean("Rounds") || config.getString("startingWorld").isBlank()) return;
+        if(!net.bigyous.gptgodmc.god.GodSettings.roundsEnabled()) return;
         Player player = event.getPlayer();
         Server server = player.getServer();
         player.setGameMode(GameMode.SPECTATOR);
@@ -129,7 +131,8 @@ public class RoundSystem implements Listener {
     }
 
     public static void reset(){
-        GameLoop.stop();
+        net.bigyous.gptgodmc.god.God.sleep();
+        net.bigyous.gptgodmc.god.build.Builder.cancelAll();
         WorldManager.resetCurrentMap();
         StructureManager.reset();
         EventLogger.reset();
@@ -150,7 +153,8 @@ public class RoundSystem implements Listener {
                 addPlayerToTeam(p);
             }   
         }
-        GameLoop.init();
+        net.bigyous.gptgodmc.god.Memory.reset();
+        net.bigyous.gptgodmc.god.God.awaken();
         roundOver = false;
     }
 

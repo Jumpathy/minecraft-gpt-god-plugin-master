@@ -1,0 +1,20 @@
+: OPENROUTER PROCESSING
+
+: OPENROUTER PROCESSING
+
+data: {"id":"gen-1762790400-aBcD","provider":"DeepInfra","model":"qwen/qwen3-32b","object":"chat.completion.chunk","created":1762790400,"choices":[{"index":0,"delta":{"role":"assistant","content":"","reasoning":"The mortal has been loyal.","reasoning_details":[{"type":"reasoning.text","text":"The mortal has been loyal.","format":"unknown","index":0}]},"finish_reason":null,"native_finish_reason":null,"logprobs":null}]}
+
+data: {"id":"gen-1762790400-aBcD","provider":"DeepInfra","model":"qwen/qwen3-32b","object":"chat.completion.chunk","created":1762790400,"choices":[{"index":0,"delta":{"role":"assistant","content":"A gift, then.","reasoning":null,"reasoning_details":[]},"finish_reason":null,"native_finish_reason":null,"logprobs":null}]}
+
+data: {"id":"gen-1762790400-aBcD","provider":"DeepInfra","model":"qwen/qwen3-32b","object":"chat.completion.chunk","created":1762790400,"choices":[{"index":0,"delta":{"role":"assistant","content":null,"reasoning":null,"reasoning_details":[],"tool_calls":[{"index":0,"id":"call_or_1","type":"function","function":{"name":"whisper","arguments":"{\"player\":\"Ashwyn\",\"message\":\"Your faith is seen.\"}"}}]},"finish_reason":null,"native_finish_reason":null,"logprobs":null}]}
+
+: OPENROUTER PROCESSING
+
+data: {"id":"gen-1762790400-aBcD","provider":"DeepInfra","model":"qwen/qwen3-32b","object":"chat.completion.chunk","created":1762790400,"choices":[{"index":0,"delta":{"role":"assistant","content":null,"reasoning":null,"reasoning_details":[],"tool_calls":[{"index":1,"id":"call_or_2","type":"function","function":{"name":"give_item","arguments":"{\"player\":\"Ashwyn\",\"item\":\"golden_apple\",\"count\":2}"}}]},"finish_reason":null,"native_finish_reason":null,"logprobs":null}]}
+
+data: {"id":"gen-1762790400-aBcD","provider":"DeepInfra","model":"qwen/qwen3-32b","object":"chat.completion.chunk","created":1762790400,"choices":[{"index":0,"delta":{"role":"assistant","content":"","reasoning":null,"reasoning_details":[]},"finish_reason":"tool_calls","native_finish_reason":"tool_calls","logprobs":null}]}
+
+data: {"id":"gen-1762790400-aBcD","provider":"DeepInfra","model":"qwen/qwen3-32b","object":"chat.completion.chunk","created":1762790400,"choices":[{"index":0,"delta":{"role":"assistant","content":"","reasoning":null,"reasoning_details":[]},"finish_reason":null,"native_finish_reason":null,"logprobs":null}],"usage":{"prompt_tokens":9050,"completion_tokens":140,"total_tokens":9190,"cost":0.00091,"prompt_tokens_details":{"cached_tokens":0},"completion_tokens_details":{"reasoning_tokens":40}}}
+
+data: [DONE]
+

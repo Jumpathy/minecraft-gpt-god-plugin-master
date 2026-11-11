@@ -1,0 +1,122 @@
+{
+  "t": "gui_data",
+  "part": "config",
+  "tab": "Voice",
+  "options": [
+    {
+      "key": "voice.tts.engine",
+      "label": "Speech engine",
+      "type": "choice",
+      "choices": [
+        "kokoro",
+        "piper",
+        "off"
+      ],
+      "fallback": "kokoro",
+      "help": "kokoro: natural local voices. piper: lighter fallback. off: text only.",
+      "value": "kokoro"
+    },
+    {
+      "key": "voice.tts.text-wait-ms",
+      "label": "Text waits for voice",
+      "type": "int",
+      "min": 0,
+      "max": 10000,
+      "step": 250,
+      "fallback": "2500",
+      "unit": "ms",
+      "help": "Longest the chat text waits so words and voice arrive together (0 = at once).",
+      "value": "2500"
+    },
+    {
+      "key": "voice.tts.volume",
+      "label": "Volume",
+      "type": "double",
+      "min": 0.1,
+      "max": 2,
+      "step": 0.1,
+      "fallback": "1.0",
+      "unit": "x",
+      "help": "How loud its voice is.",
+      "value": "1.0"
+    },
+    {
+      "key": "voice.tts.fallback-to-piper",
+      "label": "Fall back to Piper",
+      "type": "bool",
+      "fallback": "true",
+      "help": "If Kokoro does not answer, speak with Piper.",
+      "value": "true"
+    },
+    {
+      "key": "voice.hint-without-mod",
+      "label": "Hint without mod",
+      "type": "bool",
+      "fallback": "true",
+      "help": "Tell players without the voice chat mod that they could hear the god.",
+      "value": "true"
+    },
+    {
+      "key": "voice.transcription.whisper-model",
+      "label": "Listening model",
+      "type": "choice",
+      "choices": [
+        "tiny.en",
+        "base.en",
+        "small.en",
+        "medium.en",
+        "base",
+        "small"
+      ],
+      "fallback": "base.en",
+      "help": "Bigger understands better but is slower. .en models are English only.",
+      "restart": true,
+      "locked": true,
+      "value": "base.en"
+    },
+    {
+      "key": "voice.transcription.threads",
+      "label": "Listening threads",
+      "type": "int",
+      "min": 1,
+      "max": 16,
+      "step": 1,
+      "fallback": "4",
+      "help": "CPU threads for speech recognition.",
+      "restart": true,
+      "locked": true,
+      "value": "4"
+    },
+    {
+      "key": "voice.transcription.engine",
+      "label": "Listening engine",
+      "type": "choice",
+      "choices": [
+        "local",
+        "server",
+        "off"
+      ],
+      "fallback": "local",
+      "help": "local: whisper on this machine. server: a speech-to-text server. off: deaf.",
+      "restart": true,
+      "locked": true,
+      "value": "local"
+    },
+    {
+      "key": "voice.transcription.auto-download",
+      "label": "Get listening model",
+      "type": "bool",
+      "fallback": "true",
+      "help": "Download the speech model automatically when missing.",
+      "value": "true"
+    },
+    {
+      "key": "voice.tts.auto-download",
+      "label": "Get Piper voice",
+      "type": "bool",
+      "fallback": "true",
+      "help": "Download the Piper fallback voice automatically when missing.",
+      "value": "true"
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "t": "gui_data",
+  "part": "journal",
+  "realm": "main",
+  "reset": true,
+  "lines": [
+    {
+      "seq": 830,
+      "time": 1699999905000,
+      "kind": "info",
+      "text": "Binding command #12 from Tyler (God Manager): Build a temple of blackstone on the hill east of spawn, then speak of it to everyone."
+    },
+    {
+      "seq": 831,
+      "time": 1699999910000,
+      "kind": "thought",
+      "text": "Tyler commands a temple. The eastern hill is bare; blackstone suits my temper today. Korvath is watching: let him see what devotion earns."
+    },
+    {
+      "seq": 832,
+      "time": 1699999916000,
+      "kind": "tool",
+      "text": "build(design=temple, material=polished_blackstone, at=hill east of spawn) → building 1,840 blocks"
+    },
+    {
+      "seq": 833,
+      "time": 1699999920000,
+      "kind": "speech",
+      "text": "announce: \"Mortals. Look east, and learn what is owed to me.\""
+    },
+    {
+      "seq": 834,
+      "time": 1699999939000,
+      "kind": "tool",
+      "text": "smite(player=Korvath) → lightning struck beside Korvath (no damage)"
+    },
+    {
+      "seq": 835,
+      "time": 1699999940000,
+      "kind": "error",
+      "text": "vessel_go: no path to the hill; flying instead."
+    },
+    {
+      "seq": 836,
+      "time": 1699999969000,
+      "kind": "thought",
+      "text": "The walls rise. I will finish the roof before I answer Mirelle's prayer; she can wait a moment longer."
+    },
+    {
+      "seq": 837,
+      "time": 1699999988000,
+      "kind": "cycle",
+      "text": "Thought #212 ended after 4 steps."
+    }
+  ]
+}

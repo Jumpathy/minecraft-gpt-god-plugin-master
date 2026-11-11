@@ -1,0 +1,7 @@
+{
+  "t": "gui_result",
+  "id": "9",
+  "ok": false,
+  "error": "Type its name (Vaelor) to confirm.",
+  "needs": "name"
+}

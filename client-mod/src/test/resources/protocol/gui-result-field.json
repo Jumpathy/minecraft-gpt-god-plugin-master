@@ -1,0 +1,7 @@
+{
+  "t": "gui_result",
+  "id": "8",
+  "ok": false,
+  "field": "name",
+  "error": "\"Zeus\" is the name of a famous god; choose an invented one."
+}

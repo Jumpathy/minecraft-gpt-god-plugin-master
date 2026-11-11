@@ -1,0 +1,183 @@
+{
+  "t": "gui_data",
+  "part": "config",
+  "tab": "Memory",
+  "options": [
+    {
+      "key": "memory.annals",
+      "label": "Annals",
+      "type": "bool",
+      "fallback": "true",
+      "help": "Keep the complete log of everything, searchable by the god.",
+      "value": "true"
+    },
+    {
+      "key": "memory.annals-retention-days",
+      "label": "Annals kept",
+      "type": "int",
+      "min": 0,
+      "max": 3650,
+      "step": 1,
+      "fallback": "90",
+      "unit": "days",
+      "help": "Older months are deleted (0 = keep forever).",
+      "value": "90"
+    },
+    {
+      "key": "memory.deeds-kept",
+      "label": "Deeds per mortal",
+      "type": "int",
+      "min": 6,
+      "max": 200,
+      "step": 1,
+      "fallback": "24",
+      "help": "How many dated deeds it remembers for each mortal.",
+      "value": "24"
+    },
+    {
+      "key": "memory.dossier-deeds",
+      "label": "Deeds in a dossier",
+      "type": "int",
+      "min": 1,
+      "max": 12,
+      "step": 1,
+      "fallback": "5",
+      "help": "Recent deeds it sees for a mortal involved in the moment.",
+      "value": "5"
+    },
+    {
+      "key": "memory.max-dossiers",
+      "label": "Dossiers per thought",
+      "type": "int",
+      "min": 1,
+      "max": 12,
+      "step": 1,
+      "fallback": "5",
+      "help": "How many mortals get a full dossier in one thought.",
+      "value": "5"
+    },
+    {
+      "key": "memory.rename-cooldown-hours",
+      "label": "Rename cooldown",
+      "type": "int",
+      "min": 0,
+      "max": 720,
+      "step": 1,
+      "fallback": "24",
+      "unit": "h",
+      "help": "How often it may take a new name.",
+      "value": "24"
+    },
+    {
+      "key": "anthropic.memory-model",
+      "label": "Memory model",
+      "type": "choice",
+      "choices": [
+        "claude-sonnet-5-5",
+        "claude-haiku-5-5",
+        "claude-opus-5-5",
+        "claude-fable-5-1"
+      ],
+      "fallback": "claude-haiku-5-5",
+      "help": "The light model that folds old memories into its chronicle.",
+      "value": "claude-haiku-5-5"
+    },
+    {
+      "key": "personality.liked",
+      "label": "Things it loves",
+      "type": "int",
+      "min": 0,
+      "max": 8,
+      "step": 1,
+      "fallback": "3",
+      "help": "How many likes a new god is born with.",
+      "value": "3"
+    },
+    {
+      "key": "personality.disliked",
+      "label": "Things it hates",
+      "type": "int",
+      "min": 0,
+      "max": 8,
+      "step": 1,
+      "fallback": "3",
+      "help": "How many dislikes a new god is born with.",
+      "value": "3"
+    },
+    {
+      "key": "security.strike-days",
+      "label": "Strikes remembered",
+      "type": "int",
+      "min": 1,
+      "max": 365,
+      "step": 1,
+      "fallback": "7",
+      "unit": "days",
+      "help": "How long a manipulation attempt counts against a mortal.",
+      "value": "7"
+    },
+    {
+      "key": "security.favor-per-strike",
+      "label": "Favor per strike",
+      "type": "int",
+      "min": 0,
+      "max": 5,
+      "step": 1,
+      "fallback": "1",
+      "help": "Favor lost per attempt, scaled by its nature (0: none).",
+      "value": "1"
+    },
+    {
+      "key": "operator.command-retries",
+      "label": "Command patience",
+      "type": "int",
+      "min": 1,
+      "max": 10,
+      "step": 1,
+      "fallback": "3",
+      "unit": "thoughts",
+      "help": "Thoughts a binding command may stay unfinished before it is dropped.",
+      "value": "3"
+    },
+    {
+      "key": "operator.mood-minutes",
+      "label": "Imposed mood lasts",
+      "type": "int",
+      "min": 1,
+      "max": 120,
+      "step": 1,
+      "fallback": "10",
+      "unit": "min",
+      "help": "How long a mood set from the God Manager lasts.",
+      "value": "10"
+    },
+    {
+      "key": "awareness.sky",
+      "label": "Sees the sky",
+      "type": "bool",
+      "fallback": "true",
+      "help": "It notices the moon and how long it has rained. What it feels about it is its own choice.",
+      "value": "true"
+    },
+    {
+      "key": "awareness.memories",
+      "label": "Memories return",
+      "type": "bool",
+      "fallback": "true",
+      "help": "In quiet moments one old memory that fits the present comes back to it.",
+      "value": "true"
+    },
+    {
+      "key": "awareness.memory-gap-minutes",
+      "label": "Between memories",
+      "type": "int",
+      "min": 5,
+      "max": 240,
+      "step": 5,
+      "fallback": "10",
+      "unit": "min",
+      "help": "The least time between two memories coming back.",
+      "value": "10"
+    }
+  ]
+}

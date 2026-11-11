@@ -1,0 +1,7 @@
+{
+  "t": "gui_open",
+  "realm": "main",
+  "several": true,
+  "costs": true,
+  "pantheon": true
+}

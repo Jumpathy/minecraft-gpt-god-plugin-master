@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "net.bigyous.gptgod.client.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "ClientLevelMixin",
+    "FirstPersonHandsAndItemsMixin",
+    "GameRendererMixin",
+    "ModelManagerMixin",
+    "PostPassMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

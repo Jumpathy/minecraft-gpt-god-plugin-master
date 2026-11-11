@@ -1,0 +1,214 @@
+{
+  "t": "gui_data",
+  "part": "config",
+  "tab": "Powers",
+  "options": [
+    {
+      "key": "powers.commands",
+      "label": "Server commands",
+      "type": "bool",
+      "fallback": "true",
+      "help": "It may run raw server commands (fill, summon, ...).",
+      "value": "true"
+    },
+    {
+      "key": "powers.custom-powers",
+      "label": "Custom powers",
+      "type": "bool",
+      "fallback": "true",
+      "help": "The custom powers written in config.yml.",
+      "value": "true"
+    },
+    {
+      "key": "powers.rites",
+      "label": "Rites",
+      "type": "bool",
+      "fallback": "true",
+      "help": "Gifts and blessings come with a particle rite and a chime.",
+      "value": "true"
+    },
+    {
+      "key": "vessel.arrival",
+      "label": "How it arrives",
+      "type": "choice",
+      "choices": [
+        "rift",
+        "storm"
+      ],
+      "fallback": "rift",
+      "help": "rift: its body steps out of a tear in the air. storm: it condenses out of a particle storm.",
+      "value": "rift"
+    },
+    {
+      "key": "powers.explosions-break-blocks",
+      "label": "Explosions break blocks",
+      "type": "bool",
+      "fallback": "true",
+      "help": "Off: its explosions hurt but leave the land whole.",
+      "value": "true"
+    },
+    {
+      "key": "powers.max-block-changes",
+      "label": "Block changes",
+      "type": "int",
+      "min": 100,
+      "max": 100000,
+      "step": 100,
+      "fallback": "2000",
+      "help": "Most blocks one power may change at once.",
+      "value": "2000"
+    },
+    {
+      "key": "powers.max-explosion-power",
+      "label": "Explosion power",
+      "type": "double",
+      "min": 1,
+      "max": 20,
+      "step": 0.5,
+      "fallback": "8.0",
+      "help": "The strongest explosion it may make (TNT is 4).",
+      "value": "8.0"
+    },
+    {
+      "key": "powers.max-entities-per-spawn",
+      "label": "Mobs per summon",
+      "type": "int",
+      "min": 1,
+      "max": 64,
+      "step": 1,
+      "fallback": "12",
+      "help": "Most creatures one summoning may bring.",
+      "value": "12"
+    },
+    {
+      "key": "rivalry.enabled",
+      "label": "Rivalries",
+      "type": "bool",
+      "fallback": "true",
+      "help": "Gods sharing a world keep bonds: alliances, truces, taunts, sabotage and holy wars.",
+      "value": "true"
+    },
+    {
+      "key": "events.enabled",
+      "label": "Holy days",
+      "type": "bool",
+      "fallback": "true",
+      "help": "Gods proclaim festivals, trials, hunts, omens and holy wars, with a countdown bar.",
+      "value": "true"
+    },
+    {
+      "key": "events.cadence-hours",
+      "label": "Holy day reminder",
+      "type": "int",
+      "min": 0,
+      "max": 168,
+      "step": 1,
+      "fallback": "4",
+      "unit": "h",
+      "help": "Remind a god to hold a holy day after this long without one (0: never).",
+      "value": "4"
+    },
+    {
+      "key": "events.raids",
+      "label": "Raids",
+      "type": "bool",
+      "fallback": "true",
+      "help": "Gods may send waves of raiders at a mortal they dislike. Survivable, and announced.",
+      "value": "true"
+    },
+    {
+      "key": "world-mood.enabled",
+      "label": "Moods in the world",
+      "type": "bool",
+      "fallback": "true",
+      "help": "Its feelings touch the world: storms in wrath, quick crops in joy, bold mobs at night.",
+      "value": "true"
+    },
+    {
+      "key": "world-mood.strength",
+      "label": "Mood strength",
+      "type": "choice",
+      "choices": [
+        "subtle",
+        "noticeable",
+        "strong"
+      ],
+      "fallback": "subtle",
+      "help": "How much its moods change weather, time and mobs.",
+      "value": "subtle"
+    },
+    {
+      "key": "creations.enabled",
+      "label": "Painted relics",
+      "type": "bool",
+      "fallback": "false",
+      "help": "Gods forge relics with their own art. COSTLY: a stronger model paints each one.",
+      "value": "false"
+    },
+    {
+      "key": "creations.per-god-per-day",
+      "label": "Relics a day",
+      "type": "int",
+      "min": 1,
+      "max": 50,
+      "step": 1,
+      "fallback": "3",
+      "help": "How many relics one god may forge in a day.",
+      "value": "3"
+    },
+    {
+      "key": "creations.power-budget",
+      "label": "Relic power",
+      "type": "int",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "fallback": "12",
+      "help": "How much power a god may imbue one relic with (0 = none).",
+      "value": "12"
+    },
+    {
+      "key": "servants.enabled",
+      "label": "Servants",
+      "type": "bool",
+      "fallback": "true",
+      "help": "Gods may summon angels, imps, shades, priests and temple guards.",
+      "value": "true"
+    },
+    {
+      "key": "servants.max-per-god",
+      "label": "Servants per god",
+      "type": "int",
+      "min": 1,
+      "max": 10,
+      "step": 1,
+      "fallback": "3",
+      "help": "How many servants one god may keep at once (lesser gods half).",
+      "value": "3"
+    },
+    {
+      "key": "vessel.true-form.warning-seconds",
+      "label": "True form warning",
+      "type": "int",
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "fallback": "4",
+      "unit": "s",
+      "help": "Seconds of warning before the gaze strikes.",
+      "value": "4"
+    },
+    {
+      "key": "vessel.true-form.range",
+      "label": "True form reach",
+      "type": "int",
+      "min": 8,
+      "max": 128,
+      "step": 4,
+      "fallback": "48",
+      "unit": "blocks",
+      "help": "How far away its gaze reaches.",
+      "value": "48"
+    }
+  ]
+}

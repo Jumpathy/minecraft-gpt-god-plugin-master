@@ -2,3 +2,6 @@
 .idea/
 build/
 run/
+harness/node_modules/
+harness/server/
+harness/.bridge.json

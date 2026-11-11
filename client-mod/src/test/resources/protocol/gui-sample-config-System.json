@@ -1,0 +1,214 @@
+{
+  "t": "gui_data",
+  "part": "config",
+  "tab": "System",
+  "options": [
+    {
+      "key": "llm.provider",
+      "label": "Model provider",
+      "type": "choice",
+      "choices": [
+        "anthropic",
+        "openai",
+        "openai-compatible"
+      ],
+      "fallback": "anthropic",
+      "help": "Who plays the god: Claude, OpenAI, or your own server (its address is in config.yml).",
+      "value": "anthropic"
+    },
+    {
+      "key": "llm.profile",
+      "label": "Model profile",
+      "type": "choice",
+      "choices": [
+        "auto",
+        "full",
+        "lite"
+      ],
+      "fallback": "auto",
+      "help": "Lite suits small local models: few powers, a short prompt. Auto: lite for a server on this network.",
+      "value": "auto"
+    },
+    {
+      "key": "llm.vision",
+      "label": "Model sees images",
+      "type": "choice",
+      "choices": [
+        "auto",
+        "on",
+        "off"
+      ],
+      "fallback": "auto",
+      "help": "Whether its look power sends pictures. Auto: yes for OpenAI, no for other servers.",
+      "value": "auto"
+    },
+    {
+      "key": "llm.max-output-tokens",
+      "label": "Longest reply (other)",
+      "type": "int",
+      "min": 250,
+      "max": 16000,
+      "step": 250,
+      "fallback": "2000",
+      "help": "The longest one reply may be, for OpenAI and other servers.",
+      "value": "2000"
+    },
+    {
+      "key": "llm.timeout-seconds",
+      "label": "Model timeout",
+      "type": "int",
+      "min": 10,
+      "max": 900,
+      "step": 10,
+      "fallback": "120",
+      "unit": "s",
+      "help": "How long to wait for a reply to start. Raise it for a slow local model.",
+      "value": "120"
+    },
+    {
+      "key": "llm.context-tokens",
+      "label": "Model context size",
+      "type": "int",
+      "min": 0,
+      "max": 200000,
+      "step": 1024,
+      "fallback": "0",
+      "help": "What your local model can hold at once; perceptions are cut to fit. 0: large enough.",
+      "value": "0"
+    },
+    {
+      "key": "pantheon.max-gods",
+      "label": "Most gods per world",
+      "type": "int",
+      "min": 1,
+      "max": 12,
+      "step": 1,
+      "fallback": "4",
+      "help": "How many gods may share one world, the first included (/god create).",
+      "value": "4"
+    },
+    {
+      "key": "pantheon.default-power",
+      "label": "New god's power",
+      "type": "choice",
+      "choices": [
+        "lesser",
+        "greater",
+        "supreme"
+      ],
+      "fallback": "greater",
+      "help": "The power of a god made without one. Change any god's on its Might & Mind page.",
+      "value": "greater"
+    },
+    {
+      "key": "god.tab-list",
+      "label": "Tab list",
+      "type": "bool",
+      "fallback": "true",
+      "help": "The god's name and state at the top of the player list.",
+      "value": "true"
+    },
+    {
+      "key": "debug.log-usage",
+      "label": "Usage in console",
+      "type": "bool",
+      "fallback": "true",
+      "help": "Print a usage line for every request to the console.",
+      "value": "true"
+    },
+    {
+      "key": "debug.usage-file",
+      "label": "usage.csv",
+      "type": "bool",
+      "fallback": "true",
+      "help": "Append every request to usage.csv.",
+      "value": "true"
+    },
+    {
+      "key": "debug.log-requests",
+      "label": "Log perceptions",
+      "type": "bool",
+      "fallback": "false",
+      "help": "Print everything the god sees each thought (very long).",
+      "value": "false"
+    },
+    {
+      "key": "rounds.enabled",
+      "label": "Island rounds",
+      "type": "bool",
+      "fallback": "false",
+      "help": "The old round game mode: islands, resets and teams.",
+      "restart": true,
+      "locked": true,
+      "value": "false"
+    },
+    {
+      "key": "vision.save-renders",
+      "label": "Save its sight",
+      "type": "bool",
+      "fallback": "false",
+      "help": "Save every image it looks at to the plugin folder.",
+      "value": "false"
+    },
+    {
+      "key": "vessel.resource-pack.send",
+      "label": "Send skin pack",
+      "type": "bool",
+      "fallback": "true",
+      "help": "Offer players the pack with its own skins and textures.",
+      "value": "true"
+    },
+    {
+      "key": "vessel.resource-pack.required",
+      "label": "Pack required",
+      "type": "bool",
+      "fallback": "false",
+      "help": "Players must accept the pack to stay.",
+      "value": "false"
+    },
+    {
+      "key": "viewer.port",
+      "label": "Mind viewer port",
+      "type": "int",
+      "min": 1024,
+      "max": 65535,
+      "step": 1,
+      "fallback": "4673",
+      "help": "The port of the web page that shows its mind.",
+      "restart": true,
+      "locked": true,
+      "value": "4673"
+    },
+    {
+      "key": "bridge.port",
+      "label": "Bridge port",
+      "type": "int",
+      "min": 1024,
+      "max": 65535,
+      "step": 1,
+      "fallback": "8765",
+      "help": "The port of the local test bridge.",
+      "restart": true,
+      "locked": true,
+      "value": "8765"
+    },
+    {
+      "key": "bridge.enabled",
+      "label": "Debug bridge",
+      "type": "bool",
+      "fallback": "false",
+      "help": "The local HTTP API for test harnesses and external brains.",
+      "restart": true,
+      "locked": true,
+      "value": "false"
+    },
+    {
+      "key": "viewer.enabled",
+      "label": "Mind viewer",
+      "type": "bool",
+      "fallback": "true",
+      "help": "A web page to watch and edit each god's mind live. The URL is in the console.",
+      "value": "true"
+    }
+  ]
+}

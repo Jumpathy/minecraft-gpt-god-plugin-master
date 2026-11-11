@@ -1,0 +1,92 @@
+{
+  "t": "gui_data",
+  "part": "pantheon",
+  "gods": [
+    {
+      "id": "main",
+      "name": "Vaelor",
+      "epithet": "the Ember Judge",
+      "archetype": "wrathful",
+      "color": "#FF5A30",
+      "power": "supreme",
+      "state": "awake",
+      "thinking": true,
+      "mood": "wrathful",
+      "heart": [
+        64,
+        5,
+        12,
+        20,
+        31
+      ],
+      "body": "walks",
+      "pending": 2,
+      "health": 62,
+      "max": 100,
+      "look": "infernal"
+    },
+    {
+      "id": "ysmere",
+      "name": "Ysmere",
+      "epithet": "Keeper of Green Hollows",
+      "archetype": "benevolent",
+      "color": "#7CE08A",
+      "power": "greater",
+      "state": "paused",
+      "mood": "joyful",
+      "heart": [
+        0,
+        58,
+        6,
+        0,
+        22
+      ],
+      "body": "formless",
+      "pending": 0,
+      "look": "grove",
+      "removable": true
+    },
+    {
+      "id": "god3",
+      "archetype": "trickster",
+      "color": "#9BE564",
+      "power": "lesser",
+      "state": "asleep",
+      "mood": "calm",
+      "heart": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "body": "formless",
+      "pending": 0,
+      "look": "jester",
+      "removable": true
+    },
+    {
+      "id": "morth",
+      "name": "Morthuun",
+      "epithet": "the Hollow Tide",
+      "archetype": "cosmic",
+      "color": "#8A8A90",
+      "power": "greater",
+      "state": "slain",
+      "mood": "calm",
+      "heart": [
+        10,
+        0,
+        40,
+        66,
+        0
+      ],
+      "body": "formless",
+      "pending": 0,
+      "health": 0,
+      "max": 100,
+      "look": "abyss",
+      "removable": true
+    }
+  ]
+}

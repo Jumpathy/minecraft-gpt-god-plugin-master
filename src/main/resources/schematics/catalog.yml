@@ -1,0 +1,9 @@
+# Drop WorldEdit .schem files (Sponge v2/v3) or vanilla structure .nbt files into this folder.
+# The god sees each file by its name (without the extension). Describe them here so it knows
+# what they are and when to use them, e.g.:
+#
+# medieval_house: "a two-story timber house with a garden, good as a reward home"
+# gothic_cathedral: "an enormous cathedral; use for a grand temple"
+# small_jail: "a stone jail with three cells"
+#
+# Only add files you have the right to use (check the author's license).

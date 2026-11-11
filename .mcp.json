@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "god-harness": {
+      "command": "node",
+      "args": ["harness/src/mcp-server.js"]
+    }
+  }
+}

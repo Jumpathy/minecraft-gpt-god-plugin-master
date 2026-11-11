@@ -1,0 +1,18 @@
+data: {"id":"chatcmpl-9f3a1c","object":"chat.completion.chunk","created":1762790300,"model":"mistralai/Mistral-7B-Instruct-v0.3","choices":[{"index":0,"delta":{"role":"assistant","content":""},"logprobs":null,"finish_reason":null}],"usage":{"prompt_tokens":4102,"total_tokens":4102,"completion_tokens":0}}
+
+data: {"id":"chatcmpl-9f3a1c","object":"chat.completion.chunk","created":1762790300,"model":"mistralai/Mistral-7B-Instruct-v0.3","choices":[{"index":0,"delta":{"tool_calls":[{"id":"chatcmpl-tool-4b1d","type":"function","index":0,"function":{"name":"whisper"}}]},"logprobs":null,"finish_reason":null}],"usage":{"prompt_tokens":4102,"total_tokens":4110,"completion_tokens":8}}
+
+data: {"id":"chatcmpl-9f3a1c","object":"chat.completion.chunk","created":1762790300,"model":"mistralai/Mistral-7B-Instruct-v0.3","choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"function":{"arguments":"{\"player\": \"Ashwyn\", "}}]},"logprobs":null,"finish_reason":null}],"usage":{"prompt_tokens":4102,"total_tokens":4120,"completion_tokens":18}}
+
+data: {"id":"chatcmpl-9f3a1c","object":"chat.completion.chunk","created":1762790300,"model":"mistralai/Mistral-7B-Instruct-v0.3","choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"function":{"arguments":"\"message\": \"Your faith is seen.\"}"}}]},"logprobs":null,"finish_reason":null}],"usage":{"prompt_tokens":4102,"total_tokens":4131,"completion_tokens":29}}
+
+data: {"id":"chatcmpl-9f3a1c","object":"chat.completion.chunk","created":1762790300,"model":"mistralai/Mistral-7B-Instruct-v0.3","choices":[{"index":0,"delta":{"tool_calls":[{"id":"chatcmpl-tool-77e0","type":"function","index":1,"function":{"name":"give_item"}}]},"logprobs":null,"finish_reason":null}],"usage":{"prompt_tokens":4102,"total_tokens":4139,"completion_tokens":37}}
+
+data: {"id":"chatcmpl-9f3a1c","object":"chat.completion.chunk","created":1762790300,"model":"mistralai/Mistral-7B-Instruct-v0.3","choices":[{"index":0,"delta":{"tool_calls":[{"index":1,"function":{"arguments":"{\"player\": \"Ashwyn\", \"item\": \"golden_apple\", \"count\": 2}"}}]},"logprobs":null,"finish_reason":null}],"usage":{"prompt_tokens":4102,"total_tokens":4160,"completion_tokens":58}}
+
+data: {"id":"chatcmpl-9f3a1c","object":"chat.completion.chunk","created":1762790300,"model":"mistralai/Mistral-7B-Instruct-v0.3","choices":[{"index":0,"delta":{"content":""},"logprobs":null,"finish_reason":"tool_calls","stop_reason":null}],"usage":{"prompt_tokens":4102,"total_tokens":4160,"completion_tokens":58}}
+
+data: {"id":"chatcmpl-9f3a1c","object":"chat.completion.chunk","created":1762790300,"model":"mistralai/Mistral-7B-Instruct-v0.3","choices":[],"usage":{"prompt_tokens":4102,"total_tokens":4160,"completion_tokens":58}}
+
+data: [DONE]
+

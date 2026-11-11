@@ -1,0 +1,20 @@
+data: {"id":"chatcmpl-k2v9x0c7lq","object":"chat.completion.chunk","created":1762790100,"model":"qwen/qwen3-8b","system_fingerprint":"qwen/qwen3-8b","choices":[{"index":0,"delta":{"role":"assistant","reasoning_content":"Ashwyn asks for help. "},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-k2v9x0c7lq","object":"chat.completion.chunk","created":1762790100,"model":"qwen/qwen3-8b","system_fingerprint":"qwen/qwen3-8b","choices":[{"index":0,"delta":{"reasoning_content":"I will answer and give bread."},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-k2v9x0c7lq","object":"chat.completion.chunk","created":1762790100,"model":"qwen/qwen3-8b","system_fingerprint":"qwen/qwen3-8b","choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"id":"584930217","type":"function","function":{"name":"whisper","arguments":""}}]},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-k2v9x0c7lq","object":"chat.completion.chunk","created":1762790100,"model":"qwen/qwen3-8b","system_fingerprint":"qwen/qwen3-8b","choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"type":"function","function":{"arguments":"{\"player\":\"Ashwyn\""}}]},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-k2v9x0c7lq","object":"chat.completion.chunk","created":1762790100,"model":"qwen/qwen3-8b","system_fingerprint":"qwen/qwen3-8b","choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"type":"function","function":{"arguments":",\"message\":\"Your faith is seen.\"}"}}]},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-k2v9x0c7lq","object":"chat.completion.chunk","created":1762790100,"model":"qwen/qwen3-8b","system_fingerprint":"qwen/qwen3-8b","choices":[{"index":0,"delta":{"tool_calls":[{"index":1,"id":"771204556","type":"function","function":{"name":"give_item","arguments":""}}]},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-k2v9x0c7lq","object":"chat.completion.chunk","created":1762790100,"model":"qwen/qwen3-8b","system_fingerprint":"qwen/qwen3-8b","choices":[{"index":0,"delta":{"tool_calls":[{"index":1,"type":"function","function":{"arguments":"{\"player\":\"Ashwyn\",\"item\":\"golden_apple\",\"count\":2}"}}]},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"chatcmpl-k2v9x0c7lq","object":"chat.completion.chunk","created":1762790100,"model":"qwen/qwen3-8b","system_fingerprint":"qwen/qwen3-8b","choices":[{"index":0,"delta":{},"logprobs":null,"finish_reason":"tool_calls"}]}
+
+data: {"id":"chatcmpl-k2v9x0c7lq","object":"chat.completion.chunk","created":1762790100,"model":"qwen/qwen3-8b","system_fingerprint":"qwen/qwen3-8b","choices":[],"usage":{"prompt_tokens":4410,"completion_tokens":96,"total_tokens":4506},"stats":{}}
+
+data: [DONE]
+

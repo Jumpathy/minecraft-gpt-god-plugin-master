@@ -1,0 +1,386 @@
+{
+  "t": "gui_data",
+  "part": "catalog",
+  "archetypes": [
+    {
+      "key": "benevolent",
+      "text": "A warm guardian deity who delights in mortals.",
+      "color": "#FFD966"
+    },
+    {
+      "key": "chill",
+      "text": "A laid-back, easygoing god.",
+      "color": "#7FD4FF"
+    },
+    {
+      "key": "trickster",
+      "text": "A mischievous chaos god who loves pranks.",
+      "color": "#9BE564"
+    },
+    {
+      "key": "evil",
+      "text": "A malevolent dark god who sees mortals as playthings.",
+      "color": "#D0303A"
+    },
+    {
+      "key": "wrathful",
+      "text": "A stern, jealous old god of law and judgment.",
+      "color": "#FF7A30"
+    },
+    {
+      "key": "cosmic",
+      "text": "An ancient, alien intelligence from beyond the stars.",
+      "color": "#B070FF"
+    }
+  ],
+  "looks": [
+    {
+      "key": "auto",
+      "text": "Whatever suits its name and archetype."
+    },
+    {
+      "key": "shade",
+      "text": "Dark violet nebula flesh, glowing veins, a rune seal and amethyst ram horns (the default)."
+    },
+    {
+      "key": "radiant",
+      "text": "Pale and golden in white robes with a turning sunburst and a halo."
+    },
+    {
+      "key": "infernal",
+      "text": "Crimson flesh split by ember cracks, burning eyes and blackstone horns."
+    },
+    {
+      "key": "void",
+      "text": "A living starfield with a spiral galaxy over the heart and an amethyst halo."
+    },
+    {
+      "key": "thunder",
+      "text": "A sky father: white robes, gold trim, white beard, golden laurel and lightning."
+    },
+    {
+      "key": "allfather",
+      "text": "A one-eyed wanderer in grey, with a long braided beard, a wide hat and a raven cloak."
+    },
+    {
+      "key": "tide",
+      "text": "Lord of the sea: scale armor, a seaweed beard, a coral crown and a trident seal."
+    },
+    {
+      "key": "underworld",
+      "text": "King of the dead: ashen skin, black robes trimmed in embers, an iron crown."
+    },
+    {
+      "key": "warrior",
+      "text": "A wise war goddess in a bronze cuirass, crested helm and crimson cloak."
+    },
+    {
+      "key": "sun",
+      "text": "The falcon-eyed sun: bronze skin, a striped headdress and a burning disc above."
+    },
+    {
+      "key": "jackal",
+      "text": "The black jackal of the tombs, with gold and lapis collars and tall ears."
+    },
+    {
+      "key": "grove",
+      "text": "A forest god of bark and leaves, with a mossy beard and great antlers."
+    },
+    {
+      "key": "frost",
+      "text": "The winter king: ice-blue skin, frozen tears, a snowflake seal and an icicle crown."
+    },
+    {
+      "key": "storm",
+      "text": "A thunderhead given form: storm-cloud flesh crackling with lightning, and horns."
+    },
+    {
+      "key": "plague",
+      "text": "The bone lord: a skull face, rotting shroud, open ribs and a green miasma."
+    },
+    {
+      "key": "celestial",
+      "text": "Midnight-blue skin mapped with constellations and a turning astrolabe."
+    },
+    {
+      "key": "clockwork",
+      "text": "A machine god of brass plates and rivets, gears turning in an open chest."
+    },
+    {
+      "key": "jester",
+      "text": "The trickster: a painted grin, motley diamonds, a ruff and a belled cap."
+    },
+    {
+      "key": "moon",
+      "text": "A moon goddess, silver and lilac, with the phases on her breast and a crescent above."
+    },
+    {
+      "key": "titan",
+      "text": "A fire titan of cracked basalt, molten seams, a beard of flame and a burning crown."
+    },
+    {
+      "key": "abyss",
+      "text": "An eldritch thing of the deep, dotted with lights and blinking eyes, with sculk horns."
+    },
+    {
+      "key": "hollow",
+      "text": "A porcelain mask mended with gold over a black veil, and a shattered halo."
+    },
+    {
+      "key": "prism",
+      "text": "A crystalline being whose facets shift through every color, crowned with shards."
+    },
+    {
+      "key": "bloom",
+      "text": "A spring goddess in rose silk printed with blossoms, crowned with cherry leaves."
+    }
+  ],
+  "voices": [
+    {
+      "key": "am_michael",
+      "text": "Warm, deep American man."
+    },
+    {
+      "key": "am_onyx",
+      "text": "Dark, low American man."
+    },
+    {
+      "key": "am_fenrir",
+      "text": "Rough, strong American man."
+    },
+    {
+      "key": "am_adam",
+      "text": "Plain American man."
+    },
+    {
+      "key": "am_eric",
+      "text": "Calm American man."
+    },
+    {
+      "key": "bm_george",
+      "text": "Grave old British man."
+    },
+    {
+      "key": "bm_lewis",
+      "text": "Rich British man."
+    },
+    {
+      "key": "af_heart",
+      "text": "Clear, warm American woman."
+    },
+    {
+      "key": "af_bella",
+      "text": "Bright American woman."
+    },
+    {
+      "key": "af_nicole",
+      "text": "Soft, whispering woman."
+    },
+    {
+      "key": "af_sky",
+      "text": "Light American woman."
+    },
+    {
+      "key": "bf_emma",
+      "text": "Gentle British woman."
+    },
+    {
+      "key": "bf_isabella",
+      "text": "Elegant British woman."
+    },
+    {
+      "key": "bm_fable",
+      "text": "Storyteller British man."
+    }
+  ],
+  "effects": [
+    {
+      "key": "majestic",
+      "text": "A king's voice in a great hall."
+    },
+    {
+      "key": "divine",
+      "text": "Warm and vast, from everywhere."
+    },
+    {
+      "key": "booming",
+      "text": "From the sky: huge and echoing."
+    },
+    {
+      "key": "commanding",
+      "text": "Close, hard and certain."
+    },
+    {
+      "key": "demonic",
+      "text": "Low, doubled and menacing."
+    },
+    {
+      "key": "abyssal",
+      "text": "From a deep pit: dark and vast."
+    },
+    {
+      "key": "ethereal",
+      "text": "Airy, shimmering, many-voiced."
+    },
+    {
+      "key": "none",
+      "text": "The plain voice, no effect."
+    },
+    {
+      "key": "auto",
+      "text": "Follows its mood: demonic in wrath, commanding when ominous."
+    }
+  ],
+  "presets": [
+    {
+      "id": "speak",
+      "name": "Speak to everyone now",
+      "text": "Speak now to every mortal in your realm: a message of your own choosing, in your own voice."
+    },
+    {
+      "id": "bless",
+      "name": "Bless everyone online",
+      "text": "Bless every mortal now in your realm with a gift or blessing of your choosing, each one."
+    },
+    {
+      "id": "punish_killer",
+      "name": "Punish the last killer",
+      "text": "Find the mortal who most recently killed another player and punish them fittingly now. If no mortal has killed another player, report that with command_done."
+    },
+    {
+      "id": "appear",
+      "name": "Appear before them",
+      "text": "Take your body and appear before the mortals now; let them see and hear you."
+    },
+    {
+      "id": "quest",
+      "name": "Give a new quest",
+      "text": "Give the mortals a new quest now, with a fitting reward."
+    },
+    {
+      "id": "true_form",
+      "name": "Reveal true form to all",
+      "text": "Reveal your true form now where every mortal in your realm can see it.",
+      "confirm": true
+    }
+  ],
+  "moods": [
+    {
+      "key": "wrathful",
+      "text": "For a while its body shows it and it must let the mood colour every word and act.",
+      "color": "#FF2A1A"
+    },
+    {
+      "key": "joyful",
+      "text": "For a while its body shows it and it must let the mood colour every word and act.",
+      "color": "#FFD86B"
+    },
+    {
+      "key": "sorrowful",
+      "text": "For a while its body shows it and it must let the mood colour every word and act.",
+      "color": "#7FB2FF"
+    },
+    {
+      "key": "ominous",
+      "text": "For a while its body shows it and it must let the mood colour every word and act.",
+      "color": "#9A5CD6"
+    },
+    {
+      "key": "exalted",
+      "text": "For a while its body shows it and it must let the mood colour every word and act.",
+      "color": "#FFF1B0"
+    },
+    {
+      "key": "calm",
+      "text": "Lifts any mood you imposed: it acts by its own nature again.",
+      "color": "#55FF55"
+    }
+  ],
+  "powers": [
+    {
+      "key": "lesser",
+      "text": "A minor spirit: gentle powers only, and it hears only prayers made to it."
+    },
+    {
+      "key": "greater",
+      "text": "Mighty but not all-knowing: no meteor, earthquake, true form, weather, time or server commands; it overhears other gods' prayers only near its body."
+    },
+    {
+      "key": "supreme",
+      "text": "Omniscient and almighty: every power, and it overhears every prayer made in its world."
+    }
+  ],
+  "models": [
+    "claude-haiku-5-5",
+    "claude-sonnet-5-5",
+    "claude-opus-5-5"
+  ],
+  "efforts": [
+    "auto",
+    "low",
+    "medium",
+    "high"
+  ],
+  "dials": [
+    {
+      "key": "generosity",
+      "low": "Stingy: rarely grants a wish.",
+      "high": "Lenient: gives freely."
+    },
+    {
+      "key": "wrath",
+      "low": "Forgiving, slow to punish.",
+      "high": "Quick to anger and to smite."
+    },
+    {
+      "key": "chattiness",
+      "low": "Silent: speaks rarely.",
+      "high": "Talks often and at length."
+    },
+    {
+      "key": "humor",
+      "low": "Solemn and serious.",
+      "high": "Jokes, teases and plays."
+    },
+    {
+      "key": "meddling",
+      "low": "Watches; acts when called.",
+      "high": "Meddles in everything."
+    },
+    {
+      "key": "patience",
+      "low": "Snaps at the second request.",
+      "high": "Tolerates endless asking."
+    },
+    {
+      "key": "mercy",
+      "low": "Harsh, lasting punishments.",
+      "high": "Light punishment; forgives."
+    },
+    {
+      "key": "pride",
+      "low": "Humble; shrugs off insults.",
+      "high": "Every slight is an affront."
+    },
+    {
+      "key": "curiosity",
+      "low": "Ignores what mortals do.",
+      "high": "Studies mortals, asks things."
+    },
+    {
+      "key": "vanity",
+      "low": "Indifferent to worship.",
+      "high": "Craves praise and offerings."
+    }
+  ],
+  "tabs": [
+    "Mind",
+    "Pace",
+    "Memory",
+    "Powers",
+    "Body",
+    "Voice",
+    "System",
+    "Gifts"
+  ]
+}

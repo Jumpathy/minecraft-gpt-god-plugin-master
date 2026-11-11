@@ -1,0 +1,266 @@
+{
+  "t": "guide",
+  "open": true,
+  "title": "The Book of the Gods",
+  "operator": false,
+  "gods": [
+    {
+      "name": "Vaelor",
+      "epithet": "the Ember Judge",
+      "color": "#FF5A30"
+    }
+  ],
+  "chapters": [
+    {
+      "id": "gods",
+      "title": "What the gods are",
+      "blocks": [
+        {
+          "p": "This world is watched by a god, played by an AI (Claude, or another model). It is not a script: it decides for itself what to say and do."
+        },
+        {
+          "p": "It sees what is said, who dies, what is built and broken, and what mortals do to the land."
+        },
+        {
+          "p": "It remembers every mortal: their deeds, their words, and how much it favors them. Worship and good deeds raise favor; insults and crimes lower it."
+        },
+        {
+          "p": "It has a heart: wrath, joy, sorrow, dread and glory, which linger and color what it does."
+        },
+        {
+          "p": "It speaks in chat and on your screen."
+        },
+        {
+          "p": "It has a body, its vessel, that walks and flies. Sometimes it is formless and watches unseen."
+        }
+      ]
+    },
+    {
+      "id": "speak",
+      "title": "Speaking to gods",
+      "blocks": [
+        {
+          "cmd": "/pray <words>",
+          "text": "Speak to the god. Alone: sense how it regards you."
+        },
+        {
+          "cmd": "/pray <god>, <words>",
+          "text": "Pray to one god by name."
+        },
+        {
+          "cmd": "Its name in chat",
+          "text": "Say its name in chat and it listens."
+        },
+        {
+          "cmd": "Touch its vessel",
+          "text": "Right-click it to pray. Strike it and it knows."
+        },
+        {
+          "cmd": "/gods",
+          "text": "Which gods watch this world."
+        },
+        {
+          "cmd": "/nickname <name>",
+          "text": "Tell the god what to call you."
+        }
+      ]
+    },
+    {
+      "id": "worship",
+      "title": "Worship and favor",
+      "blocks": [
+        {
+          "cmd": "/offer [amount]",
+          "text": "Offer what you hold."
+        },
+        {
+          "cmd": "Sneak + right-click",
+          "text": "Lay the item in your hand at the vessel's feet."
+        },
+        {
+          "cmd": "/commandments",
+          "text": "The god's laws. It watches who keeps them."
+        },
+        {
+          "h": "Signs of favor"
+        },
+        {
+          "p": "A god may give you a title, mark you with a halo or a curse, and hold rites in your honor."
+        },
+        {
+          "h": "Missions"
+        },
+        {
+          "p": "Gods want things: a temple, a slain dragon, more faithful. They give quests and missions (shown at the top of the screen) and reward those who finish them."
+        }
+      ]
+    },
+    {
+      "id": "oaths",
+      "title": "Oaths",
+      "blocks": [
+        {
+          "p": "Swear an oath before a god and it accepts or refuses it."
+        },
+        {
+          "cmd": "/swear <words>",
+          "text": "Swear an oath (also /vow). /swear <god>, <words> swears to one god."
+        },
+        {
+          "cmd": "/swear",
+          "text": "Alone: the oaths that bind you (also /oaths)."
+        },
+        {
+          "p": "A god may set a watch: never do a thing, or do it N times, perhaps near a place. A breach reaches it at once."
+        },
+        {
+          "p": "In the end it judges the oath kept, broken or released, and remembers for ever. An oath it never answers lapses."
+        }
+      ]
+    },
+    {
+      "id": "powers",
+      "title": "What a god can do",
+      "blocks": [
+        {
+          "p": "What it does depends on its nature and mood. Among its powers:"
+        },
+        {
+          "cmd": "Blessings",
+          "text": "Healing, gifts, strength, luck."
+        },
+        {
+          "cmd": "Wrath",
+          "text": "Lightning, curses, mobs; for the mightiest, meteors and earthquakes."
+        },
+        {
+          "cmd": "Building",
+          "text": "Temples, statues, whole buildings."
+        },
+        {
+          "cmd": "Vision",
+          "text": "It looks through its eyes, from above, or through stone."
+        },
+        {
+          "cmd": "Music",
+          "text": "It composes songs and gives them as discs."
+        },
+        {
+          "cmd": "Servants",
+          "text": "Seraphs, imps, wraiths and more, at its orders."
+        },
+        {
+          "cmd": "Its true form",
+          "text": "Rarely, it shows its true shape. Do not look at it."
+        }
+      ]
+    },
+    {
+      "id": "land",
+      "title": "The living land",
+      "blocks": [
+        {
+          "p": "A god sees the land around mortals: herds and pets, villages, fields and forests."
+        },
+        {
+          "p": "It keeps the mark each mortal leaves: trees felled and planted, animals slain and bred, fields reaped, villagers killed. The record fades with time."
+        },
+        {
+          "p": "Killing villagers, losing a raid or a slaughter spree draws its eye at once."
+        },
+        {
+          "h": "Tending the land"
+        },
+        {
+          "p": "It may make land flourish (crops ripen, saplings and young grow) or blight it (crops wither, saplings die, animals sicken but live)."
+        }
+      ]
+    },
+    {
+      "id": "pantheon",
+      "title": "Many gods",
+      "blocks": [
+        {
+          "p": "A world may have several gods, each with its own name, nature, memory and body. They become allies, rivals or enemies."
+        },
+        {
+          "p": "A prayer that names a god goes to it; others go to the god who favors you most."
+        },
+        {
+          "h": "Holy days"
+        },
+        {
+          "p": "Gods proclaim festivals, trials, hunts, raids, omens and holy wars, with a countdown bar, points for chosen deeds, and rewards."
+        },
+        {
+          "cmd": "/holydays",
+          "text": "What the gods have proclaimed."
+        },
+        {
+          "cmd": "/side <god>",
+          "text": "Choose a side in a holy war. Alone: see the wars."
+        }
+      ]
+    },
+    {
+      "id": "godslayer",
+      "title": "The Godslayer",
+      "blocks": [
+        {
+          "p": "One blade can wound a god: the Godslayer. Wounds close slowly. A god struck down dies, and stays dead until it returns or is raised."
+        },
+        {
+          "h": "Forging it"
+        },
+        {
+          "p": "Top: echo shard, nether star, echo shard. Middle: netherite ingot, heavy core, netherite ingot. Bottom: dragon's breath, blaze rod, dragon's breath."
+        },
+        {
+          "p": "Gods know the blade. Think before you raise it."
+        }
+      ]
+    },
+    {
+      "id": "reference",
+      "title": "Quick reference",
+      "blocks": [
+        {
+          "cmd": "/pray [god,] [words]",
+          "text": "speak to a god"
+        },
+        {
+          "cmd": "/offer [amount]",
+          "text": "offer what you hold"
+        },
+        {
+          "cmd": "/swear [god,] [words]",
+          "text": "swear or list oaths"
+        },
+        {
+          "cmd": "/commandments",
+          "text": "the god's laws"
+        },
+        {
+          "cmd": "/gods",
+          "text": "the gods of this world"
+        },
+        {
+          "cmd": "/holydays",
+          "text": "festivals and wars"
+        },
+        {
+          "cmd": "/side [god]",
+          "text": "pick a side in a war"
+        },
+        {
+          "cmd": "/nickname <name>",
+          "text": "your name to the god"
+        },
+        {
+          "cmd": "/guide",
+          "text": "this book again"
+        }
+      ]
+    }
+  ]
+}

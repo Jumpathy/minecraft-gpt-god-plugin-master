@@ -4,7 +4,6 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityShootBowEvent;
 
-import net.bigyous.gptgodmc.utils.Targeter;
 
 public class ShootLoggable extends BaseLoggable {
     private String shooter;
@@ -19,7 +18,7 @@ public class ShootLoggable extends BaseLoggable {
             LivingEntity ent = event.getEntity();
             shooter = ent.getName();
             this.projectile = event.getProjectile().getName();
-            Entity targetEnt = Targeter.getTarget(ent);
+            Entity targetEnt = ent.getTargetEntity(24);
             isValid = targetEnt != null;
             this.target = isValid? targetEnt.getName() : null;
         }

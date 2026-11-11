@@ -1,0 +1,530 @@
+{
+  "t": "guide",
+  "open": false,
+  "title": "The Book of the Gods",
+  "operator": true,
+  "gods": [
+    {
+      "name": "Vaelor",
+      "epithet": "the Ember Judge",
+      "color": "#FF5A30"
+    }
+  ],
+  "chapters": [
+    {
+      "id": "gods",
+      "title": "What the gods are",
+      "blocks": [
+        {
+          "p": "This world is watched by a god, played by an AI (Claude, or another model). It is not a script: it decides for itself what to say and do."
+        },
+        {
+          "p": "It sees what is said, who dies, what is built and broken, and what mortals do to the land."
+        },
+        {
+          "p": "It remembers every mortal: their deeds, their words, and how much it favors them. Worship and good deeds raise favor; insults and crimes lower it."
+        },
+        {
+          "p": "It has a heart: wrath, joy, sorrow, dread and glory, which linger and color what it does."
+        },
+        {
+          "p": "It speaks in chat and on your screen."
+        },
+        {
+          "p": "It has a body, its vessel, that walks and flies. Sometimes it is formless and watches unseen."
+        }
+      ]
+    },
+    {
+      "id": "speak",
+      "title": "Speaking to gods",
+      "blocks": [
+        {
+          "cmd": "/pray <words>",
+          "text": "Speak to the god. Alone: sense how it regards you."
+        },
+        {
+          "cmd": "/pray <god>, <words>",
+          "text": "Pray to one god by name."
+        },
+        {
+          "cmd": "Its name in chat",
+          "text": "Say its name in chat and it listens."
+        },
+        {
+          "cmd": "Touch its vessel",
+          "text": "Right-click it to pray. Strike it and it knows."
+        },
+        {
+          "cmd": "/gods",
+          "text": "Which gods watch this world."
+        },
+        {
+          "cmd": "/nickname <name>",
+          "text": "Tell the god what to call you."
+        }
+      ]
+    },
+    {
+      "id": "worship",
+      "title": "Worship and favor",
+      "blocks": [
+        {
+          "cmd": "/offer [amount]",
+          "text": "Offer what you hold."
+        },
+        {
+          "cmd": "Sneak + right-click",
+          "text": "Lay the item in your hand at the vessel's feet."
+        },
+        {
+          "cmd": "/commandments",
+          "text": "The god's laws. It watches who keeps them."
+        },
+        {
+          "h": "Signs of favor"
+        },
+        {
+          "p": "A god may give you a title, mark you with a halo or a curse, and hold rites in your honor."
+        },
+        {
+          "h": "Missions"
+        },
+        {
+          "p": "Gods want things: a temple, a slain dragon, more faithful. They give quests and missions (shown at the top of the screen) and reward those who finish them."
+        }
+      ]
+    },
+    {
+      "id": "oaths",
+      "title": "Oaths",
+      "blocks": [
+        {
+          "p": "Swear an oath before a god and it accepts or refuses it."
+        },
+        {
+          "cmd": "/swear <words>",
+          "text": "Swear an oath (also /vow). /swear <god>, <words> swears to one god."
+        },
+        {
+          "cmd": "/swear",
+          "text": "Alone: the oaths that bind you (also /oaths)."
+        },
+        {
+          "p": "A god may set a watch: never do a thing, or do it N times, perhaps near a place. A breach reaches it at once."
+        },
+        {
+          "p": "In the end it judges the oath kept, broken or released, and remembers for ever. An oath it never answers lapses."
+        }
+      ]
+    },
+    {
+      "id": "powers",
+      "title": "What a god can do",
+      "blocks": [
+        {
+          "p": "What it does depends on its nature and mood. Among its powers:"
+        },
+        {
+          "cmd": "Blessings",
+          "text": "Healing, gifts, strength, luck."
+        },
+        {
+          "cmd": "Wrath",
+          "text": "Lightning, curses, mobs; for the mightiest, meteors and earthquakes."
+        },
+        {
+          "cmd": "Building",
+          "text": "Temples, statues, whole buildings."
+        },
+        {
+          "cmd": "Vision",
+          "text": "It looks through its eyes, from above, or through stone."
+        },
+        {
+          "cmd": "Music",
+          "text": "It composes songs and gives them as discs."
+        },
+        {
+          "cmd": "Servants",
+          "text": "Seraphs, imps, wraiths and more, at its orders."
+        },
+        {
+          "cmd": "Its true form",
+          "text": "Rarely, it shows its true shape. Do not look at it."
+        }
+      ]
+    },
+    {
+      "id": "land",
+      "title": "The living land",
+      "blocks": [
+        {
+          "p": "A god sees the land around mortals: herds and pets, villages, fields and forests."
+        },
+        {
+          "p": "It keeps the mark each mortal leaves: trees felled and planted, animals slain and bred, fields reaped, villagers killed. The record fades with time."
+        },
+        {
+          "p": "Killing villagers, losing a raid or a slaughter spree draws its eye at once."
+        },
+        {
+          "h": "Tending the land"
+        },
+        {
+          "p": "It may make land flourish (crops ripen, saplings and young grow) or blight it (crops wither, saplings die, animals sicken but live)."
+        }
+      ]
+    },
+    {
+      "id": "pantheon",
+      "title": "Many gods",
+      "blocks": [
+        {
+          "p": "A world may have several gods, each with its own name, nature, memory and body. They become allies, rivals or enemies."
+        },
+        {
+          "p": "A prayer that names a god goes to it; others go to the god who favors you most."
+        },
+        {
+          "h": "Holy days"
+        },
+        {
+          "p": "Gods proclaim festivals, trials, hunts, raids, omens and holy wars, with a countdown bar, points for chosen deeds, and rewards."
+        },
+        {
+          "cmd": "/holydays",
+          "text": "What the gods have proclaimed."
+        },
+        {
+          "cmd": "/side <god>",
+          "text": "Choose a side in a holy war. Alone: see the wars."
+        }
+      ]
+    },
+    {
+      "id": "godslayer",
+      "title": "The Godslayer",
+      "blocks": [
+        {
+          "p": "One blade can wound a god: the Godslayer. Wounds close slowly. A god struck down dies, and stays dead until it returns or is raised."
+        },
+        {
+          "h": "Forging it"
+        },
+        {
+          "p": "Top: echo shard, nether star, echo shard. Middle: netherite ingot, heavy core, netherite ingot. Bottom: dragon's breath, blaze rod, dragon's breath."
+        },
+        {
+          "p": "Gods know the blade. Think before you raise it."
+        }
+      ]
+    },
+    {
+      "id": "reference",
+      "title": "Quick reference",
+      "blocks": [
+        {
+          "cmd": "/pray [god,] [words]",
+          "text": "speak to a god"
+        },
+        {
+          "cmd": "/offer [amount]",
+          "text": "offer what you hold"
+        },
+        {
+          "cmd": "/swear [god,] [words]",
+          "text": "swear or list oaths"
+        },
+        {
+          "cmd": "/commandments",
+          "text": "the god's laws"
+        },
+        {
+          "cmd": "/gods",
+          "text": "the gods of this world"
+        },
+        {
+          "cmd": "/holydays",
+          "text": "festivals and wars"
+        },
+        {
+          "cmd": "/side [god]",
+          "text": "pick a side in a war"
+        },
+        {
+          "cmd": "/nickname <name>",
+          "text": "your name to the god"
+        },
+        {
+          "cmd": "/guide",
+          "text": "this book again"
+        }
+      ]
+    },
+    {
+      "id": "op-start",
+      "title": "Starting a god",
+      "op": true,
+      "blocks": [
+        {
+          "h": "The API key"
+        },
+        {
+          "cmd": "gptgod setkey <key>",
+          "text": "In the server console, not in game. Saved in config.yml."
+        },
+        {
+          "p": "Or set ANTHROPIC_API_KEY before starting the server, or paste it into anthropic.api-key and run /god reload. Other models (OpenAI, local servers): the llm: section."
+        },
+        {
+          "p": "The god wakes when the first player arrives."
+        },
+        {
+          "cmd": "/god status",
+          "text": "Who the god is and what it is doing."
+        },
+        {
+          "cmd": "/god help",
+          "text": "Lists every subcommand."
+        }
+      ]
+    },
+    {
+      "id": "op-manager",
+      "title": "The God Manager",
+      "op": true,
+      "blocks": [
+        {
+          "p": "A menu for all an operator does: personality, mood, body, voice, commands, memories, pausing and server settings."
+        },
+        {
+          "cmd": "/god manager",
+          "text": "Open it (also /god gui, /god menu)."
+        },
+        {
+          "cmd": "/god manager item",
+          "text": "The nether star that opens it."
+        },
+        {
+          "cmd": "/god manager chest",
+          "text": "The chest menu, for client mod users."
+        },
+        {
+          "p": "With the GPTGOD client mod it is a real screen; its key is G."
+        }
+      ]
+    },
+    {
+      "id": "op-gods",
+      "title": "Creating and removing gods",
+      "op": true,
+      "blocks": [
+        {
+          "cmd": "/god create <name|-> [archetype] [power]",
+          "text": "A new god in your world (- lets it name itself). Power: lesser, greater or supreme."
+        },
+        {
+          "cmd": "/god remove <name> confirm",
+          "text": "Take a god away. Its memory is kept in god/removed."
+        },
+        {
+          "cmd": "/god list",
+          "text": "Every god on the server."
+        },
+        {
+          "cmd": "/god select <name|none>",
+          "text": "Which god your /god commands go to."
+        },
+        {
+          "cmd": "/god @<name> <subcommand>",
+          "text": "Speak to one god once. /god @all reaches every god (pause, resume, wake, say, command)."
+        },
+        {
+          "cmd": "/god power [level]",
+          "text": "What it may do and hear."
+        },
+        {
+          "p": "Each god costs as much to run as the first (pantheon: section). Creating and removing gods needs gptgodmc.pantheon."
+        },
+        {
+          "h": "Realms"
+        },
+        {
+          "p": "The realms: section decides which worlds a god rules: rule-all-worlds, extra-worlds, and (experimental) one god per world. Needs a restart."
+        }
+      ]
+    },
+    {
+      "id": "op-command",
+      "title": "Commanding a god",
+      "op": true,
+      "blocks": [
+        {
+          "cmd": "/god command <text>",
+          "text": "BINDING: the god must carry it out, and reports back to you."
+        },
+        {
+          "cmd": "/god commands",
+          "text": "Pending ones. /god command cancel <n|all> withdraws them."
+        },
+        {
+          "cmd": "/god say <text>",
+          "text": "A suggestion it may weigh. Not binding."
+        },
+        {
+          "cmd": "/god wake [text]",
+          "text": "Make it look at the world now."
+        },
+        {
+          "cmd": "/god pause",
+          "text": "Stop its thinking (powers still work). /god resume undoes it."
+        },
+        {
+          "cmd": "/god persona <archetype>",
+          "text": "Choose who it is (random, or list). /god rebirth: a new god."
+        },
+        {
+          "cmd": "/god vessel <action>",
+          "text": "Its body: summon, follow, fly, rise, mood, gesture, look, dismiss."
+        },
+        {
+          "cmd": "/god tool <power> [json]",
+          "text": "Run one of its powers yourself. /god tools lists them."
+        }
+      ]
+    },
+    {
+      "id": "op-watch",
+      "title": "Watching a god",
+      "op": true,
+      "blocks": [
+        {
+          "cmd": "/god journal [n]",
+          "text": "Its recent thoughts, acts and errors."
+        },
+        {
+          "cmd": "/god memory",
+          "text": "Its chronicle, mortals, quests and works."
+        },
+        {
+          "cmd": "/god view <kind>",
+          "text": "A picture of what it sees: eyes, vessel, overhead, panorama, orbit."
+        },
+        {
+          "h": "The mind viewer"
+        },
+        {
+          "p": "A web page with every thought, prompt and tool call, where memory can be edited. On by default at http://localhost:4673 (viewer: section)."
+        },
+        {
+          "h": "Costs"
+        },
+        {
+          "p": "Costs never appear in chat. Type gptgod usage in the console, or read usage.csv in the plugin folder. The client mod's manager has a Costs page."
+        }
+      ]
+    },
+    {
+      "id": "op-more",
+      "title": "More commands",
+      "op": true,
+      "blocks": [
+        {
+          "cmd": "/god reload",
+          "text": "Reload config.yml."
+        },
+        {
+          "cmd": "/god undo [work]",
+          "text": "Unbuild what the god built."
+        },
+        {
+          "cmd": "/god forget",
+          "text": "Wipe its memory (not its identity)."
+        },
+        {
+          "cmd": "/god pardon <player>",
+          "text": "Clear manipulation strikes."
+        },
+        {
+          "cmd": "/god model | effort",
+          "text": "Its model; how hard it thinks."
+        },
+        {
+          "cmd": "/bonds",
+          "text": "How gods regard each other; set it."
+        },
+        {
+          "cmd": "/relics",
+          "text": "The gods' forge (off by default: costly)."
+        },
+        {
+          "cmd": "/godslayer [player]",
+          "text": "Give the blade (ascended: kills in one blow; preview)."
+        },
+        {
+          "cmd": "/god revive",
+          "text": "Raise a slain god."
+        },
+        {
+          "cmd": "/guide <player>",
+          "text": "Hand someone this book."
+        }
+      ]
+    },
+    {
+      "id": "op-config",
+      "title": "Config sections",
+      "op": true,
+      "blocks": [
+        {
+          "p": "In config.yml, by section:"
+        },
+        {
+          "cmd": "anthropic, llm",
+          "text": "Key, model, effort; other providers."
+        },
+        {
+          "cmd": "god, personality",
+          "text": "Name, language, archetypes, dials."
+        },
+        {
+          "cmd": "brain, initiative",
+          "text": "How often it thinks and acts alone."
+        },
+        {
+          "cmd": "powers, custom-powers",
+          "text": "Turn powers off; add your own."
+        },
+        {
+          "cmd": "vessel, voice",
+          "text": "Its body and looks; speech, hearing."
+        },
+        {
+          "cmd": "pantheon, realms",
+          "text": "Several gods; their worlds."
+        },
+        {
+          "cmd": "operator, security",
+          "text": "Commands; anti-manipulation."
+        },
+        {
+          "cmd": "ecology, oaths, purpose",
+          "text": "The land, oaths, goals, quests."
+        },
+        {
+          "cmd": "godslayer, creations",
+          "text": "The blade; relics (costly)."
+        },
+        {
+          "cmd": "events, rivalry, servants",
+          "text": "Holy days, bonds, servants."
+        },
+        {
+          "cmd": "viewer, client-mod, guide",
+          "text": "Mind viewer, the mod, this book."
+        }
+      ]
+    }
+  ]
+}

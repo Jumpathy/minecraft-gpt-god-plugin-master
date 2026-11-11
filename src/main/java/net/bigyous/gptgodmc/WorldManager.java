@@ -5,7 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 
-import org.bukkit.GameRule;
+import org.bukkit.GameRules;
 import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
@@ -21,8 +21,12 @@ public class WorldManager {
             return;
         }
         worldMaps = new HashMap<String, LocalGameMap>();
-        try {
-            Files.walk(WORLD_FOLDER, 1).forEach(world -> {
+        if (!Files.isDirectory(WORLD_FOLDER)) {
+            GPTGOD.LOGGER.warn("No worlds folder at " + WORLD_FOLDER + "; round worlds are unavailable.");
+            return;
+        }
+        try (var walk = Files.walk(WORLD_FOLDER, 1)) {
+            walk.filter(p -> !p.equals(WORLD_FOLDER)).forEach(world -> {
                 GPTGOD.LOGGER.info(String.format("world %s found in %s", world.getFileName().toString(), WORLD_FOLDER.toString()));
                 worldMaps.put(world.getFileName().toString(), new LocalGameMap(WORLD_FOLDER.toFile(), world.getFileName().toString(), false));
             });
@@ -48,11 +52,11 @@ public class WorldManager {
             currentGameMap = map;
             worldCurrentlyLoaded = true;
             GPTGOD.LOGGER.info(String.format("Map %s has been loaded", mapName));
-            currentGameMap.getWorld().setGameRule(GameRule.MOB_GRIEFING, true);
-            currentGameMap.getWorld().setGameRule(GameRule.DO_MOB_SPAWNING, true);
-            currentGameMap.getWorld().setGameRule(GameRule.DO_WEATHER_CYCLE, true);
-            currentGameMap.getWorld().setGameRule(GameRule.DO_DAYLIGHT_CYCLE, true);
-            currentGameMap.getWorld().setGameRule(GameRule.DISABLE_RAIDS, true);
+            currentGameMap.getWorld().setGameRule(GameRules.MOB_GRIEFING, true);
+            currentGameMap.getWorld().setGameRule(GameRules.SPAWN_MOBS, true);
+            currentGameMap.getWorld().setGameRule(GameRules.ADVANCE_WEATHER, true);
+            currentGameMap.getWorld().setGameRule(GameRules.ADVANCE_TIME, true);
+            currentGameMap.getWorld().setGameRule(GameRules.RAIDS, false);
             return true;
         }
         else{
@@ -90,7 +94,7 @@ public class WorldManager {
         if(!player.isDead()){
             player.getInventory().clear();
             player.updateInventory();
-            player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue());
+            player.setHealth(player.getAttribute(Attribute.MAX_HEALTH).getBaseValue());
             player.clearActiveItem();
             player.clearActivePotionEffects();
             player.setLevel(0);
@@ -98,11 +102,15 @@ public class WorldManager {
     }
 
     public static String getDimensionName(){
-        return "minecraft:"+currentGameMap.getWorld().getName();
+        return getCurrentWorld().getKey().asString();
     }
 
+    /** The round world when rounds are on, otherwise the server's main world. */
     public static World getCurrentWorld(){
-        return currentGameMap.getWorld();
+        if (currentGameMap != null && currentGameMap.getWorld() != null) {
+            return currentGameMap.getWorld();
+        }
+        return org.bukkit.Bukkit.getWorlds().get(0);
     }
 
 }

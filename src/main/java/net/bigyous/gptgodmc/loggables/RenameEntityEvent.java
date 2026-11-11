@@ -5,7 +5,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.ItemStack;
 
-import net.bigyous.gptgodmc.GPT.Moderation;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 
 public class RenameEntityEvent extends BaseLoggable implements UserInputLoggable {
@@ -28,7 +27,7 @@ public class RenameEntityEvent extends BaseLoggable implements UserInputLoggable
     @Override
     public String getLog() {
         if(!isValid) return null;
-        return String.format("%s named a %s \"%s\"", player, entity, name);
+        return String.format("%s named a %s \"%s\"", player, entity, net.bigyous.gptgodmc.god.Guard.clean(name));
     }
 
     @Override

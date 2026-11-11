@@ -1,0 +1,8 @@
+data: {"choices":[{"index":0,"delta":{"role":"assistant","content":"<thi"},"finish_reason":null}]}
+
+data: {"choices":[{"index":0,"delta":{"content":"nk>They greeted me.</th"},"finish_reason":null}]}
+
+data: {"choices":[{"index":0,"delta":{"content":"ink>\n<tool_call>\n{\"name\": \"announce\", \"arguments\": {\"message\": \"Welcome, mortals.\"}}\n</tool_call>"},"finish_reason":null}]}
+
+data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}
+

@@ -1,0 +1,234 @@
+{
+  "t": "gui_data",
+  "part": "config",
+  "tab": "Pace",
+  "options": [
+    {
+      "key": "brain.reaction-delay-ms",
+      "label": "Reaction delay",
+      "type": "int",
+      "min": 0,
+      "max": 5000,
+      "step": 50,
+      "fallback": "350",
+      "unit": "ms",
+      "help": "How long it waits after being addressed, so a burst of words lands as one.",
+      "value": "350"
+    },
+    {
+      "key": "brain.min-gap-seconds",
+      "label": "Gap between thoughts",
+      "type": "int",
+      "min": 1,
+      "max": 120,
+      "step": 1,
+      "fallback": "8",
+      "unit": "s",
+      "help": "Never thinks more often than this when chat is busy. Keeps a busy chat calm.",
+      "value": "8"
+    },
+    {
+      "key": "brain.heartbeat-seconds",
+      "label": "Heartbeat",
+      "type": "int",
+      "min": 5,
+      "max": 600,
+      "step": 5,
+      "fallback": "40",
+      "unit": "s",
+      "help": "With events waiting, it looks at the world this often.",
+      "value": "40"
+    },
+    {
+      "key": "brain.idle-seconds",
+      "label": "Idle musing",
+      "type": "int",
+      "min": 0,
+      "max": 3600,
+      "step": 10,
+      "fallback": "270",
+      "unit": "s",
+      "help": "With nothing happening it still muses this often (0 = never). Under 300 keeps the cache warm.",
+      "value": "270"
+    },
+    {
+      "key": "brain.perception-char-budget",
+      "label": "Perception size",
+      "type": "int",
+      "min": 4000,
+      "max": 100000,
+      "step": 1000,
+      "fallback": "24000",
+      "unit": "chars",
+      "help": "How much text it may see of the world each thought.",
+      "value": "24000"
+    },
+    {
+      "key": "purpose.quest-gap-minutes",
+      "label": "Quest gap",
+      "type": "int",
+      "min": 0,
+      "max": 240,
+      "step": 5,
+      "fallback": "20",
+      "unit": "min",
+      "help": "The least time between two quests for the same mortal, so it does not nag (0: no limit).",
+      "value": "20"
+    },
+    {
+      "key": "security.injection-guard",
+      "label": "Manipulation guard",
+      "type": "choice",
+      "choices": [
+        "model",
+        "rules",
+        "off"
+      ],
+      "fallback": "model",
+      "help": "Guards it against players trying to trick it. model: a small screen checks suspect words.",
+      "value": "model"
+    },
+    {
+      "key": "security.screen-wait-ms",
+      "label": "Guard wait",
+      "type": "int",
+      "min": 0,
+      "max": 3000,
+      "step": 100,
+      "fallback": "700",
+      "unit": "ms",
+      "help": "The longest a thought waits for a screen still in progress.",
+      "value": "700"
+    },
+    {
+      "key": "vessel.pondering",
+      "label": "Thinking gestures",
+      "type": "bool",
+      "fallback": "true",
+      "help": "While it thinks its body shows it working: poses and particles that grow with a long thought.",
+      "value": "true"
+    },
+    {
+      "key": "senses.enabled",
+      "label": "Physical senses",
+      "type": "bool",
+      "fallback": "true",
+      "help": "It knows what mortals cannot see (a creeper behind them), hazards, and what they build.",
+      "value": "true"
+    },
+    {
+      "key": "senses.danger-alerts",
+      "label": "Danger wakes it",
+      "type": "bool",
+      "fallback": "true",
+      "help": "A close danger a mortal has not seen wakes it at once, so it may warn them.",
+      "value": "true"
+    },
+    {
+      "key": "vision.auto-minimap",
+      "label": "Minimap unasked",
+      "type": "choice",
+      "choices": [
+        "off",
+        "when-useful",
+        "always"
+      ],
+      "fallback": "off",
+      "help": "Send it a map of where mortals are. when-useful: on danger or talk of a place.",
+      "value": "off"
+    },
+    {
+      "key": "vision.minimap-size",
+      "label": "Minimap size",
+      "type": "int",
+      "min": 256,
+      "max": 768,
+      "step": 32,
+      "fallback": "448",
+      "unit": "px",
+      "help": "How large its minimap is drawn. Larger is easier for it to read.",
+      "value": "448"
+    },
+    {
+      "key": "vision.minimap-radius",
+      "label": "Minimap reach",
+      "type": "int",
+      "min": 12,
+      "max": 96,
+      "step": 4,
+      "fallback": "32",
+      "unit": "blocks",
+      "help": "How far its minimap reaches from the centre unless it says otherwise.",
+      "value": "32"
+    },
+    {
+      "key": "quests.default-minutes",
+      "label": "Quest length",
+      "type": "int",
+      "min": 1,
+      "max": 120,
+      "step": 1,
+      "fallback": "10",
+      "unit": "min",
+      "help": "How long a quest lasts unless the god says otherwise.",
+      "value": "10"
+    },
+    {
+      "key": "building.blocks-per-tick",
+      "label": "Build speed",
+      "type": "int",
+      "min": 100,
+      "max": 10000,
+      "step": 100,
+      "fallback": "1500",
+      "unit": "/tick",
+      "help": "Blocks its builds place every tick (higher is faster, heavier).",
+      "value": "1500"
+    },
+    {
+      "key": "building.max-blocks",
+      "label": "Largest build",
+      "type": "int",
+      "min": 1000,
+      "max": 1000000,
+      "step": 1000,
+      "fallback": "250000",
+      "help": "The most blocks one build may place.",
+      "value": "250000"
+    },
+    {
+      "key": "pantheon.max-concurrent-thoughts",
+      "label": "Gods thinking at once",
+      "type": "int",
+      "min": 1,
+      "max": 12,
+      "step": 1,
+      "fallback": "2",
+      "help": "With several gods, at most this many think at the same moment (prayers always get through).",
+      "value": "2"
+    },
+    {
+      "key": "pantheon.stagger-seconds",
+      "label": "Gods' stagger",
+      "type": "int",
+      "min": 0,
+      "max": 60,
+      "step": 1,
+      "fallback": "5",
+      "unit": "s",
+      "help": "With several gods, unprompted thoughts start at least this far apart.",
+      "value": "5"
+    },
+    {
+      "key": "pantheon.divine-exchanges",
+      "label": "Gods' replies in a row",
+      "type": "int",
+      "min": 0,
+      "max": 10,
+      "step": 1,
+      "fallback": "2",
+      "help": "How often gods answer only each other before waiting for a mortal to speak.",
+      "value": "2"
+    }
+  ]
+}

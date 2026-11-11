@@ -1,22 +1,25 @@
 package net.bigyous.gptgodmc.loggables;
 
-import java.util.Locale;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.TranslatableComponent;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
-import net.kyori.adventure.translation.GlobalTranslator;
-public class DeathLoggable extends BaseLoggable {
-    
-    private String deathMessage;
 
-    public DeathLoggable(PlayerDeathEvent event){
-        this.deathMessage = PlainTextComponentSerializer.plainText().serialize(event.deathMessage());
-        
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+
+public class DeathLoggable extends BaseLoggable {
+    private final String deathMessage;
+
+    public DeathLoggable(PlayerDeathEvent event) {
+        this.deathMessage = event.deathMessage() == null
+                ? event.getPlayer().getName() + " died"
+                : PlainTextComponentSerializer.plainText().serialize(event.deathMessage());
     }
 
-    public String getLog(){
+    @Override
+    public String getLog() {
+        return "DEATH: " + deathMessage;
+    }
+
+    @Override
+    public String attentionReason() {
         return deathMessage;
     }
-
 }

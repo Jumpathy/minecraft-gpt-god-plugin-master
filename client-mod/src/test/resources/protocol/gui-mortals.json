@@ -1,0 +1,62 @@
+{
+  "t": "gui_data",
+  "part": "mortals",
+  "realm": "main",
+  "query": "",
+  "page": 0,
+  "pages": 1,
+  "total": 6,
+  "mortals": [
+    {
+      "name": "Tyler",
+      "favor": 9,
+      "tier": "chosen",
+      "online": true,
+      "title": "Flamebearer",
+      "notes": 4,
+      "deeds": 12
+    },
+    {
+      "name": "Korvath",
+      "favor": -8,
+      "tier": "despised",
+      "online": true,
+      "title": "the Faithless",
+      "notes": 3,
+      "deeds": 9
+    },
+    {
+      "name": "Mirelle",
+      "favor": 4,
+      "tier": "favored",
+      "online": true,
+      "notes": 1,
+      "deeds": 5
+    },
+    {
+      "name": "Dunmar",
+      "favor": 0,
+      "tier": "unproven",
+      "seen": "3h",
+      "notes": 0,
+      "deeds": 2
+    },
+    {
+      "name": "Ashka",
+      "favor": -4,
+      "tier": "out of favor",
+      "seen": "2d",
+      "notes": 2,
+      "deeds": 6
+    },
+    {
+      "name": "Pip_the_Small",
+      "favor": 2,
+      "tier": "unproven",
+      "title": "Keeper of Bees",
+      "seen": "5d",
+      "notes": 1,
+      "deeds": 1
+    }
+  ]
+}

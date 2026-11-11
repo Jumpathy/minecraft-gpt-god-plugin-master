@@ -1,0 +1,1053 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="csrf" content="__CSRF__">
+<title>GPTGOD Mind</title>
+<!--SAMPLE-->
+<style>
+:root{
+  --bg:#0b0d10;--bg1:#101318;--bg2:#151a21;--bg3:#1c222b;--line:#232a35;--line2:#2e3746;
+  --fg:#d6dde8;--fg2:#9aa6b8;--fg3:#647086;--acc:#7cc4ff;--ok:#5fd38d;--warn:#f2b84b;--bad:#ff6b6b;
+  --think:#b59cff;--tool:#ffcf6b;--note:#5ad1d1;--intr:#ff9f5a;
+  --mono:ui-monospace,"JetBrains Mono","Cascadia Mono",Consolas,Menlo,monospace;
+  --sans:Inter,"Segoe UI",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font:12.5px/1.45 var(--sans)}
+button,input,textarea,select{font:inherit;color:inherit}
+a{color:var(--acc)}
+.mono,pre,code,textarea.mono{font-family:var(--mono);font-size:11.5px}
+pre{margin:0;white-space:pre-wrap;word-break:break-word}
+::-webkit-scrollbar{width:9px;height:9px}::-webkit-scrollbar-thumb{background:var(--line2);border-radius:5px}::-webkit-scrollbar-track{background:transparent}
+
+#app{display:grid;grid-template-rows:38px 1fr;height:100vh}
+header{display:flex;align-items:center;gap:14px;padding:0 12px;border-bottom:1px solid var(--line);background:var(--bg1)}
+header .brand{font-weight:700;letter-spacing:.08em;font-size:12px}
+header .brand b{color:var(--acc)}
+header .stat{color:var(--fg3);font-family:var(--mono);font-size:11px}
+header .stat i{font-style:normal;color:var(--fg2)}
+header .sp{flex:1}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;background:var(--fg3);vertical-align:middle}
+.dot.live{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+.dot.err{background:var(--bad)}
+.btn{background:var(--bg3);border:1px solid var(--line2);border-radius:4px;padding:3px 9px;cursor:pointer;font-size:11.5px}
+.btn:hover{border-color:var(--acc);color:#fff}
+.btn.on{background:#1d3348;border-color:var(--acc);color:#fff}
+.btn.danger:hover{border-color:var(--bad);color:var(--bad)}
+.btn.sm{padding:1px 6px;font-size:10.5px}
+.main{display:grid;grid-template-columns:250px 1fr;min-height:0}
+
+/* gods rail */
+#rail{border-right:1px solid var(--line);overflow:auto;background:var(--bg1)}
+.god{padding:9px 10px 9px 12px;border-bottom:1px solid var(--line);cursor:pointer;position:relative}
+.god::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gc)}
+.god:hover{background:var(--bg2)}
+.god.sel{background:var(--bg2)}
+.god.sel::after{content:"";position:absolute;right:0;top:0;bottom:0;width:2px;background:var(--gc)}
+.god .n{font-weight:650;font-size:13px;color:var(--gc)}
+.god .e{color:var(--fg2);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.god .m{font-family:var(--mono);font-size:10.5px;color:var(--fg3);margin-top:3px}
+.god .why{font-size:10.5px;color:var(--warn);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.god .err{font-size:10.5px;color:var(--bad);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st{display:inline-block;font-family:var(--mono);font-size:10px;padding:0 5px;border-radius:3px;border:1px solid var(--line2);color:var(--fg2);text-transform:uppercase;letter-spacing:.04em}
+.st.thinking{color:var(--think);border-color:var(--think);animation:pulse 1.2s infinite}
+.st.awake{color:var(--ok);border-color:#2e6b48}
+.st.asleep,.st.paused{color:var(--fg3)}
+.st.slain{color:var(--bad);border-color:var(--bad)}
+.st.backing,.st.weary{color:var(--warn);border-color:var(--warn)}
+@keyframes pulse{50%{opacity:.45}}
+.rail-h{padding:8px 12px;color:var(--fg3);font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}
+
+/* content */
+#content{display:grid;grid-template-rows:auto auto 1fr;min-height:0;min-width:0}
+#godbar{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--line);background:var(--bg1);flex-wrap:wrap}
+#godbar .title{font-size:15px;font-weight:700;color:var(--gc)}
+#godbar .sub{color:var(--fg2)}
+#godbar .kv{font-family:var(--mono);font-size:11px;color:var(--fg3)}
+#godbar .kv i{font-style:normal;color:var(--fg)}
+#tabs{display:flex;gap:2px;padding:0 10px;border-bottom:1px solid var(--line);background:var(--bg1)}
+#tabs .tab{padding:7px 12px;cursor:pointer;color:var(--fg2);border-bottom:2px solid transparent;font-size:12px}
+#tabs .tab:hover{color:var(--fg)}
+#tabs .tab.on{color:#fff;border-bottom-color:var(--gc,var(--acc))}
+#tabs .tab .c{font-family:var(--mono);font-size:10px;color:var(--fg3);margin-left:4px}
+#pane{overflow:auto;min-height:0;padding:12px 14px 40px}
+
+/* thoughts */
+.th{border:1px solid var(--line);border-left:3px solid var(--gc);border-radius:5px;margin-bottom:10px;background:var(--bg1)}
+.th.live{border-color:var(--think);border-left-color:var(--gc);box-shadow:0 0 0 1px #b59cff22}
+.th-h{display:flex;align-items:center;gap:10px;padding:6px 10px;cursor:pointer;flex-wrap:wrap}
+.th-h:hover{background:var(--bg2)}
+.th-h .num{font-family:var(--mono);color:var(--gc);font-weight:700}
+.th-h .who{color:var(--gc);font-weight:600}
+.th-h .t{font-family:var(--mono);color:var(--fg3);font-size:11px}
+.th-h .trig{flex:1;min-width:200px;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip{font-family:var(--mono);font-size:10.5px;padding:0 6px;border-radius:3px;background:var(--bg3);color:var(--fg2);white-space:nowrap}
+.chip.eff{color:var(--acc)}
+.chip.cost{color:var(--ok)}
+.chip.err{color:var(--bad)}
+.chip.ch{color:var(--warn)}
+.th-b{border-top:1px solid var(--line);padding:8px 10px 10px}
+.sec{margin:6px 0}
+.sec>summary{cursor:pointer;color:var(--fg2);font-size:11px;text-transform:uppercase;letter-spacing:.08em;list-style:none;user-select:none}
+.sec>summary::before{content:"▸ ";color:var(--fg3)}
+.sec[open]>summary::before{content:"▾ "}
+.sec>summary .hint{text-transform:none;letter-spacing:0;color:var(--fg3);font-family:var(--mono);margin-left:6px}
+.box{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:8px 10px;margin-top:5px;max-height:420px;overflow:auto}
+.prompts{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 8px}
+.pbtn{font-family:var(--mono);font-size:10.5px;background:var(--bg2);border:1px solid var(--line2);border-radius:3px;padding:2px 7px;cursor:pointer;color:var(--fg2)}
+.pbtn:hover{border-color:var(--acc);color:#fff}
+.pbtn .u{color:var(--fg3)}
+.pbtn .c{color:var(--warn)}
+table.req{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:11px;margin-top:4px}
+table.req th{color:var(--fg3);font-weight:500;text-align:right;padding:2px 8px;border-bottom:1px solid var(--line)}
+table.req td{text-align:right;padding:2px 8px;border-bottom:1px solid #1a1f27;color:var(--fg2)}
+table.req th:first-child,table.req td:first-child,table.req td.l,table.req th.l{text-align:left}
+.it{display:grid;grid-template-columns:62px 1fr;gap:8px;padding:4px 0;border-bottom:1px dashed #1b2029}
+.it:last-child{border-bottom:0}
+.it .k{font-family:var(--mono);font-size:10px;text-transform:uppercase;padding-top:2px;color:var(--fg3)}
+.it .k small{display:block;color:#475164;text-transform:none}
+.it.thinking .k{color:var(--think)} .it.thinking .v{color:#c8bcf0;font-style:italic}
+.it.text .k{color:var(--fg)}
+.it.tool .k{color:var(--tool)}
+.it.search .k{color:var(--acc)}
+.it.interject .k{color:var(--intr)} .it.interject .v{color:#ffd2b0}
+.it.note .k{color:var(--note)} .it.note .v{color:#bde9e9}
+.it.error .k,.it.error .v{color:var(--bad)}
+.it.info .k{color:var(--fg2)}
+.tname{font-family:var(--mono);color:var(--tool);font-weight:600}
+.tin{color:var(--fg2)}
+.tres{border-left:2px solid #3a4356;padding-left:8px;margin-top:3px;color:var(--fg)}
+.tres.bad{border-left-color:var(--bad);color:#ffb3b3}
+.it img{max-width:min(100%,640px);border:1px solid var(--line2);border-radius:3px;margin-top:5px;image-rendering:pixelated;cursor:zoom-in}
+.cursor::after{content:"▍";color:var(--think);animation:pulse 1s infinite}
+.outcome{margin-top:8px;font-family:var(--mono);font-size:11px;color:var(--ok)}
+.outcome.bad{color:var(--bad)}
+.empty{color:var(--fg3);padding:30px;text-align:center}
+
+/* memory & forms */
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+@media (max-width:1100px){.grid2{grid-template-columns:1fr}}
+.card{background:var(--bg1);border:1px solid var(--line);border-radius:5px;padding:9px 11px;min-width:0}
+.card h3{margin:0 0 7px;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--fg2);display:flex;align-items:center;gap:8px}
+.card h3 .sp{flex:1}
+.row{display:flex;gap:8px;align-items:flex-start;padding:3px 0;border-bottom:1px solid #191e26}
+.row:last-child{border-bottom:0}
+.row .when{font-family:var(--mono);font-size:10.5px;color:var(--fg3);white-space:nowrap;min-width:58px}
+.row .txt{flex:1;min-width:0;word-break:break-word}
+.row .acts{display:flex;gap:4px;opacity:.25}
+.row:hover .acts{opacity:1}
+textarea,input[type=text],input[type=number],select{background:var(--bg);border:1px solid var(--line2);border-radius:4px;padding:4px 6px;width:100%}
+textarea:focus,input:focus,select:focus{outline:none;border-color:var(--acc)}
+textarea{resize:vertical;min-height:60px}
+input[type=range],input[type=checkbox]{accent-color:var(--gc,var(--acc))}
+label.f{display:block;color:var(--fg3);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;margin:7px 0 2px}
+.bar{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.bar>span{display:block;height:100%}
+.heart{display:grid;grid-template-columns:62px 1fr 34px 140px;gap:8px;align-items:center;margin:3px 0}
+.heart input[type=range]{width:100%}
+.dial{display:grid;grid-template-columns:90px 1fr 26px;gap:8px;align-items:center;margin:2px 0}
+.fav{font-family:var(--mono);font-weight:700}
+.players{display:grid;grid-template-columns:220px 1fr;gap:12px;min-height:0}
+.plist .p{padding:5px 8px;border-radius:4px;cursor:pointer;display:flex;gap:6px;align-items:center}
+.plist .p:hover{background:var(--bg2)}
+.plist .p.sel{background:var(--bg3)}
+.plist .p .nm{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kvs{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-family:var(--mono);font-size:11px}
+.kvs b{color:var(--fg3);font-weight:500}
+.diff .a{background:#12301f;color:#9ff0bd;display:block}
+.diff .d{background:#3a1717;color:#ffb0b0;display:block;text-decoration:line-through;text-decoration-color:#ff6b6b66}
+.diff .s{color:var(--fg3);display:block}
+#modal{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;z-index:20}
+#modal.on{display:flex}
+#modal .win{width:min(1100px,94vw);height:86vh;background:var(--bg1);border:1px solid var(--line2);border-radius:6px;display:grid;grid-template-rows:auto 1fr auto}
+#modal .wh{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line)}
+#modal .wh .ttl{font-weight:600;flex:1}
+#modal .wb{overflow:auto;padding:10px 12px}
+#modal .wf{padding:8px 12px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end}
+#modal textarea{height:100%;min-height:100%;font-family:var(--mono)}
+.insp-tabs{display:flex;gap:4px;flex-wrap:wrap}
+.insp h4{margin:14px 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--fg2);display:flex;gap:8px;align-items:center}
+.insp h4:first-child{margin-top:0}
+.insp .blk{border:1px solid var(--line);border-radius:4px;margin:5px 0;background:var(--bg)}
+.insp .blk>.bh{display:flex;gap:8px;align-items:center;padding:4px 8px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:10.5px;color:var(--fg3)}
+.insp .blk>.bb{padding:6px 9px;max-height:360px;overflow:auto}
+.insp .role{font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.insp .role.user{color:var(--acc)} .insp .role.assistant{color:var(--gc,var(--ok))}
+.insp .msg{border-left:2px solid var(--line2);padding-left:10px;margin:10px 0}
+.insp .msg.assistant{border-left-color:var(--gc,var(--ok))}
+.insp .ty{font-family:var(--mono);font-size:10px;padding:0 5px;border-radius:3px;background:var(--bg3);color:var(--fg2)}
+.insp .ty.thinking{color:var(--think)} .insp .ty.tool_use{color:var(--tool)} .insp .ty.tool_result{color:var(--note)} .insp .ty.image{color:var(--intr)}
+.insp .cache{font-family:var(--mono);font-size:10px;color:#0b0d10;background:var(--warn);padding:0 5px;border-radius:3px}
+.insp details.tool{border-bottom:1px solid #191e26;padding:3px 0}
+.insp details.tool>summary{cursor:pointer;list-style:none;font-family:var(--mono);font-size:11px}
+.insp details.tool>summary .d{color:var(--fg3);font-family:var(--sans);margin-left:8px}
+.insp .sum{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;margin-bottom:6px}
+.insp .sum div{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:5px 8px}
+.insp .sum b{display:block;font-family:var(--mono);font-size:14px;color:#fff;font-weight:600}
+.insp .sum span{color:var(--fg3);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em}
+[data-cpy]{position:relative}
+.cpy{position:absolute;top:3px;right:3px;z-index:2;opacity:0;transition:opacity .12s;background:var(--bg3);border:1px solid var(--line2);border-radius:3px;color:var(--fg2);font:10px var(--mono);padding:1px 6px;cursor:pointer}
+[data-cpy]:hover>.cpy{opacity:.9}
+.cpy:hover{opacity:1!important;color:#fff;border-color:var(--acc)}
+.cpy.ok{color:var(--ok)!important;border-color:var(--ok)!important;opacity:1}
+.ev{display:grid;grid-template-columns:62px 74px minmax(0,1fr) minmax(220px,40%);gap:10px;padding:4px 6px;border-bottom:1px solid #171b22;align-items:start}
+.ev:hover{background:var(--bg1)}
+.ev .tm{font-family:var(--mono);font-size:10.5px;color:var(--fg3);padding-top:1px}
+.ev .tx{word-break:break-word}
+.ev .att{display:block;color:var(--warn);font-size:10.5px;margin-top:1px}
+.cat{font-family:var(--mono);font-size:10px;text-transform:uppercase;padding:0 5px;border-radius:3px;border:1px solid var(--line2);color:var(--fg2);display:inline-block}
+.cat.prayer{color:var(--think);border-color:#5b4b8f}.cat.speech{color:var(--ok);border-color:#2e6b48}.cat.directive{color:var(--warn);border-color:#7a5d22}
+.pills{display:flex;flex-wrap:wrap;gap:4px}
+.pill{font-family:var(--mono);font-size:10.5px;border-radius:10px;padding:1px 8px;border:1px solid var(--gc);color:var(--fg);background:color-mix(in srgb,var(--gc) 14%,transparent);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.pill b{color:var(--gc);font-weight:600}
+.pill.pending{border-style:dashed;opacity:.85;animation:pulse 1.6s infinite}
+.pill.merged,.pill.dropped{opacity:.45;background:transparent}
+.pill.go{cursor:pointer}.pill.go:hover{background:color-mix(in srgb,var(--gc) 30%,transparent)}
+.evsum{display:flex;gap:10px;font-family:var(--mono);font-size:11px;color:var(--fg3);margin-left:auto}
+.evsum i{font-style:normal;color:var(--fg)}
+#toast{position:fixed;right:14px;bottom:14px;background:var(--bg3);border:1px solid var(--line2);padding:7px 12px;border-radius:5px;display:none;z-index:30;max-width:520px}
+#toast.on{display:block}#toast.bad{border-color:var(--bad);color:#ffc0c0}
+.filters{display:flex;gap:6px;margin-bottom:10px;align-items:center;flex-wrap:wrap}
+.filters input{width:220px}
+.filters input[type=checkbox]{width:auto;vertical-align:middle}
+.muted{color:var(--fg3)}
+.jr{display:grid;grid-template-columns:64px 74px 1fr;gap:8px;padding:2px 0;border-bottom:1px solid #171b22;font-family:var(--mono);font-size:11px}
+.jr .k{text-transform:uppercase;font-size:10px}
+.jr.thought .k{color:var(--think)}.jr.tool .k{color:var(--tool)}.jr.error .k,.jr.error .v{color:var(--bad)}.jr.speech .k{color:var(--ok)}.jr.cycle .k{color:var(--acc)}.jr.perception .k{color:var(--fg2)}
+@media (max-width:760px){.main{grid-template-columns:1fr}#rail{max-height:160px;border-right:0;border-bottom:1px solid var(--line)}.players{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="brand">GPTGOD <b>MIND</b></div>
+    <span class="stat"><span id="live" class="dot"></span> <span id="livetxt">connecting</span></span>
+    <span class="stat">mode <i id="mode">–</i></span>
+    <span class="stat">key <i id="key">–</i></span>
+    <span class="stat">rev <i id="rev">0</i></span>
+    <span class="sp"></span>
+    <button class="btn on" id="follow" title="Keep the newest thought in view">follow</button>
+    <button class="btn" id="pausepoll" title="Stop live updates">freeze</button>
+  </header>
+  <div class="main">
+    <nav id="rail"></nav>
+    <section id="content">
+      <div id="godbar"></div>
+      <div id="tabs"></div>
+      <div id="pane"></div>
+    </section>
+  </div>
+</div>
+<div id="modal"><div class="win"><div class="wh"><span class="ttl" id="mttl"></span><span id="mtools"></span><button class="btn" id="mclose">close</button></div><div class="wb" id="mbody"></div><div class="wf" id="mfoot"></div></div></div>
+<div id="toast"></div>
+<script>
+"use strict";
+const CSRF = document.querySelector('meta[name=csrf]').content;
+const SAMPLE = window.__SAMPLE__ || null;
+const $ = (s, el=document) => el.querySelector(s);
+const esc = s => s == null ? "" : String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const PALETTE = ["#ffb454","#7cc4ff","#c792ea","#5fd38d","#ff7a90","#5ad1d1","#e6db74","#ff9f5a"];
+const S = {events:new Map(), evRev:0, ev:{cat:"", god:"", state:"", q:"", addressed:false}, gods:[], sel:null, all:false, tab:"timeline", thoughts:new Map(), rev:0, open:new Set(), closed:new Set(),
+  follow:true, frozen:false, blobs:new Map(), mem:null, up:null, prompt:null, player:null, editing:false, now:Date.now(), skew:0,
+  jfilter:"", tfilter:""};
+
+// ---- copy ---------------------------------------------------------------------------------------
+async function copyText(text, btn){
+  text = text == null ? "" : String(text);
+  let ok = false;
+  try { if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(text); ok = true; } } catch (e) { ok = false; }
+  if (!ok) {
+    const ta = document.createElement("textarea"); ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select(); try { ok = document.execCommand("copy"); } catch (e) { ok = false; } ta.remove();
+  }
+  if (btn) { const was = btn.textContent; btn.textContent = ok ? "copied" : "failed"; btn.classList.add("ok"); setTimeout(() => { btn.textContent = was; btn.classList.remove("ok"); }, 1100); }
+  else toast(ok ? `copied ${text.length.toLocaleString()} chars` : "copy failed", !ok);
+  return ok;
+}
+// Every block of text gets a copy button on hover (added as the page re-renders).
+const COPYABLE = ".box, .blk > .bb, .tres, .it .v, #mbody > pre, #mbody > .diff, .insp > pre";
+function textFor(el){
+  if (el.matches("textarea")) return el.value;
+  const c = el.cloneNode(true); c.querySelectorAll(".cpy").forEach(b => b.remove()); return c.innerText.replace(/\n$/, "");
+}
+function decorate(root){
+  root.querySelectorAll(COPYABLE).forEach(el => {
+    const host = el.matches("textarea") ? el.parentElement : el;
+    if (!host || host.dataset.cpy) return;
+    host.dataset.cpy = "1";
+    const b = document.createElement("button"); b.className = "cpy"; b.type = "button"; b.textContent = "copy"; b.title = "Copy this text";
+    b.onclick = e => { e.stopPropagation(); e.preventDefault(); copyText(textFor(el), b); };
+    host.appendChild(b);
+  });
+}
+let decoTimer = 0;
+new MutationObserver(() => { clearTimeout(decoTimer); decoTimer = setTimeout(() => decorate(document), 60); }).observe(document.body, {childList:true, subtree:true});
+
+// ---- data ---------------------------------------------------------------------------------------
+async function api(path){
+  if (SAMPLE) { const k = Object.keys(SAMPLE).sort((a, b) => b.length - a.length).find(k => path.startsWith(k)); return structuredClone(k ? SAMPLE[k] : {}); }
+  const r = await fetch(path, {cache:"no-store", credentials:"same-origin"});
+  const j = await r.json().catch(() => ({error:"bad response"}));
+  if (!r.ok) throw new Error(j.error || r.status);
+  return j;
+}
+async function edit(op, body){
+  body = Object.assign({op, god:S.sel}, body||{});
+  if (SAMPLE) { toast("sample mode: " + op); return {ok:true}; }
+  try {
+    const r = await fetch("/api/edit?god=" + encodeURIComponent(S.sel), {method:"POST", credentials:"same-origin",
+      headers:{"Content-Type":"application/json","X-Viewer-Csrf":CSRF}, body:JSON.stringify(body)});
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || r.status);
+    toast(j.done); S.editing = false;
+    refreshSide(true);
+    return j;
+  } catch (e) { toast(String(e.message || e), true); throw e; }
+}
+function toast(msg, bad){ const t = $("#toast"); t.textContent = msg; t.className = "on" + (bad ? " bad" : ""); clearTimeout(t._h); t._h = setTimeout(() => t.className = "", bad ? 6000 : 2600); }
+function color(id){ const i = S.gods.findIndex(g => g.id === id); return PALETTE[(i < 0 ? 0 : i) % PALETTE.length]; }
+function god(id){ return S.gods.find(g => g.id === id); }
+function now(){ return Date.now() + S.skew; }
+function ago(t){ if (!t) return "–"; let s = Math.max(0, Math.round((now() - t)/1000)); if (s < 60) return s + "s"; let m = Math.round(s/60); if (m < 60) return m + "m"; let h = Math.round(m/60); if (h < 48) return h + "h"; return Math.round(h/24) + "d"; }
+function clock(t){ const d = new Date(t); return d.toTimeString().slice(0,8); }
+function dur(ms){ if (ms == null) return "–"; ms = Math.max(0, ms); return ms < 1000 ? ms + "ms" : (ms/1000).toFixed(ms < 10000 ? 1 : 0) + "s"; }
+function kt(n){ if (!n) return "0"; return n >= 1e6 ? (n/1e6).toFixed(2) + "M" : n >= 1000 ? (n/1000).toFixed(1) + "k" : String(n); }
+function usd(c){ return c == null ? "" : "$" + (c < 0.01 ? c.toFixed(4) : c.toFixed(3)); }
+async function blob(h){ if (!h) return ""; if (S.blobs.has(h)) return S.blobs.get(h); const j = await api("/api/blob?h=" + h); S.blobs.set(h, j.text || ""); return j.text || ""; }
+
+// ---- polling ------------------------------------------------------------------------------------
+async function pollGods(){
+  try {
+    const j = await api("/api/gods");
+    S.gods = j.gods || []; S.skew = (j.now || Date.now()) - Date.now();
+    $("#mode").textContent = (j.brainEnabled === false ? "off/" : "") + (j.mode || "?");
+    $("#key").textContent = j.keyConfigured ? "set" : "MISSING";
+    $("#key").style.color = j.keyConfigured ? "" : "var(--bad)";
+    if (!S.sel || !god(S.sel)) S.sel = S.gods[0] && S.gods[0].id;
+    setLive(true);
+    renderRail(); renderGodbar(); renderTabs();
+  } catch (e) { setLive(false, e.message); }
+}
+async function pollThoughts(){
+  try {
+    const j = await api("/api/thoughts?since=" + S.rev);
+    let changed = false;
+    for (const t of j.thoughts || []) { S.thoughts.set(t.god + ":" + t.id, t); changed = true; }
+    S.rev = j.rev || S.rev; $("#rev").textContent = S.rev;
+    // Drop what the server no longer keeps (it keeps 50 per god).
+    if (S.thoughts.size > 60 * Math.max(1, S.gods.length)) {
+      const list = [...S.thoughts.values()].sort((a, b) => a.startedAt - b.startedAt);
+      for (const t of list.slice(0, list.length - 50 * Math.max(1, S.gods.length))) S.thoughts.delete(t.god + ":" + t.id);
+    }
+    if (changed && S.tab === "timeline") renderTimeline();
+  } catch (e) { setLive(false, e.message); }
+}
+function setLive(ok, why){ $("#live").className = "dot " + (ok ? "live" : "err"); $("#livetxt").textContent = ok ? (S.frozen ? "frozen" : "live") : ("offline: " + (why || "")); }
+async function refreshSide(force){
+  if (!S.sel || (S.editing && !force)) return;
+  const g = S.sel;
+  try {
+    if (S.tab === "memory" || S.tab === "players") { S.mem = await api("/api/memory?god=" + g); }
+    if (S.tab === "prompt") { S.mem = S.mem && S.mem._god === g ? S.mem : await api("/api/memory?god=" + g); S.prompt = await api("/api/prompt?god=" + g); }
+    if (S.tab === "upcoming" || S.tab === "journal") { S.up = await api("/api/upcoming?god=" + g + (S.wantPerception ? "&perception=1" : "")); }
+    if (S.mem) S.mem._god = g;
+    if (!S.editing || force) renderPane();
+  } catch (e) { toast(e.message, true); }
+}
+let tick = 0;
+async function loop(){
+  if (!S.frozen) {
+    await Promise.all([pollGods(), pollThoughts(), pollEvents()]);
+    if (tick++ % 4 === 0 && S.tab !== "timeline") refreshSide(false);
+  }
+  setTimeout(loop, SAMPLE ? 3600000 : 1000);
+}
+
+// ---- rail & header ------------------------------------------------------------------------------
+function stClass(s){ return s === "backing off" ? "backing" : s; }
+function renderRail(){
+  const r = $("#rail");
+  let h = `<div class="rail-h"><span>gods · ${S.gods.length}</span><span class="muted" style="cursor:pointer" id="allbtn">${S.all ? "◉" : "○"} all timelines</span></div>`;
+  for (const g of S.gods) {
+    const c = color(g.id);
+    const live = [...S.thoughts.values()].find(t => t.god === g.id && !t.done);
+    const step = live ? (live.requests.length ? "step " + live.requests.length : "perceiving") : "";
+    h += `<div class="god ${g.id === S.sel ? "sel" : ""}" style="--gc:${c}" data-g="${esc(g.id)}">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:6px"><span class="n">${esc(g.name)}</span><span class="st ${stClass(g.state)}">${esc(g.state)}${step ? " · " + step : ""}</span></div>
+      <div class="e">${esc(g.epithet || "")}${g.archetype ? ` <span class="muted">· ${esc(g.archetype)}</span>` : ""}</div>
+      <div class="m">${esc(g.power)} · ${esc(shortModel(g.model))} · ${esc(g.effort)}${g.host ? "" : " · co"}</div>
+      <div class="m">#${g.thoughts} thoughts · ${g.pendingEvents} ev${g.openCommands ? ` · <span style="color:var(--warn)">${g.openCommands} cmd</span>` : ""} · ${g.players} here · ${esc(g.vessel)}</div>
+      ${g.attention && g.attention.reason ? `<div class="why">${g.attention.urgent ? "⚡ " : "◷ "}${esc(g.attention.reason)}</div>` : ""}
+      ${g.lastError ? `<div class="err" title="${esc(g.lastError)}">✕ ${esc(g.lastError)}</div>` : ""}
+    </div>`;
+  }
+  r.innerHTML = h;
+}
+function shortModel(m){ return (m || "").replace(/^claude-/, ""); }
+function selectGod(id){ if (S.sel === id) return; S.sel = id; S.mem = null; S.up = null; S.prompt = null; S.player = null; S.editing = false; renderRail(); renderGodbar(); renderTabs(); renderPane(); refreshSide(true); }
+function renderGodbar(){
+  const g = god(S.sel); const b = $("#godbar");
+  if (!g) { b.innerHTML = `<span class="muted">no gods</span>`; return; }
+  document.documentElement.style.setProperty("--gc", color(g.id));
+  if (b.dataset.k === JSON.stringify(g)) return; b.dataset.k = JSON.stringify(g);
+  b.innerHTML = `<span class="title">${esc(g.fullName || g.name)}</span><span class="sub">${esc(g.epithet || "")}</span>
+    <span class="st ${stClass(g.state)}">${esc(g.state)}</span>
+    <span class="kv">id <i>${esc(g.id)}</i></span><span class="kv">model <i>${esc(g.model)}</i></span><span class="kv">effort <i>${esc(g.effort)}</i></span>
+    <span class="kv">power <i>${esc(g.power)}</i></span><span class="kv">last <i>${ago(g.lastThoughtEnded)}</i></span>
+    ${g.temperament ? `<span class="kv" title="${esc(g.temperament)}">temper <i>${esc(g.temperament.length > 48 ? g.temperament.slice(0, 48) + "…" : g.temperament)}</i></span>` : ""}
+    <span style="flex:1"></span>
+    <button class="btn" id="bwake" title="Look now, optionally with a directive">wake…</button>
+    <button class="btn" id="bcmd" title="Issue a binding command">command…</button>
+    <button class="btn" id="bpause">${g.paused ? "resume" : "pause"}</button>`;
+  $("#bwake").onclick = () => ask("Wake " + g.name, "Directive (optional, non-binding):", "", v => edit("wake", {directive:v}));
+  $("#bcmd").onclick = () => ask("Binding command for " + g.name, "The god must carry this out and report back:", "", v => v && edit("edict.issue", {text:v}));
+  $("#bpause").onclick = () => edit("pause", {on:!g.paused});
+}
+const TABS = [["timeline","Timeline"],["world","World events"],["memory","Memory"],["players","Players"],["prompt","Persona & Prompt"],["upcoming","Next perception"],["journal","Journal"]];
+function renderTabs(){
+  const mine = [...S.thoughts.values()].filter(t => t.god === S.sel).length;
+  const subj = S.mem && S.mem.memory ? Object.keys(S.mem.memory.subjects || {}).length : "";
+  const g = god(S.sel);
+  let waiting = 0; for (const e of S.events.values()) for (const c of e.gods) if (c.state === "pending") waiting++;
+  const counts = {timeline:mine, players:subj, upcoming:g ? g.pendingEvents : "", world:waiting || ""};
+  const html = TABS.map(([k, n]) => `<div class="tab ${S.tab === k ? "on" : ""}" data-t="${k}">${n}${counts[k] !== undefined && counts[k] !== "" ? `<span class="c">${counts[k]}</span>` : ""}</div>`).join("");
+  const t = $("#tabs"); if (t.innerHTML === html) return; t.innerHTML = html;
+}
+function saveHash(){ const h = `#god=${encodeURIComponent(S.sel || "")}&tab=${S.tab}`; if (location.hash !== h) history.replaceState(null, "", h); }
+function readHash(){
+  const q = new URLSearchParams(location.hash.slice(1));
+  if (q.get("god")) S.sel = q.get("god");
+  if (q.get("tab") && TABS.some(t => t[0] === q.get("tab"))) S.tab = q.get("tab");
+  if (q.get("open") === "all") S.openAll = true;
+  S.inspectAt = q.get("inspect");
+}
+function renderPane(){
+  saveHash();
+  ({timeline:renderTimeline, world:renderWorld, memory:renderMemory, players:renderPlayers, prompt:renderPrompt, upcoming:renderUpcoming, journal:renderJournal})[S.tab]();
+}
+
+// ---- timeline -----------------------------------------------------------------------------------
+function thoughtList(){
+  return [...S.thoughts.values()].filter(t => S.all || t.god === S.sel)
+    .filter(t => !S.tfilter || JSON.stringify(t).toLowerCase().includes(S.tfilter))
+    .sort((a, b) => a.startedAt - b.startedAt);
+}
+function isOpen(t, last){ const k = t.god + ":" + t.id; if (S.closed.has(k)) return false; if (S.openAll) return true; return S.open.has(k) || !t.done || last; }
+function renderTimeline(){
+  const pane = $("#pane");
+  if (S.tab !== "timeline") return;
+  const atBottom = pane.scrollTop + pane.clientHeight >= pane.scrollHeight - 40;
+  const list = thoughtList();
+  if (!pane.querySelector("#tl")) {
+    pane.innerHTML = `<div class="filters"><input type="text" id="tfilter" placeholder="filter thoughts (text, tool, player…)" value="${esc(S.tfilter)}">
+      <button class="btn sm" id="xall">collapse all</button><button class="btn sm" id="oall">expand all</button>
+      <span class="muted mono" id="tlsum"></span></div><div id="tl"></div>`;
+    $("#tfilter").oninput = e => { S.tfilter = e.target.value.toLowerCase(); $("#tl").innerHTML = ""; renderTimeline(); };
+    $("#xall").onclick = () => { S.openAll = false; for (const t of thoughtList()) { S.closed.add(t.god+":"+t.id); S.open.delete(t.god+":"+t.id);} $("#tl").innerHTML=""; renderTimeline(); };
+    $("#oall").onclick = () => { for (const t of thoughtList()) { S.open.add(t.god+":"+t.id); S.closed.delete(t.god+":"+t.id);} $("#tl").innerHTML=""; renderTimeline(); };
+  }
+  const tl = $("#tl");
+  if (!list.length) { tl.innerHTML = `<div class="empty">No thoughts recorded yet. They appear here live the moment the god starts thinking.</div>`; return; }
+  const none = tl.querySelector(".empty"); if (none) none.remove();
+  const seen = new Set();
+  let cost = 0, inT = 0, outT = 0;
+  list.forEach((t, i) => {
+    const key = t.god + ":" + t.id; seen.add(key);
+    cost += t.total.cost || 0; inT += t.total.input + t.total.cacheRead + t.total.cacheWrite; outT += t.total.output;
+    const sig = t.rev + ":" + isOpen(t, i === list.length - 1) + ":" + (i === list.length - 1);
+    let el = tl.querySelector(`[data-k="${CSS.escape(key)}"]`);
+    if (el && el.dataset.sig === sig) return;
+    const fresh = document.createElement("div");
+    fresh.innerHTML = thoughtHtml(t, isOpen(t, i === list.length - 1));
+    const node = fresh.firstElementChild; node.dataset.sig = sig;
+    // keep open <details> the user toggled
+    if (el) { el.querySelectorAll("details[data-s]").forEach(d => { const n = node.querySelector(`details[data-s="${d.dataset.s}"]`); if (n) n.open = d.open; }); el.replaceWith(node); }
+    else {
+      const next = list.slice(i + 1).map(x => tl.querySelector(`[data-k="${CSS.escape(x.god+":"+x.id)}"]`)).find(Boolean);
+      tl.insertBefore(node, next || null);
+    }
+    bindThought(node, t);
+  });
+  tl.querySelectorAll(".th").forEach(el => { if (!seen.has(el.dataset.k)) el.remove(); });
+  $("#tlsum").textContent = `${list.length} thoughts · in ${kt(inT)} · out ${kt(outT)} · ${usd(cost)}`;
+  if (S.follow && atBottom) pane.scrollTop = pane.scrollHeight;
+}
+function thoughtHtml(t, open){
+  const g = god(t.god); const c = color(t.god);
+  const err = t.requests.some(r => r.error) || t.items.some(i => i.kind === "error");
+  const live = !t.done;
+  const steps = t.requests.length;
+  const ms = (t.endedAt || now()) - t.startedAt;
+  const changed = ["system","chronicle","tools"].filter(k => t.prompts[k] && t.prompts[k].changed && t.prompts[k].hash);
+  let h = `<div class="th ${live ? "live" : ""}" data-k="${esc(t.god + ":" + t.id)}" style="--gc:${c}">
+    <div class="th-h"><span class="num">#${t.number}</span>${S.all ? `<span class="who">${esc(g ? g.name : t.god)}</span>` : ""}
+    <span class="t">${clock(t.startedAt)}</span>
+    <span class="trig" title="${esc(t.trigger)}">${esc(t.trigger)}</span>
+    ${live ? `<span class="st thinking">${steps ? "step " + steps : "perceiving"}</span>` : ""}
+    <span class="chip eff" title="${esc(t.effortReason)}">${esc(t.effort)}</span>
+    <span class="chip">${esc(shortModel(t.model))}</span>
+    <span class="chip">${steps} req · ${t.acts} act</span>
+    <span class="chip" title="input · cache read · cache write → output">${kt(t.total.input)}+${kt(t.total.cacheRead)}r+${kt(t.total.cacheWrite)}w → ${kt(t.total.output)}</span>
+    ${t.total.cost != null ? `<span class="chip cost">${usd(t.total.cost)}</span>` : ""}
+    ${changed.length ? `<span class="chip ch" title="changed since the previous thought (cache rewrite)">Δ ${changed.join(",")}</span>` : ""}
+    ${err ? `<span class="chip err">error</span>` : ""}
+    <span class="chip">${dur(ms)}</span></div>`;
+  if (!open) return h + `</div>`;
+  h += `<div class="th-b">`;
+  h += `<div class="muted" style="margin-bottom:4px">woke: <span style="color:var(--fg)">${esc(t.trigger)}</span> · effort <span style="color:var(--acc)">${esc(t.effort)}</span> — ${esc(t.effortReason)}</div>`;
+  h += `<div class="prompts">${["system","chronicle","tools"].map(k => { const p = t.prompts[k] || {}; return p.hash ? `<span class="pbtn" data-p="${k}">${k} <span class="u">${kt(p.length)}ch</span> ${p.changed ? `<span class="c">changed</span>` : `<span class="u">unchanged</span>`}</span>` : ""; }).join("")}
+    ${t.requests.some(r => r.body) ? `<span class="pbtn" data-req="${t.requests.length - 1}" title="Everything Claude was sent and returned, step by step">▸ full request</span>` : ""}
+    <span class="pbtn" data-full="1">full results</span>
+    <span class="pbtn" data-copyt="1" title="Copy the whole thought (perception, requests, every step, results) as JSON">copy thought</span></div>`;
+  h += `<details class="sec" data-s="perc"><summary>perception<span class="hint">${kt(t.perception.length)} chars</span></summary><div class="box"><pre>${esc(t.perception)}</pre></div></details>`;
+  if (t.requests.length) {
+    h += `<details class="sec" data-s="req" open><summary>requests</summary><table class="req"><tr><th class="l">step</th><th class="l">model</th><th>effort</th><th>input</th><th>cache r</th><th>cache w</th><th>output</th><th>ttft</th><th>time</th><th class="l">stop</th><th>cost</th><th></th></tr>`;
+    for (const r of t.requests) h += `<tr><td>${r.step}</td><td class="l">${esc(shortModel(r.model))}</td><td>${esc(r.effort)}</td><td>${kt(r.input)}</td><td>${kt(r.cacheRead)}</td><td>${kt(r.cacheWrite)}</td><td>${kt(r.output)}</td><td>${dur(r.firstTokenMs)}</td><td>${r.done ? dur(r.ms) : `<span class="cursor"></span>`}</td><td class="l" style="color:${r.error ? "var(--bad)" : ""}">${esc(r.error || r.stop || "")}${r.searches ? " +" + r.searches + "🔎" : ""}</td><td>${usd(r.cost)}</td><td>${r.body ? `<span class="pbtn" data-req="${t.requests.indexOf(r)}">view</span>` : ""}</td></tr>`;
+    h += `</table></details>`;
+  }
+  let lastStep = 0;
+  h += `<div style="margin-top:6px">`;
+  for (const it of t.items) {
+    if (it.step !== lastStep && t.requests.length > 1) { h += `<div class="muted mono" style="font-size:10px;margin:6px 0 2px">── step ${it.step} ──</div>`; lastStep = it.step; }
+    h += itemHtml(t, it);
+  }
+  h += `</div>`;
+  if (t.outcome) h += `<div class="outcome ${/^(failed|abandoned)/.test(t.outcome) ? "bad" : ""}">■ ${esc(t.outcome)}</div>`;
+  return h + `</div></div>`;
+}
+function itemHtml(t, it){
+  const k = it.kind;
+  const label = {thinking:"think", text:"say", tool:"tool", search:"search", interject:"heard", note:"note", error:"error", info:"info"}[k] || k;
+  let v = "";
+  if (k === "tool") {
+    v = `<span class="tname">${esc(it.name)}</span> <span class="mono tin">${esc(compactJson(it.input))}</span>`;
+    if (it.result != null) v += `<div class="tres ${it.isError ? "bad" : ""}"><pre>${esc(it.result)}</pre></div>`;
+    else if (it.open) v += `<div class="tres"><span class="cursor muted">running</span></div>`;
+    if (it.image === "kept") v += `<img loading="lazy" src="${SAMPLE && SAMPLE.images ? SAMPLE.images[it.id] : `/api/image?god=${encodeURIComponent(t.god)}&thought=${t.id}&item=${it.id}`}" alt="view">`;
+    else if (it.image === "dropped") v += `<div class="muted">(image no longer kept)</div>`;
+  } else if (k === "search") {
+    v = `<span class="mono">🔎 ${esc(it.text)}</span>`;
+  } else {
+    v = `<pre class="${it.open ? "cursor" : ""}">${esc(it.text || "")}</pre>`;
+  }
+  return `<div class="it ${k}"><div class="k">${label}<small>${clock(it.at)}${it.ms ? " · " + dur(it.ms) : ""}</small></div><div class="v">${v}</div></div>`;
+}
+function compactJson(v){ if (v == null) return ""; if (typeof v === "string") return v; const s = JSON.stringify(v); return s.length > 600 ? s.slice(0, 600) + "…" : s; }
+function bindThought(node, t){
+  const key = t.god + ":" + t.id;
+  node.querySelector(".th-h").onclick = () => {
+    const was = node.querySelector(".th-b") != null;
+    if (was) { S.closed.add(key); S.open.delete(key); } else { S.open.add(key); S.closed.delete(key); }
+    node.dataset.sig = ""; renderTimeline();
+  };
+  node.querySelectorAll(".pbtn[data-p]").forEach(b => b.onclick = () => showPrompt(t, b.dataset.p));
+  node.querySelectorAll(".pbtn[data-req]").forEach(b => b.onclick = e => { e.stopPropagation(); inspect(t, +b.dataset.req, "overview"); });
+  const ct = node.querySelector(".pbtn[data-copyt]");
+  if (ct) ct.onclick = async e => { e.stopPropagation(); let j = t; try { j = await api(`/api/thought?god=${encodeURIComponent(t.god)}&id=${t.id}`); } catch (x) {} copyText(JSON.stringify(j, null, 2), ct); };
+  const full = node.querySelector(".pbtn[data-full]");
+  if (full) full.onclick = async () => {
+    const j = await api(`/api/thought?god=${encodeURIComponent(t.god)}&id=${t.id}`);
+    modal(`Thought #${t.number} — raw`, `<pre class="mono">${esc(JSON.stringify(j, null, 2))}</pre>`);
+  };
+  node.querySelectorAll("img").forEach(i => i.onclick = () => modal("view", `<img src="${i.src}" style="max-width:100%;image-rendering:pixelated">`));
+}
+async function showPrompt(t, kind){
+  const prev = [...S.thoughts.values()].filter(x => x.god === t.god && x.startedAt < t.startedAt && x.prompts[kind] && x.prompts[kind].hash)
+    .sort((a, b) => b.startedAt - a.startedAt)[0];
+  const cur = await blob(t.prompts[kind].hash);
+  let old = null; try { old = prev ? await blob(prev.prompts[kind].hash) : null; } catch (e) { old = null; }
+  const render = mode => {
+    if (mode === "diff" && old != null) return `<div class="diff mono">${diffHtml(old, cur)}</div>`;
+    return `<pre class="mono">${esc(cur)}</pre>`;
+  };
+  const tools = old != null && old !== cur ? `<button class="btn sm on" id="mv-diff">diff vs #${prev.number}</button> <button class="btn sm" id="mv-raw">raw</button> ` : `<span class="muted mono">${old == null ? "first recorded" : "unchanged since #" + prev.number} </span>`;
+  modal(`#${t.number} · ${kind}`, render(old != null && old !== cur ? "diff" : "raw"), tools);
+  const d = $("#mv-diff"), r = $("#mv-raw");
+  if (d) { d.onclick = () => { $("#mbody").innerHTML = render("diff"); d.classList.add("on"); r.classList.remove("on"); }; r.onclick = () => { $("#mbody").innerHTML = render("raw"); r.classList.add("on"); d.classList.remove("on"); }; }
+}
+function diffHtml(a, b){
+  const A = a.split("\n"), B = b.split("\n");
+  if (A.length * B.length > 4e6) return `<span class="s">(too long to diff)</span>` + esc(b);
+  let p = 0; while (p < A.length && p < B.length && A[p] === B[p]) p++;
+  let ea = A.length, eb = B.length; while (ea > p && eb > p && A[ea-1] === B[eb-1]) { ea--; eb--; }
+  const a2 = A.slice(p, ea), b2 = B.slice(p, eb), n = a2.length, m = b2.length;
+  const L = Array.from({length:n+1}, () => new Uint32Array(m+1));
+  for (let i = n-1; i >= 0; i--) for (let j = m-1; j >= 0; j--) L[i][j] = a2[i] === b2[j] ? L[i+1][j+1] + 1 : Math.max(L[i+1][j], L[i][j+1]);
+  const out = [];
+  const ctx = (lines, from, to) => { if (to - from > 6) { lines.slice(from, from + 3).forEach(l => out.push(`<span class="s">  ${esc(l)}</span>`)); out.push(`<span class="s">  … ${to - from - 6} unchanged lines …</span>`); lines.slice(to - 3, to).forEach(l => out.push(`<span class="s">  ${esc(l)}</span>`)); } else lines.slice(from, to).forEach(l => out.push(`<span class="s">  ${esc(l)}</span>`)); };
+  ctx(A, 0, p);
+  let i = 0, j = 0, same = [];
+  const flush = () => { if (same.length) { ctx(same, 0, same.length); same = []; } };
+  while (i < n || j < m) {
+    if (i < n && j < m && a2[i] === b2[j]) { same.push(a2[i]); i++; j++; }
+    else if (i < n && (j >= m || L[i+1][j] >= L[i][j+1])) { flush(); out.push(`<span class="d">- ${esc(a2[i++])}</span>`); }
+    else { flush(); out.push(`<span class="a">+ ${esc(b2[j++])}</span>`); }
+  }
+  flush(); ctx(A, ea, A.length);
+  return out.join("");
+}
+
+// ---- world events -------------------------------------------------------------------------------
+async function pollEvents(){
+  try {
+    const j = await api("/api/events?since=" + S.evRev);
+    let changed = false;
+    for (const e of j.events || []) { S.events.set(e.seq, e); changed = true; }
+    S.evRev = j.rev || S.evRev;
+    if (S.events.size > 1600) { const keys = [...S.events.keys()].sort((a, b) => a - b); for (const k of keys.slice(0, S.events.size - 1500)) S.events.delete(k); }
+    if (changed) { renderTabs(); if (S.tab === "world") renderWorld(); }
+  } catch (e) { /* the gods poll reports the connection */ }
+}
+const STATE_WORD = {pending:"waiting", seen:"seen", heard:"heard mid-thought", merged:"merged", dropped:"dropped"};
+function responseOf(god, number){
+  const t = [...S.thoughts.values()].find(x => x.god === god && x.number === number);
+  if (!t) return null;
+  if (!t.done) return {t, text:"thinking…"};
+  const tools = [...new Set(t.items.filter(i => i.kind === "tool" || i.kind === "search").map(i => i.name || "search"))];
+  return {t, text: tools.length ? "→ " + tools.slice(0, 4).join(", ") + (tools.length > 4 ? " +" + (tools.length - 4) : "") : "→ no act"};
+}
+function pillHtml(e, c){
+  const g = god(c.god); const name = g ? g.name : c.god;
+  let label = STATE_WORD[c.state] || c.state, go = false, title = "";
+  if ((c.state === "seen" || c.state === "heard") && c.thought) {
+    const r = responseOf(c.god, c.thought);
+    label = `#${c.thought}${c.state === "heard" ? " (mid-thought)" : ""}` + (r ? " " + r.text : "");
+    go = true; title = "Open thought #" + c.thought + (r && r.t.outcome ? " — " + r.t.outcome : "");
+  } else if (c.state === "merged") title = "Folded into an earlier event" + (c.mergedInto ? " (#" + c.mergedInto + ")" : "");
+  else if (c.state === "dropped") title = "Dropped from a full event buffer before the god saw it";
+  else if (c.state === "pending") title = "In this god's buffer; it sees it next time it thinks";
+  if (c.text) title += (title ? "\n" : "") + "Its wording: " + c.text;
+  return `<span class="pill ${esc(c.state)} ${go ? "go" : ""}" style="--gc:${color(c.god)}" ${go ? `data-jg="${esc(c.god)}" data-jn="${c.thought}"` : ""} title="${esc(title)}"><b>${esc(name)}</b> ${esc(label)}</span>`;
+}
+function eventList(){
+  const f = S.ev, q = f.q.toLowerCase();
+  return [...S.events.values()].filter(e =>
+    (!f.cat || e.category === f.cat) &&
+    (!f.addressed || e.attention) &&
+    (!f.god || e.gods.some(c => c.god === f.god)) &&
+    (!f.state || e.gods.some(c => c.state === f.state && (!f.god || c.god === f.god))) &&
+    (!q || (e.text || "").toLowerCase().includes(q) || (e.attention || "").toLowerCase().includes(q))
+  ).sort((a, b) => a.seq - b.seq);
+}
+function renderWorld(){
+  const pane = $("#pane");
+  if (S.tab !== "world") return;
+  if (!pane.querySelector("#evl")) {
+    const cats = ["", "prayer", "speech", "directive", "event"], states = ["", "pending", "seen", "heard", "merged", "dropped"];
+    pane.innerHTML = `<div class="filters" id="evf">
+      ${cats.map(c => `<button class="btn sm ${S.ev.cat === c ? "on" : ""}" data-ec="${c}">${c || "all"}</button>`).join("")}
+      <span style="width:8px"></span>
+      <select id="evg" style="width:auto"><option value="">every god</option>${S.gods.map(g => `<option value="${esc(g.id)}" ${S.ev.god === g.id ? "selected" : ""}>${esc(g.name)}</option>`).join("")}</select>
+      <select id="evs" style="width:auto">${states.map(x => `<option value="${x}" ${S.ev.state === x ? "selected" : ""}>${x ? STATE_WORD[x] : "any state"}</option>`).join("")}</select>
+      <label class="muted"><input type="checkbox" id="eva" ${S.ev.addressed ? "checked" : ""}> addressed a god</label>
+      <input type="text" id="evq" placeholder="search events" value="${esc(S.ev.q)}">
+      <span class="evsum" id="evsum"></span></div><div id="evl"></div>`;
+    const redo = () => { $("#evl").dataset.sig = ""; renderWorld(); };
+    pane.querySelectorAll("[data-ec]").forEach(b => b.onclick = () => { S.ev.cat = b.dataset.ec; pane.querySelectorAll("[data-ec]").forEach(x => x.classList.toggle("on", x === b)); redo(); });
+    $("#evg").onchange = e => { S.ev.god = e.target.value; redo(); };
+    $("#evs").onchange = e => { S.ev.state = e.target.value; redo(); };
+    $("#eva").onchange = e => { S.ev.addressed = e.target.checked; redo(); };
+    $("#evq").oninput = e => { S.ev.q = e.target.value; redo(); };
+    $("#evl").onclick = e => { const p = e.target.closest(".pill.go"); if (p) jumpTo(p.dataset.jg, +p.dataset.jn); };
+  }
+  const list = eventList();
+  const box = $("#evl");
+  const sig = S.evRev + "|" + S.rev + "|" + list.length + "|" + JSON.stringify(S.ev);
+  if (box.dataset.sig === sig) return;
+  box.dataset.sig = sig;
+  const atBottom = pane.scrollTop + pane.clientHeight >= pane.scrollHeight - 40;
+  const shown = list.slice(-500);
+  const tally = {pending:0, seen:0, heard:0, merged:0, dropped:0};
+  for (const e of list) for (const c of e.gods) if (!S.ev.god || c.god === S.ev.god) tally[c.state] = (tally[c.state] || 0) + 1;
+  $("#evsum").innerHTML = `<span>${list.length} events</span><span>waiting <i>${tally.pending}</i></span><span>seen <i>${tally.seen + tally.heard}</i></span><span>merged <i>${tally.merged}</i></span>${tally.dropped ? `<span style="color:var(--bad)">dropped <i>${tally.dropped}</i></span>` : ""}`;
+  box.innerHTML = !shown.length ? `<div class="empty">No events yet. Everything the gods are told about (chat, prayers, deaths, building, operator directives…) appears here live, with which god saw it and what it did.</div>` :
+    (list.length > shown.length ? `<div class="muted" style="padding:4px 6px">${list.length - shown.length} older events hidden; filter to narrow.</div>` : "") +
+    shown.map(e => `<div class="ev"><span class="tm" title="${new Date(e.at).toLocaleString()}">${clock(e.at)}</span><span><span class="cat ${esc(e.category)}">${esc(e.category)}</span></span>
+      <span class="tx">${esc(e.text)}${e.attention ? `<span class="att">⚡ ${esc(e.attention)}</span>` : ""}</span>
+      <span class="pills">${e.gods.map(c => pillHtml(e, c)).join("")}</span></div>`).join("");
+  if (S.follow && atBottom) pane.scrollTop = pane.scrollHeight;
+}
+function jumpTo(godId, number){
+  const t = [...S.thoughts.values()].find(x => x.god === godId && x.number === number);
+  if (!t) return toast("thought #" + number + " is no longer kept", true);
+  const key = t.god + ":" + t.id;
+  S.open.add(key); S.closed.delete(key);
+  if (S.sel !== godId) selectGod(godId);
+  S.tab = "timeline"; S.all = false; renderTabs(); renderPane();
+  const tl = $("#tl"); if (tl) { tl.innerHTML = ""; renderTimeline(); }
+  setTimeout(() => { const el = document.querySelector(`.th[data-k="${CSS.escape(key)}"]`); if (el) { el.scrollIntoView({block:"start"}); el.animate([{boxShadow:"0 0 0 2px var(--gc)"}, {boxShadow:"none"}], {duration:1400}); } }, 60);
+}
+
+// ---- request inspector --------------------------------------------------------------------------
+async function inspect(t, idx, view){
+  const r = t.requests[idx];
+  if (!r || !r.body) return toast("this request was not recorded");
+  const b = r.body;
+  let parts;
+  try {
+    const get = async h => h ? JSON.parse(await blob(h)) : null;
+    parts = {params:await get(b.params), system:await get(b.system), tools:await get(b.tools), messages:await get(b.messages), response:await get(b.response)};
+  } catch (e) { return toast("no longer kept: " + e.message, true); }
+  const steps = t.requests.map((x, i) => `<button class="btn sm ${i === idx ? "on" : ""}" data-step="${i}" ${x.body ? "" : "disabled"}>step ${x.step}</button>`).join("");
+  const views = [["overview","overview"],["system","system"],["tools","tools · " + (b.toolCount || 0)],["messages","messages · " + (b.messageCount || 0)],["response","response"],["raw","raw JSON"]];
+  const tools = `<span class="insp-tabs">${steps} <span style="width:10px"></span>${views.map(([k, n]) => `<button class="btn sm ${k === view ? "on" : ""}" data-view="${k}">${n}</button>`).join("")} <span style="width:10px"></span><button class="btn sm" id="cp-req" title="The whole request body as sent (JSON)">copy request</button><button class="btn sm" id="cp-res" title="Claude's reply (JSON)" ${parts.response ? "" : "disabled"}>copy reply</button><button class="btn sm" id="cp-view" title="The text of this view">copy view</button></span>`;
+  modal(`#${t.number} · request ${r.step}/${t.requests.length} — exactly what Claude was sent`, `<div class="insp">${inspectBody(t, r, parts, view)}</div>`, tools);
+  $("#mtools").querySelectorAll("[data-step]").forEach(x => x.onclick = () => inspect(t, +x.dataset.step, view));
+  const whole = Object.assign({}, parts.params || {}, {system:parts.system, tools:parts.tools, messages:parts.messages});
+  $("#cp-req").onclick = e => copyText(JSON.stringify(whole, null, 2), e.currentTarget);
+  $("#cp-res").onclick = e => copyText(JSON.stringify(parts.response, null, 2), e.currentTarget);
+  $("#cp-view").onclick = e => copyText(textFor($("#mbody")), e.currentTarget);
+  $("#mtools").querySelectorAll("[data-view]").forEach(x => x.onclick = () => inspect(t, idx, x.dataset.view));
+  $("#mbody").querySelectorAll("[data-jump]").forEach(x => x.onclick = () => inspect(t, idx, x.dataset.jump));
+  const tq = $("#toolq"); if (tq) tq.oninput = () => { const q = tq.value.toLowerCase(); $("#toollist").querySelectorAll("details").forEach(d => d.style.display = d.dataset.n.toLowerCase().includes(q) ? "" : "none"); };
+}
+function cacheMark(o){ return o && o.cache_control ? `<span class="cache" title="cache breakpoint: everything up to here is cached and re-read cheaply">cache ⟵ ${esc(o.cache_control.type || "")}${o.cache_control.ttl ? " " + esc(o.cache_control.ttl) : ""}</span>` : ""; }
+function textOf(c){ return typeof c === "string" ? c : (c && c.text) || ""; }
+function inspectBody(t, r, P, view){
+  const params = P.params || {}, system = Array.isArray(P.system) ? P.system : P.system ? [{type:"text", text:String(P.system)}] : [], tools = P.tools || [], msgs = P.messages || [];
+  const sysChars = system.reduce((n, s) => n + textOf(s).length, 0), toolChars = JSON.stringify(tools).length, msgChars = JSON.stringify(msgs).length;
+  if (view === "raw") {
+    const whole = Object.assign({}, params, {system, tools, messages:msgs});
+    return `<div class="muted" style="margin-bottom:6px">The request body as sent (images and thinking signatures shortened). Beta headers are under <code>_anthropic-beta</code>.</div><pre class="mono">${esc(JSON.stringify(whole, null, 2))}</pre>` +
+      (P.response ? `<h4>Response</h4><pre class="mono">${esc(JSON.stringify(P.response, null, 2))}</pre>` : "");
+  }
+  if (view === "system") return systemHtml(system);
+  if (view === "tools") return toolsHtml(tools);
+  if (view === "messages") return messagesHtml(msgs);
+  if (view === "response") return P.response ? responseHtml(P.response) : `<div class="muted">No complete reply was recorded for this request${r.error ? ": " + esc(r.error) : ""}.</div>`;
+  // overview
+  let h = `<div class="sum">
+    <div><b>${esc(shortModel(params.model || r.model))}</b><span>model</span></div>
+    <div><b>${esc((params.output_config && params.output_config.effort) || r.effort)}</b><span>effort</span></div>
+    <div><b>${esc(params.max_tokens)}</b><span>max output tokens</span></div>
+    <div><b>${esc(params.thinking ? params.thinking.type + (params.thinking.display ? " · " + params.thinking.display : "") : "off")}</b><span>thinking</span></div>
+    <div><b>${kt(r.input)} + ${kt(r.cacheRead)}r + ${kt(r.cacheWrite)}w</b><span>input · cache read · write</span></div>
+    <div><b>${kt(r.output)}</b><span>output tokens</span></div>
+    <div><b>${esc(r.stop || "–")}</b><span>stop reason</span></div>
+    <div><b>${r.cost != null ? usd(r.cost) : "–"}</b><span>cost</span></div></div>`;
+  h += `<div class="muted" style="margin:4px 0 10px">A request is <b>system</b> + <b>tools</b> + <b>messages</b>. Claude reads them in that order every time; nothing is remembered between requests except through these. The parts marked <span class="cache">cache</span> are breakpoints: the prefix up to there is served from the prompt cache (cheap) when it is byte-identical to a recent request.</div>`;
+  h += `<h4>Order Claude reads it in</h4>`;
+  h += `<div class="blk"><div class="bh">1 · system · ${system.length} block(s) · ${kt(sysChars)} chars <span style="flex:1"></span><span class="pbtn" data-jump="system">open</span></div><div class="bb">${system.map((s, i) => `<div class="mono" style="font-size:11px">[${i}] ${kt(textOf(s).length)} chars ${cacheMark(s)} <span class="muted">${esc(textOf(s).slice(0, 140).replace(/\n/g, " "))}…</span></div>`).join("")}</div></div>`;
+  h += `<div class="blk"><div class="bh">2 · tools · ${tools.length} · ${kt(toolChars)} chars <span style="flex:1"></span><span class="pbtn" data-jump="tools">open</span></div><div class="bb mono" style="font-size:11px">${tools.map(x => `<span style="color:var(--tool)">${esc(x.name)}</span>${x.type && x.type !== "custom" ? `<span class="muted">(${esc(x.type)})</span>` : ""}`).join(" · ")}</div></div>`;
+  h += `<div class="blk"><div class="bh">3 · messages · ${msgs.length} · ${kt(msgChars)} chars <span style="flex:1"></span><span class="pbtn" data-jump="messages">open</span></div><div class="bb">${msgs.map((m, i) => { const blocks = Array.isArray(m.content) ? m.content : [{type:"text", text:m.content}]; return `<div class="mono" style="font-size:11px">[${i}] <span class="role ${esc(m.role)}">${esc(m.role)}</span> ${blocks.map(c => `<span class="ty ${esc(c.type)}">${esc(c.type)}${c.name ? " " + esc(c.name) : ""}</span>`).join(" ")}</div>`; }).join("")}</div></div>`;
+  const other = Object.assign({}, params); ["model","max_tokens","messages","system","tools"].forEach(k => delete other[k]);
+  h += `<h4>Other parameters</h4><pre class="mono box">${esc(JSON.stringify(other, null, 2))}</pre>`;
+  if (params.cache_control) h += `<div class="muted" style="margin-top:4px"><span class="cache">cache</span> top-level <code>cache_control</code>: the conversation is cached up to its last block automatically, so each tool round re-reads the earlier steps cheaply.</div>`;
+  return h;
+}
+function systemHtml(system){
+  return `<div class="muted" style="margin-bottom:6px">The system blocks, in order. The first is the god's fixed rules and persona (cached); the second is its chronicle (changes as its memory grows).</div>` +
+    system.map((s, i) => `<div class="blk"><div class="bh">system[${i}] · ${kt(textOf(s).length)} chars ${cacheMark(s)}</div><div class="bb" style="max-height:none"><pre class="mono">${esc(textOf(s))}</pre></div></div>`).join("");
+}
+function toolsHtml(tools){
+  return `<div class="filters"><input type="text" id="toolq" placeholder="filter tools"><span class="muted">${tools.length} tools · click one for its full description and input schema</span></div><div id="toollist">` +
+    tools.map(x => `<details class="tool" data-n="${esc((x.name || "") + " " + (x.description || ""))}"><summary><span style="color:var(--tool)">${esc(x.name)}</span>${x.type && x.type !== "custom" ? ` <span class="ty">${esc(x.type)}</span>` : ""} ${cacheMark(x)}<span class="d">${esc((x.description || "").slice(0, 110))}${(x.description || "").length > 110 ? "…" : ""}</span></summary>
+      <div class="box">${x.description ? `<pre style="margin-bottom:6px">${esc(x.description)}</pre>` : ""}<pre class="mono">${esc(JSON.stringify(Object.fromEntries(Object.entries(x).filter(([k]) => k !== "description" && k !== "name")), null, 2))}</pre></div></details>`).join("") + `</div>`;
+}
+function blockHtml(c){
+  const ty = c.type || "text";
+  let body = "";
+  if (ty === "text") body = `<pre>${esc(c.text)}</pre>`;
+  else if (ty === "thinking") body = `<pre style="color:#c8bcf0;font-style:italic">${esc(c.thinking)}</pre>${c.signature ? `<div class="muted mono" style="font-size:10px">signature ${esc(c.signature)}</div>` : ""}`;
+  else if (ty === "redacted_thinking") body = `<div class="muted">${esc(c.data)}</div>`;
+  else if (ty === "tool_use" || ty === "server_tool_use") body = `<span class="tname">${esc(c.name)}</span> <span class="muted mono">${esc(c.id)}</span><pre class="mono tin">${esc(JSON.stringify(c.input, null, 2))}</pre>`;
+  else if (ty === "tool_result") {
+    const inner = Array.isArray(c.content) ? c.content : [{type:"text", text:c.content}];
+    body = `<span class="muted mono">for ${esc(c.tool_use_id)}</span>${c.is_error ? ` <span class="chip err">error</span>` : ""}` + inner.map(x => x.type === "image" ? `<div><span class="ty image">image</span> <span class="muted mono">${esc(x.source && x.source.data)}</span></div>` : `<pre class="tres">${esc(textOf(x))}</pre>`).join("");
+  }
+  else if (ty === "image") body = `<span class="muted mono">${esc(c.source && c.source.data)}</span>`;
+  else body = `<pre class="mono">${esc(JSON.stringify(c, null, 2))}</pre>`;
+  return `<div class="blk"><div class="bh"><span class="ty ${esc(ty)}">${esc(ty)}</span>${cacheMark(c)}</div><div class="bb">${body}</div></div>`;
+}
+function messagesHtml(msgs){
+  return `<div class="muted" style="margin-bottom:6px">The conversation of this thought so far, exactly as sent. Each step re-sends all of it, plus the new tool results (and any words that arrived meanwhile).</div>` +
+    msgs.map((m, i) => { const blocks = Array.isArray(m.content) ? m.content : [{type:"text", text:m.content}]; return `<div class="msg ${esc(m.role)}"><div><span class="role ${esc(m.role)}">${esc(m.role)}</span> <span class="muted mono">message ${i} · ${blocks.length} block(s)</span></div>${blocks.map(blockHtml).join("")}</div>`; }).join("");
+}
+function responseHtml(R){
+  const u = R.usage || {};
+  return `<div class="muted" style="margin-bottom:6px">Claude's reply to this request${R.stop_reason ? `, stopped by <b>${esc(R.stop_reason)}</b>` : ""}${R.model ? ` · ${esc(R.model)}` : ""}. Usage: <span class="mono">${esc(JSON.stringify(u))}</span></div>` +
+    `<div class="msg assistant"><div><span class="role assistant">assistant</span></div>${(R.content || []).map(blockHtml).join("")}</div>`;
+}
+
+// ---- memory -------------------------------------------------------------------------------------
+const FEEL_C = {wrath:"#ff6b6b", joy:"#ffd166", sorrow:"#6fa8ff", dread:"#b59cff", glory:"#ffb454"};
+function loading(){ $("#pane").innerHTML = `<div class="empty">loading…</div>`; }
+function editable(el){ el.querySelectorAll("textarea,input,select").forEach(x => { x.addEventListener("focus", () => S.editing = true); x.addEventListener("input", () => S.editing = true); }); }
+function renderMemory(){
+  const M = S.mem; if (!M || M._god !== S.sel) return loading();
+  const m = M.memory; const pane = $("#pane");
+  const lv = (m.heart && m.heart.levels) || {};
+  let h = `<div class="grid2"><div>`;
+  // chronicle
+  h += `<div class="card"><h3>Chronicle<span class="sp"></span><button class="btn sm" id="chsave">save</button></h3>
+    <textarea id="chron" class="mono" style="min-height:150px">${esc(m.chronicle)}</textarea></div>`;
+  // heart
+  h += `<div class="card" style="margin-top:12px"><h3>Heart<span class="sp"></span><span class="muted mono" style="text-transform:none;letter-spacing:0">${esc((M.heartSummary || []).join(", ") || "at peace")}</span><button class="btn sm" id="hcalm">calm</button></h3>`;
+  for (const f of ["wrath","joy","sorrow","dread","glory"]) {
+    const v = Math.round(lv[f] || 0);
+    h += `<div class="heart"><span class="mono" style="color:${FEEL_C[f]}">${f}</span><div class="bar"><span style="width:${v}%;background:${FEEL_C[f]}"></span></div><span class="mono">${v}</span><input type="range" min="0" max="100" value="${v}" data-feel="${f}"></div>`;
+  }
+  const causes = ((m.heart && m.heart.causes) || []).slice(-8).reverse();
+  if (causes.length) h += `<div style="margin-top:6px">` + causes.map(c => `<div class="row"><span class="when">${ago(c.at)}</span><span class="mono" style="color:${FEEL_C[c.feeling] || ""};min-width:50px">${esc(c.feeling)}</span><span class="txt">${esc(c.why)}</span></div>`).join("") + `</div>`;
+  // the sky it sees and the memory that last came back to it
+  if (M.sky || M.surfaced) {
+    h += `<div style="margin-top:6px">`;
+    if (M.sky) h += `<div class="row"><span class="when">now</span><span class="mono muted" style="min-width:50px">sky</span><span class="txt">${esc(M.sky.replace(/^Sky: /, ""))}</span></div>`;
+    if (M.surfaced) h += `<div class="row"><span class="when">${ago(M.surfacedAt)}</span><span class="mono muted" style="min-width:50px">memory</span><span class="txt">${esc(M.surfaced)}</span></div>`;
+    h += `</div>`;
+  }
+  h += `</div>`;
+  // goals
+  h += `<div class="card" style="margin-top:12px"><h3>Purpose · goals &amp; missions<span class="sp"></span><button class="btn sm" id="gadd">+ goal</button></h3>`;
+  const goals = (m.goals || []).slice().sort((a, b) => (a.status === "active" ? 0 : 1) - (b.status === "active" ? 0 : 1) || b.touchedAt - a.touchedAt);
+  if (!goals.length) h += `<div class="muted">none</div>`;
+  for (const g of goals) h += `<div class="row" style="${g.status !== "active" ? "opacity:.5" : ""}"><span class="when">${esc(g.id)}</span><div class="txt">
+      <b>${esc(g.title)}</b> ${g.mission ? `<span class="chip">mission</span>` : ""} <span class="chip">${esc(g.status)}</span>
+      <div class="bar" style="margin:4px 0"><span style="width:${g.progress}%;background:var(--gc)"></span></div>
+      <div class="muted">${esc(g.details || "")}${g.reward ? " · reward: " + esc(g.reward) : ""}${g.note ? " · " + esc(g.note) : ""}${g.outcome ? " · " + esc(g.outcome) : ""}</div></div>
+      <div class="acts"><button class="btn sm" data-gedit="${esc(g.id)}">edit</button><button class="btn sm danger" data-gdel="${esc(g.id)}">✕</button></div></div>`;
+  h += `</div>`;
+  h += `</div><div>`;
+  // edicts
+  h += `<div class="card"><h3>Binding commands<span class="sp"></span><button class="btn sm" id="eadd">+ command</button></h3>`;
+  if (!(M.edicts || []).length) h += `<div class="muted">none pending</div>`;
+  for (const e of M.edicts || []) h += `<div class="row"><span class="when">#${e.number}</span><div class="txt">${esc(e.text)}<div class="muted mono">${esc(e.issuer)} · ${ago(e.issuedAt)} ago · seen ${e.thoughts}/${M.retries}${e.standing ? " · standing until " + clock(e.until) : ""}</div></div><div class="acts"><button class="btn sm danger" data-ecancel="${e.number}">cancel</button></div></div>`;
+  h += `</div>`;
+  // commandments
+  h += `<div class="card" style="margin-top:12px"><h3>Commandments<span class="sp"></span><button class="btn sm" id="csave">save</button></h3>
+    <textarea id="laws" style="min-height:90px" placeholder="one law per line">${esc((m.commandments || []).join("\n"))}</textarea></div>`;
+  // quests
+  h += `<div class="card" style="margin-top:12px"><h3>Quests</h3>`;
+  const qs = (m.quests || []).slice().reverse().slice(0, 15);
+  if (!qs.length) h += `<div class="muted">none</div>`;
+  for (const q of qs) h += `<div class="row" style="${q.status !== "active" ? "opacity:.55" : ""}"><span class="when">${esc(q.id)}</span><div class="txt"><b>${esc(q.title)}</b> <span class="chip">${esc(q.status)}</span> ${q.assignee ? `<span class="chip">${esc(q.assignee)}</span>` : ""}<div class="muted">${esc(q.details || "")}${q.outcome ? " → " + esc(q.outcome) : ""}</div></div></div>`;
+  h += `</div>`;
+  // recent
+  h += `<div class="card" style="margin-top:12px"><h3>Recent cycles <span class="muted" style="text-transform:none;letter-spacing:0">(what it remembers of its last thoughts)</span></h3>`;
+  for (const c of (m.recent || []).slice().reverse()) h += `<div class="row"><span class="when">${ago(c.at)}</span><div class="txt"><span class="muted">${esc(c.trigger)}</span><div>${esc(c.thought || "")}</div><div class="mono" style="color:var(--tool)">${esc((c.acts || []).join(" · "))}</div></div></div>`;
+  h += `</div>`;
+  // works
+  h += `<div class="card" style="margin-top:12px"><h3>Works</h3>`;
+  const ws = (m.works || []).slice().reverse();
+  if (!ws.length) h += `<div class="muted">none</div>`;
+  for (const w of ws) h += `<div class="row"><span class="when">${esc(w.id)}</span><div class="txt">${esc(w.name)} <span class="muted mono">${esc(w.blueprint)} · ${w.blocks} blocks · ${esc(w.world)} ${w.x},${w.y},${w.z}</span></div></div>`;
+  h += `</div>`;
+  // mortality
+  if (m.mortality) h += `<div class="card" style="margin-top:12px"><h3>Mortality</h3><div class="kvs">${Object.entries(m.mortality).map(([k, v]) => `<b>${esc(k)}</b><span>${esc(v)}</span>`).join("")}</div></div>`;
+  // its own visual style and library of effects and routines (read-only: the god writes these)
+  const st = M.style, sw = c => `<span title="${esc(c)}" style="display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:4px;border:1px solid #0006;background:${/^#[0-9a-f]{6}$/i.test(c || "") ? c : "transparent"}"></span><span class="mono">${esc(c)}</span>`;
+  if (st) h += `<div class="card" style="margin-top:12px"><h3>Style <span class="muted" style="text-transform:none;letter-spacing:0">(drawn by ${esc(st.by || "?")}; fx_style)</span></h3><div class="kvs">
+      ${["primary","secondary","accent","shadow","hud"].map(k => `<b>${k}</b><span>${sw(st[k])}</span>`).join("")}
+      <b>sigil</b><span>${esc(st.sigil)}</span><b>motion</b><span>${esc(st.motion)}</span>
+      <b>sprites</b><span class="mono">${esc((st.sprites || []).join(", "))}</span><b>shapes</b><span class="mono">${esc((st.shapes || []).join(", "))}</span>
+      ${Object.entries(st.sky || {}).map(([k, v]) => `<b>sky · ${esc(k)}</b><span>${sw(v)}</span>`).join("")}</div></div>`;
+  const lib = M.library || [];
+  h += `<div class="card" style="margin-top:12px"><h3>Library <span class="muted" style="text-transform:none;letter-spacing:0">(effects and routines it kept)</span></h3>`;
+  if (!lib.length) h += `<div class="muted">none yet</div>`;
+  for (const e of lib.slice().sort((a, b) => (b.uses || 0) - (a.uses || 0))) h += `<details class="row" style="display:block"><summary><b>${esc(e.name)}</b> <span class="chip">${esc(e.steps && !e.layers ? "routine" : "fx")}</span> ${(e.bound || []).map(p => `<span class="chip">on ${esc(p)}</span>`).join(" ")} <span class="muted">${esc(e.note || "")} · used ${e.uses || 0}× · ${e.lastUsed ? ago(e.lastUsed) + " ago" : "never"}</span></summary><pre class="mono" style="white-space:pre-wrap;margin:6px 0 0">${esc(JSON.stringify(e.steps && !e.layers ? e.steps : e.layers, null, 1))}</pre></details>`;
+  h += `</div>`;
+  h += `<div style="margin-top:12px;display:flex;gap:8px"><button class="btn" id="rawmem">edit raw memory.json…</button></div>`;
+  h += `</div></div>`;
+  pane.innerHTML = h; editable(pane);
+  $("#chsave").onclick = () => edit("chronicle", {text:$("#chron").value});
+  $("#hcalm").onclick = () => edit("heart.clear");
+  pane.querySelectorAll("input[data-feel]").forEach(r => r.onchange = () => edit("heart.set", {feeling:r.dataset.feel, level:+r.value}));
+  $("#csave").onclick = () => edit("commandments", {laws:$("#laws").value.split("\n").map(s => s.trim()).filter(Boolean)});
+  $("#eadd").onclick = () => $("#bcmd").click();
+  pane.querySelectorAll("[data-ecancel]").forEach(b => b.onclick = () => edit("edict.cancel", {number:+b.dataset.ecancel}));
+  pane.querySelectorAll("[data-gdel]").forEach(b => b.onclick = () => confirm("Remove goal " + b.dataset.gdel + "?") && edit("goal.remove", {id:b.dataset.gdel}));
+  pane.querySelectorAll("[data-gedit]").forEach(b => b.onclick = () => goalForm(goals.find(g => g.id === b.dataset.gedit)));
+  $("#gadd").onclick = () => goalForm(null);
+  $("#rawmem").onclick = () => rawEditor("memory.json — " + S.sel, JSON.stringify(stripLocal(m), null, 2), json => edit("memory.raw", {json}));
+}
+function stripLocal(o){ const c = Object.assign({}, o); delete c._god; return c; }
+function goalForm(g){
+  const isNew = !g; g = g || {title:"", details:"", reward:"", note:"", progress:0, status:"active", mission:false};
+  modal(isNew ? "New goal" : "Goal " + g.id, `<label class="f">title</label><input type="text" id="g-title" value="${esc(g.title)}">
+    <label class="f">details</label><textarea id="g-details">${esc(g.details || "")}</textarea>
+    <label class="f">reward (missions)</label><input type="text" id="g-reward" value="${esc(g.reward || "")}">
+    ${isNew ? "" : `<label class="f">note</label><input type="text" id="g-note" value="${esc(g.note || "")}">
+    <label class="f">progress <span id="g-pv">${g.progress}</span></label><input type="range" id="g-progress" min="0" max="100" value="${g.progress}" style="width:100%">
+    <label class="f">status</label><select id="g-status">${["active","achieved","abandoned"].map(s => `<option ${s === g.status ? "selected" : ""}>${s}</option>`).join("")}</select>`}
+    <label class="f"><input type="checkbox" id="g-mission" ${g.mission ? "checked" : ""}> mission (announced to mortals)</label>`, "",
+    [["save", () => { const b = {title:$("#g-title").value, details:$("#g-details").value, reward:$("#g-reward").value, mission:$("#g-mission").checked};
+      if (isNew) return edit("goal.add", b);
+      return edit("goal.edit", Object.assign(b, {id:g.id, note:$("#g-note").value, progress:+$("#g-progress").value, status:$("#g-status").value})); }]]);
+  const pr = $("#g-progress"); if (pr) pr.oninput = () => $("#g-pv").textContent = pr.value;
+}
+
+// ---- players ------------------------------------------------------------------------------------
+function favC(f){ return f >= 5 ? "var(--ok)" : f >= 1 ? "#a6e3a1" : f <= -5 ? "var(--bad)" : f <= -1 ? "#f5a97f" : "var(--fg2)"; }
+function renderPlayers(){
+  const M = S.mem; if (!M || M._god !== S.sel) return loading();
+  const subs = Object.entries(M.memory.subjects || {}).map(([k, v]) => Object.assign({key:k}, v)).sort((a, b) => (b.lastSeen || 0) - (a.lastSeen || 0));
+  if (!S.player || !subs.find(s => s.key === S.player)) S.player = subs[0] && subs[0].key;
+  const pane = $("#pane");
+  const filt = S.pfilter || "";
+  let h = `<div class="players"><div class="card plist"><input type="text" id="pf" placeholder="filter" value="${esc(filt)}" style="margin-bottom:6px">`;
+  for (const s of subs) {
+    if (filt && !(s.name || s.key).toLowerCase().includes(filt.toLowerCase())) continue;
+    h += `<div class="p ${s.key === S.player ? "sel" : ""}" data-p="${esc(s.key)}"><span class="fav" style="color:${favC(s.favor)};min-width:24px;text-align:right">${s.favor > 0 ? "+" : ""}${s.favor}</span><span class="nm">${esc(s.name || s.key)}</span><span class="muted mono" style="font-size:10px">${s.notes.length}n ${s.deeds.length}d</span></div>`;
+  }
+  if (!subs.length) h += `<div class="muted">no mortals known</div>`;
+  h += `</div><div>`;
+  const s = subs.find(x => x.key === S.player);
+  if (s) {
+    const nm = s.name || s.key;
+    h += `<div class="card"><h3><span style="font-size:14px;color:#fff;text-transform:none;letter-spacing:0">${esc(nm)}</span>${s.title ? `<span class="chip">${esc(s.title)}</span>` : ""}${s.mark ? `<span class="chip">${esc(s.mark)} until ${clock(s.markUntil)}</span>` : ""}<span class="sp"></span><button class="btn sm danger" id="pforget">forget entirely</button></h3>
+      <div class="kvs"><b>last seen</b><span>${s.lastSeen ? ago(s.lastSeen) + " ago · " + new Date(s.lastSeen).toLocaleString() : "–"}</span><b>offerings</b><span>${s.offerings || 0}</span><b>gifts (7d)</b><span>${(s.gifts || []).length}</span></div>
+      <label class="f">favor <span class="fav" id="fv" style="color:${favC(s.favor)}">${s.favor}</span></label>
+      <input type="range" id="pfav" min="-10" max="10" value="${s.favor}" style="width:100%">
+      <div style="display:grid;grid-template-columns:1fr 120px auto;gap:6px;align-items:end"><div><label class="f">title</label><input type="text" id="ptitle" value="${esc(s.title || "")}"></div><div><label class="f">color</label><input type="text" id="pcolor" value="${esc(s.titleColor || "")}"></div><button class="btn" id="ptsave">set</button></div>
+      <label class="f">summary of the past <button class="btn sm" id="psave" style="float:right">save</button></label><textarea id="psum">${esc(s.summary || "")}</textarea></div>`;
+    h += `<div class="grid2" style="margin-top:12px">`;
+    h += listCard("Notes", "note", s.notes, nm);
+    h += listCard("Deeds", "deed", s.deeds, nm);
+    h += `</div>`;
+    h += `<div class="grid2" style="margin-top:12px"><div class="card"><h3>Words exchanged</h3>${(s.words || []).slice().reverse().map(w => `<div class="row"><span class="when">${ago(w.at)}</span><span class="txt">${esc(w.text)}</span></div>`).join("") || `<div class="muted">none</div>`}</div>
+      <div class="card"><h3>Offerings</h3>${(s.offered || []).slice().reverse().map(o => `<div class="row"><span class="when">${ago(o.at)}</span><span class="txt mono">${esc(o.what || JSON.stringify(o))}${o.where ? " · " + esc(o.where) : ""}</span></div>`).join("") || `<div class="muted">none</div>`}</div></div>`;
+  }
+  h += `</div></div>`;
+  const scroll = pane.scrollTop; pane.innerHTML = h; pane.scrollTop = scroll; editable(pane);
+  $("#pf").oninput = e => { S.pfilter = e.target.value; S.editing = false; renderPlayers(); const f = $("#pf"); f.focus(); f.setSelectionRange(f.value.length, f.value.length); };
+  pane.querySelectorAll(".plist .p").forEach(el => el.onclick = () => { S.player = el.dataset.p; S.editing = false; renderPlayers(); });
+  if (!s) return;
+  const nm = s.name || s.key;
+  $("#pfav").oninput = e => { $("#fv").textContent = e.target.value; S.editing = true; };
+  $("#pfav").onchange = e => edit("player.favor", {name:nm, favor:+e.target.value});
+  $("#ptsave").onclick = () => edit("player.title", {name:nm, title:$("#ptitle").value, color:$("#pcolor").value});
+  $("#psave").onclick = () => edit("player.summary", {name:nm, text:$("#psum").value});
+  $("#pforget").onclick = () => confirm(`Forget ${nm} entirely (favor, notes, deeds, words)? The annals keep what happened.`) && edit("player.forget", {name:nm});
+  for (const kind of ["note","deed"]) {
+    const list = kind === "note" ? s.notes : s.deeds;
+    $(`#add-${kind}`).onclick = () => { const v = $(`#new-${kind}`).value.trim(); if (v) edit(`player.${kind}.add`, {name:nm, text:v}); };
+    $(`#clr-${kind}`).onclick = () => confirm(`Clear every ${kind} on ${nm}?`) && edit(`player.${kind}s.clear`, {name:nm});
+    pane.querySelectorAll(`[data-${kind}-del]`).forEach(b => b.onclick = () => { const n = list[+b.dataset[kind + "Del"]]; edit(`player.${kind}.remove`, {name:nm, at:n.at, old:n.text}); });
+    pane.querySelectorAll(`[data-${kind}-ed]`).forEach(b => b.onclick = () => { const n = list[+b.dataset[kind + "Ed"]]; ask(`Edit ${kind}`, "", n.text, v => v && edit(`player.${kind}.edit`, {name:nm, at:n.at, old:n.text, text:v}), true); });
+  }
+}
+function listCard(title, kind, list, nm){
+  let h = `<div class="card"><h3>${title} <span class="muted">${list.length}</span><span class="sp"></span><button class="btn sm danger" id="clr-${kind}">clear</button></h3>`;
+  list.slice().reverse().forEach((n, ri) => { const i = list.length - 1 - ri; h += `<div class="row"><span class="when" title="${new Date(n.at).toLocaleString()}">${ago(n.at)}</span><span class="txt">${esc(n.text)}</span><span class="acts"><button class="btn sm" data-${kind}-ed="${i}">edit</button><button class="btn sm danger" data-${kind}-del="${i}">✕</button></span></div>`; });
+  if (!list.length) h += `<div class="muted">none</div>`;
+  h += `<div style="display:flex;gap:6px;margin-top:6px"><input type="text" id="new-${kind}" placeholder="add a ${kind}…"><button class="btn" id="add-${kind}">add</button></div></div>`;
+  return h;
+}
+
+// ---- persona & prompt ---------------------------------------------------------------------------
+const DIALS = ["generosity","wrath","chattiness","humor","meddling","patience","mercy","pride","curiosity","vanity"];
+function renderPrompt(){
+  const M = S.mem, P = S.prompt; if (!M || M._god !== S.sel || !P) return loading();
+  const p = M.persona; const pane = $("#pane");
+  let h = `<div class="grid2"><div>`;
+  if (!p) h += `<div class="card"><div class="muted">This god is not born yet; its persona appears after its first thought.</div></div>`;
+  else {
+    const dials = Object.keys(p.dials || {}).length ? Object.keys(p.dials) : DIALS;
+    h += `<div class="card"><h3>Persona <span class="muted" style="text-transform:none;letter-spacing:0">persona.json · shapes the system prompt</span><span class="sp"></span><button class="btn" id="pesave">save</button></h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><div><label class="f">name</label><input type="text" data-pf="name" value="${esc(p.name)}"></div><div><label class="f">epithet</label><input type="text" data-pf="epithet" value="${esc(p.epithet)}"></div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><div><label class="f">temperament</label><input type="text" data-pf="temperament" value="${esc(p.temperament || "")}"></div><div><label class="f">voice effect</label><input type="text" data-pf="voiceEffect" value="${esc(p.voiceEffect || "")}"></div></div>
+      <label class="f">nature</label><textarea data-pf="nature" style="min-height:90px">${esc(p.nature || "")}</textarea>
+      <label class="f">speech</label><textarea data-pf="speech">${esc(p.speech || "")}</textarea>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><div><label class="f">likes (one per line)</label><textarea data-pf="likes">${esc((p.likes || []).join("\n"))}</textarea></div><div><label class="f">dislikes</label><textarea data-pf="dislikes">${esc((p.dislikes || []).join("\n"))}</textarea></div></div>
+      <label class="f">nature dials</label>${dials.map(d => `<div class="dial"><span class="mono">${esc(d)}</span><input type="range" min="0" max="10" data-dial="${esc(d)}" value="${(p.dials || {})[d] ?? 5}"><span class="mono" id="dv-${esc(d)}">${(p.dials || {})[d] ?? 5}</span></div>`).join("")}
+      <div style="margin-top:8px;display:flex;gap:8px"><button class="btn" id="rawp">edit raw persona.json…</button><span class="muted">archetype ${esc(p.archetype || "–")}</span></div></div>`;
+  }
+  h += `<div class="card" style="margin-top:12px"><h3>Briefing <span class="muted" style="text-transform:none;letter-spacing:0">personality.briefing · every god</span><span class="sp"></span><button class="btn" id="brsave">save</button></h3><textarea id="brief" style="min-height:90px" placeholder="Extra instructions added to every god's system prompt">${esc(P.briefing || "")}</textarea></div>`;
+  h += `</div><div>`;
+  h += `<div class="card"><h3>System prompt now <span class="muted" style="text-transform:none;letter-spacing:0">${kt(P.system.length)} chars · cached; an edit rewrites the cache once</span><span class="sp"></span><button class="btn sm" id="pdiff">diff vs last sent</button></h3><div class="box" style="max-height:60vh" id="sysbox"><pre class="mono">${esc(P.system)}</pre></div></div>`;
+  h += `<div class="card" style="margin-top:12px"><h3>Chronicle block now <span class="muted" style="text-transform:none;letter-spacing:0">${kt(P.chronicle.length)} chars</span></h3><div class="box"><pre class="mono">${esc(P.chronicle)}</pre></div></div>`;
+  h += `</div></div>`;
+  pane.innerHTML = h; editable(pane);
+  $("#brsave").onclick = () => edit("briefing", {text:$("#brief").value});
+  $("#pdiff").onclick = async () => {
+    const last = [...S.thoughts.values()].filter(t => t.god === S.sel && t.prompts.system && t.prompts.system.hash).sort((a, b) => b.startedAt - a.startedAt)[0];
+    if (!last) return toast("no thought recorded yet");
+    const old = await blob(last.prompts.system.hash);
+    modal(`system prompt: #${last.number} → now`, old === P.system ? `<div class="muted">identical to what thought #${last.number} was sent</div>` : `<div class="diff mono">${diffHtml(old, P.system)}</div>`);
+  };
+  if (!p) return;
+  pane.querySelectorAll("input[data-dial]").forEach(r => r.oninput = () => $("#dv-" + CSS.escape(r.dataset.dial)).textContent = r.value);
+  $("#pesave").onclick = () => {
+    const fields = {};
+    pane.querySelectorAll("[data-pf]").forEach(x => { const k = x.dataset.pf; let v = x.value; if (k === "likes" || k === "dislikes") v = v.split("\n").map(s => s.trim()).filter(Boolean); const cur = p[k] == null ? (Array.isArray(v) ? [] : "") : p[k]; if (JSON.stringify(cur) !== JSON.stringify(v)) fields[k] = v; });
+    const d = {}; pane.querySelectorAll("input[data-dial]").forEach(r => { if (+r.value !== ((p.dials || {})[r.dataset.dial] ?? 5)) d[r.dataset.dial] = +r.value; });
+    if (Object.keys(d).length) fields.dials = d;
+    if (!Object.keys(fields).length) return toast("nothing changed");
+    edit("persona.edit", {fields});
+  };
+  $("#rawp").onclick = () => rawEditor("persona.json — " + S.sel, JSON.stringify(p, null, 2), json => edit("persona.raw", {json}));
+}
+
+// ---- upcoming & journal -------------------------------------------------------------------------
+function renderUpcoming(){
+  const U = S.up; if (!U) return loading();
+  const pane = $("#pane");
+  const sec = (t, list, c) => `<div class="card" style="margin-bottom:10px"><h3 style="color:${c || ""}">${t} <span class="muted">${list.length}</span></h3>${list.length ? `<pre class="mono">${esc(list.join("\n"))}</pre>` : `<div class="muted">none</div>`}</div>`;
+  let h = `<div class="grid2"><div>`;
+  h += sec("Directives", U.directives, "var(--warn)") + sec("Prayers", U.prayers, "var(--think)") + sec("Speech", U.speech, "var(--ok)") + sec("Events", U.events);
+  if (U.omitted) h += `<div class="muted">${U.omitted} older event(s) over the budget will be omitted</div>`;
+  h += `</div><div><div class="card"><h3>Next perception (preview)<span class="sp"></span><button class="btn sm ${S.wantPerception ? "on" : ""}" id="wantp">${S.wantPerception ? "live" : "build"}</button></h3>${U.perception ? `<div class="box" style="max-height:52vh"><pre class="mono">${esc(U.perception)}</pre></div>` : `<div class="muted">builds what the god would see right now, without consuming events or commands</div>`}</div>`;
+  h += `<div class="card" style="margin-top:12px"><h3>Annals · newest</h3>${(U.annals || []).map(a => `<div class="row"><span class="when" title="${new Date(a.at).toLocaleString()}">${ago(a.at)}</span><span class="chip">${esc(a.kind)}</span><span class="txt">${esc(a.text)}</span></div>`).join("") || `<div class="muted">empty</div>`}</div>`;
+  h += `</div></div>`;
+  pane.innerHTML = h;
+  $("#wantp").onclick = () => { S.wantPerception = !S.wantPerception; refreshSide(true); };
+}
+function renderJournal(){
+  const U = S.up; if (!U) return loading();
+  const pane = $("#pane");
+  const atBottom = pane.scrollTop + pane.clientHeight >= pane.scrollHeight - 40;
+  const f = S.jfilter;
+  const rows = (U.journal || []).filter(e => !f || e.kind === f || e.text.toLowerCase().includes(f));
+  pane.innerHTML = `<div class="filters">${["","thought","tool","speech","perception","cycle","error","info"].map(k => `<button class="btn sm ${S.jfilter === k ? "on" : ""}" data-jf="${k}">${k || "all"}</button>`).join("")}</div>` +
+    rows.map(e => `<div class="jr ${e.kind}"><span class="muted">${clock(e.at)}</span><span class="k">${e.kind}</span><span class="v"><pre>${esc(e.text.length > 1200 ? e.text.slice(0, 1200) + "…" : e.text)}</pre></span></div>`).join("");
+  pane.querySelectorAll("[data-jf]").forEach(b => b.onclick = () => { S.jfilter = b.dataset.jf; renderJournal(); });
+  if (S.follow && atBottom) pane.scrollTop = pane.scrollHeight;
+}
+
+// ---- modal & dialogs ----------------------------------------------------------------------------
+function modal(title, body, tools, buttons){
+  $("#mttl").textContent = title; $("#mbody").innerHTML = body; $("#mtools").innerHTML = tools || "";
+  if (!$("#mtools").querySelector("#cp-view") && !buttons) {
+    const b = document.createElement("button"); b.className = "btn sm"; b.textContent = "copy"; b.style.marginLeft = "6px";
+    b.onclick = () => copyText(textFor($("#mbody").querySelector("pre, .diff") || $("#mbody")), b); $("#mtools").appendChild(b);
+  }
+  const f = $("#mfoot"); f.innerHTML = ""; f.style.display = buttons ? "" : "none";
+  for (const [label, fn] of buttons || []) { const b = document.createElement("button"); b.className = "btn"; b.textContent = label; b.onclick = async () => { try { await fn(); closeModal(); } catch (e) {} }; f.appendChild(b); }
+  $("#modal").classList.add("on"); S.editing = !!buttons;
+}
+function closeModal(){ $("#modal").classList.remove("on"); S.editing = false; }
+function ask(title, hint, value, fn, multi){
+  modal(title, `${hint ? `<div class="muted" style="margin-bottom:6px">${esc(hint)}</div>` : ""}<textarea id="askv" style="min-height:${multi ? 160 : 90}px">${esc(value)}</textarea>`, "", [["ok", () => fn($("#askv").value.trim())]]);
+  setTimeout(() => $("#askv").focus(), 0);
+}
+function rawEditor(title, text, save){
+  modal(title, `<textarea id="rawv" spellcheck="false" style="height:100%;min-height:60vh" class="mono">${esc(text)}</textarea>`, `<span class="muted">replaces it whole · validated before saving</span>`,
+    [["save", () => { const v = $("#rawv").value; try { JSON.parse(v); } catch (e) { toast("not JSON: " + e.message, true); throw e; } return save(v); }]]);
+}
+$("#tabs").onclick = e => { const el = e.target.closest(".tab"); if (!el) return; S.tab = el.dataset.t; S.editing = false; renderTabs(); renderPane(); refreshSide(true); };
+$("#rail").onclick = e => {
+  if (e.target.closest("#allbtn")) { S.all = !S.all; renderRail(); const tl = $("#tl"); if (tl) tl.innerHTML = ""; if (S.tab === "timeline") renderTimeline(); return; }
+  const el = e.target.closest(".god"); if (el) selectGod(el.dataset.g);
+};
+$("#mclose").onclick = closeModal;
+$("#modal").onclick = e => { if (e.target.id === "modal") closeModal(); };
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") closeModal();
+  if (e.target.matches("input,textarea,select")) return;
+  const i = TABS.findIndex(t => t[0] === S.tab);
+  if (e.key >= "1" && e.key <= "7") { S.tab = TABS[+e.key - 1][0]; renderTabs(); renderPane(); refreshSide(true); }
+  if (e.key === "j" || e.key === "k") { const gi = S.gods.findIndex(g => g.id === S.sel); const n = S.gods[(gi + (e.key === "j" ? 1 : -1) + S.gods.length) % S.gods.length]; if (n) selectGod(n.id); }
+  if (e.key === "f") $("#follow").click();
+});
+$("#follow").onclick = () => { S.follow = !S.follow; $("#follow").classList.toggle("on", S.follow); if (S.follow) $("#pane").scrollTop = 1e9; };
+$("#pausepoll").onclick = () => { S.frozen = !S.frozen; $("#pausepoll").classList.toggle("on", S.frozen); setLive(true); };
+
+readHash();
+(async () => { await pollGods(); renderPane(); await pollThoughts(); renderTimeline(); refreshSide(true); if (!S.openAll) $("#pane").scrollTop = 1e9;
+  if (S.inspectAt) { const [num, step, view] = S.inspectAt.split(":"); const t = [...S.thoughts.values()].find(x => x.god === S.sel && x.number === +num); if (t) inspect(t, Math.max(0, (+step || t.requests.length) - 1), view || "overview"); }
+  loop(); })();
+</script>
+</body>
+</html>

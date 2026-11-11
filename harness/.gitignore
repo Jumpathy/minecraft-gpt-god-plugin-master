@@ -1,0 +1,11 @@
+node_modules/
+# screenshots, god views and scenario output
+out/
+# the camera client's own game directory, natives and log
+client/
+# downloaded plugin jars (Via) and other caches
+.cache/
+.env
+# older layouts
+server/
+views/

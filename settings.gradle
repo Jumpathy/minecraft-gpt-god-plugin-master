@@ -1,0 +1,7 @@
+plugins {
+    // Lets Gradle fetch the JDK the build needs (see java_version in gradle.properties)
+    // when it is not installed, so any JDK 17+ can launch the build.
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+
+rootProject.name = 'gptgodmc'

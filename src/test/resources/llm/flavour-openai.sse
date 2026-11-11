@@ -1,0 +1,16 @@
+data: {"id":"chatcmpl-CZ8f2kq","object":"chat.completion.chunk","created":1762790000,"model":"gpt-5-mini-2025-08-07","service_tier":"default","system_fingerprint":null,"choices":[{"index":0,"delta":{"role":"assistant","content":null,"tool_calls":[{"index":0,"id":"call_Qm3xT7","type":"function","function":{"name":"whisper","arguments":""}}],"refusal":null},"finish_reason":null}],"usage":null,"obfuscation":"a8Kd"}
+
+data: {"id":"chatcmpl-CZ8f2kq","object":"chat.completion.chunk","created":1762790000,"model":"gpt-5-mini-2025-08-07","service_tier":"default","system_fingerprint":null,"choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"function":{"arguments":"{\"pl"}}]},"finish_reason":null}],"usage":null,"obfuscation":"x"}
+
+data: {"id":"chatcmpl-CZ8f2kq","object":"chat.completion.chunk","created":1762790000,"model":"gpt-5-mini-2025-08-07","service_tier":"default","system_fingerprint":null,"choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"function":{"arguments":"ayer\":\"Ashwyn\",\"message\":\"Your faith is seen.\"}"}}]},"finish_reason":null}],"usage":null,"obfuscation":"Qp1"}
+
+data: {"id":"chatcmpl-CZ8f2kq","object":"chat.completion.chunk","created":1762790000,"model":"gpt-5-mini-2025-08-07","service_tier":"default","system_fingerprint":null,"choices":[{"index":0,"delta":{"tool_calls":[{"index":1,"id":"call_Zb81Lw","type":"function","function":{"name":"give_item","arguments":""}}]},"finish_reason":null}],"usage":null,"obfuscation":"7"}
+
+data: {"id":"chatcmpl-CZ8f2kq","object":"chat.completion.chunk","created":1762790000,"model":"gpt-5-mini-2025-08-07","service_tier":"default","system_fingerprint":null,"choices":[{"index":0,"delta":{"tool_calls":[{"index":1,"function":{"arguments":"{\"player\":\"Ashwyn\",\"item\":\"golden_apple\",\"count\":2}"}}]},"finish_reason":null}],"usage":null,"obfuscation":"mm"}
+
+data: {"id":"chatcmpl-CZ8f2kq","object":"chat.completion.chunk","created":1762790000,"model":"gpt-5-mini-2025-08-07","service_tier":"default","system_fingerprint":null,"choices":[{"index":0,"delta":{},"finish_reason":"tool_calls"}],"usage":null,"obfuscation":"R2d2"}
+
+data: {"id":"chatcmpl-CZ8f2kq","object":"chat.completion.chunk","created":1762790000,"model":"gpt-5-mini-2025-08-07","service_tier":"default","system_fingerprint":null,"choices":[],"usage":{"prompt_tokens":9120,"completion_tokens":212,"total_tokens":9332,"prompt_tokens_details":{"cached_tokens":8960,"audio_tokens":0},"completion_tokens_details":{"reasoning_tokens":128,"audio_tokens":0,"accepted_prediction_tokens":0,"rejected_prediction_tokens":0}},"obfuscation":"z"}
+
+data: [DONE]
+

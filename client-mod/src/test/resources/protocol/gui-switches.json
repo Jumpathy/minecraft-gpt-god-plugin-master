@@ -1,0 +1,18 @@
+{
+  "t": "gui_data",
+  "part": "switches",
+  "switches": [
+    {
+      "key": "vessel.enabled",
+      "label": "The god's body",
+      "help": "Whether the god can take a physical vessel at all.",
+      "on": true
+    },
+    {
+      "key": "powers.commands",
+      "label": "Server commands",
+      "help": "The god may run server commands (minus the blocklist).",
+      "on": false
+    }
+  ]
+}

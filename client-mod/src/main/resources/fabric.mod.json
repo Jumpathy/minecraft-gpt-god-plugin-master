@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "gptgod",
+  "version": "${version}",
+  "name": "GPTGOD Client",
+  "description": "Optional client companion for the GPTGOD server plugin: glowing god effects, screen effects, a god HUD, sky moods, subtitles and more. Does nothing on servers without GPTGOD.",
+  "authors": ["GPTGOD"],
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["net.bigyous.gptgod.client.GodClientMod"]
+  },
+  "mixins": ["gptgod.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.20.0",
+    "minecraft": "~26.3",
+    "java": ">=25",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "modmenu": "*"
+  }
+}
