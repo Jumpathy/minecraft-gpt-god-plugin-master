@@ -1,6 +1,8 @@
 .gradle/
 .idea/
-build/
+# Gradle output only: a bare "build/" also hid the god/build source package from git
+/build/
+/client-mod/build/
 run/
 harness/node_modules/
 harness/server/
