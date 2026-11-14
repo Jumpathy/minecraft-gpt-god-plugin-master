@@ -13,9 +13,12 @@ import java.util.Locale;
  * frame a square 2w x 2h whose quarters are the sides seen from above (top left), from below (top
  * right), from the left (bottom left) and from the right (bottom right), wallFrames of them stacked top
  * to bottom. Without them (null) a side has the colour of its texel's face.
+ *
+ * shape, when the plugin sent one, is the relic's true form (see {@link RelicShape#build}): its faces and
+ * their material tiles, built once. With it the relic is drawn as that shape everywhere but in inventories, which keep the picture.
  */
 public record RelicArt(String id, int rev, String name, Kind kind, int w, int h, int frames, int ticks, int[] pixels,
-        boolean[] glow, byte[] depth, int[] walls, int wallFrames) {
+        boolean[] glow, byte[] depth, int[] walls, int wallFrames, RelicShape.Model shape) {
     public static final int MIN_W = 8, MAX_W = 32, MIN_H = 8, MAX_H = 48, MAX_FRAMES = 8, MAX_TICKS = 20;
     /** The thickest a texel may be, in texels. */
     public static final int MAX_DEPTH = 12;
@@ -78,7 +81,12 @@ public record RelicArt(String id, int rev, String name, Kind kind, int w, int h,
         boolean painted = walls != null && wallFrames >= 1 && wallFrames <= frames && walls.length == 4 * w * h * wallFrames;
         return new RelicArt(id, Math.max(0, rev), name == null ? id : name, kind, w, h, frames,
                 Math.max(1, Math.min(MAX_TICKS, ticks)), pixels, glow, fits(depth, w * h) ? depth.clone() : null,
-                painted ? seeThroughAsFaces(walls, pixels, w, h, frames, wallFrames) : null, painted ? wallFrames : 0);
+                painted ? seeThroughAsFaces(walls, pixels, w, h, frames, wallFrames) : null, painted ? wallFrames : 0, null);
+    }
+
+    /** The same art with a true shape (from RelicShape.build; null for none). */
+    public RelicArt withShape(RelicShape.Model shape) {
+        return new RelicArt(id, rev, name, kind, w, h, frames, ticks, pixels, glow, depth, walls, wallFrames, shape);
     }
 
     /**

@@ -18,7 +18,8 @@ import net.bigyous.gptgodmc.utils.NicknameCommand;
 /** Resolves the names the god uses ("Steve", "my vessel", "12 64 -30", a structure) to the world. */
 public final class Targets {
     public static final String TARGET_HELP = "a player name, a structure name, \"vessel\" (your body), \"spawn\", "
-            + "or coordinates \"x y z\" (optionally prefixed by a world name)";
+            + "or coordinates \"x y z\" (optionally prefixed by a world name, also a world you made: "
+            + "\"god_ashen_reach 0 64 0\")";
 
     private Targets() {
     }
@@ -145,11 +146,30 @@ public final class Targets {
         }
     }
 
+    /** One of the god's own worlds by name (its realm's, or one it made); refuses any other. */
+    public static World world(String name) throws ToolException {
+        World w = name == null || name.isBlank() ? Realm.current().world() : worldNamed(name.trim());
+        if (w == null) {
+            throw new ToolException("You have no world called '" + name + "'. Your worlds: " + worldNames() + ".");
+        }
+        if (!Realm.current().governs(w)) {
+            throw new ToolException("The world '" + w.getName() + "' lies outside your realm; you have no power "
+                    + "there. Your worlds: " + worldNames() + ".");
+        }
+        return w;
+    }
+
     /** A world by its name, or by "nether" / "end" / "overworld" within the current god's realm. */
     private static World worldNamed(String name) {
         World exact = Bukkit.getWorld(name);
         if (exact != null) {
             return exact;
+        }
+        // A god-made world by the name the god gave it ("ashen_reach" for god_ashen_reach).
+        net.bigyous.gptgodmc.god.worlds.GodWorlds.Made made = net.bigyous.gptgodmc.god.worlds.GodWorlds.find(name);
+        if (made != null) {
+            World w = net.bigyous.gptgodmc.god.worlds.GodWorlds.world(made);
+            if (w != null) return w;
         }
         World.Environment wanted = switch (name.toLowerCase(Locale.ROOT)) {
             case "nether", "the_nether" -> World.Environment.NETHER;

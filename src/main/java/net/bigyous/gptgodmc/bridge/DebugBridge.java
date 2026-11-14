@@ -311,6 +311,30 @@ public final class DebugBridge {
         }
     }
 
+    /** The sender the bridge is running a console command with right now (server thread), or null. */
+    private static volatile CommandSender consoleSender;
+
+    /**
+     * Whether this is the bridge's own sender, in the middle of a console command. The bridge stands in for
+     * the console (local, behind its token, and able to run any console command), but its sender has to be
+     * one that hands the feedback back, so it is not a ConsoleCommandSender: code that asks "is this the
+     * console?" may ask this too. An identity check: true for no player and no other plugin's sender.
+     */
+    public static boolean isConsole(CommandSender sender) {
+        return sender != null && sender == consoleSender;
+    }
+
+    /** For tests: runs `body` as if `sender` were the bridge's, dispatching a console command. */
+    static void asConsole(CommandSender sender, Runnable body) {
+        CommandSender outer = consoleSender;
+        consoleSender = sender;
+        try {
+            body.run();
+        } finally {
+            consoleSender = outer;
+        }
+    }
+
     private static JsonObject console(String command) throws ToolException {
         if (command == null || command.isBlank()) {
             throw new ToolException("command is required");
@@ -320,6 +344,8 @@ public final class DebugBridge {
         boolean ok = Sync.call(() -> {
             CommandSender sender = Bukkit.createCommandSender(c -> feedback.add(
                     PlainTextComponentSerializer.plainText().serialize(c)));
+            CommandSender outer = consoleSender;
+            consoleSender = sender;
             try {
                 return Bukkit.dispatchCommand(sender, cmd);
             } catch (RuntimeException e) {
@@ -329,6 +355,8 @@ public final class DebugBridge {
                 String why = cause.getMessage();
                 feedback.add("Command failed: " + (why == null || why.isBlank() ? cause.toString() : why));
                 return false;
+            } finally {
+                consoleSender = outer;
             }
         }, 10_000);
         JsonObject o = new JsonObject();

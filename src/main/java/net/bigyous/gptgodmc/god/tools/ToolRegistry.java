@@ -77,6 +77,14 @@ public final class ToolRegistry {
         all.addAll(DimensionTools.all());
         // Other plugins' gifts, when a server has them (ward, land_history, disguise): appended last.
         all.addAll(HookTools.all());
+        // Its own relics in its own hand (armory, strike): appended last for the prompt cache.
+        all.addAll(ArmoryTools.all());
+        // Last: a statue copied from a mortal's own skin.
+        all.addAll(StatueTools.all());
+        // A web search whose answer other powers and scripts can use: appended last for the prompt cache.
+        all.addAll(WebTools.all());
+        // Where the nearest structure or biome lies (locate): appended last for the prompt cache.
+        all.addAll(LocateTools.all());
         for (GodTool t : all) {
             TOOLS.put(t.name(), t);
         }
@@ -179,6 +187,11 @@ public final class ToolRegistry {
                 PantheonTools.witness(name, input, result);
             } catch (RuntimeException e) {
                 GPTGOD.LOGGER.warn("Could not show the act to the other gods", e);
+            }
+            try {
+                net.bigyous.gptgodmc.god.Signs.after(name, input); // the mortals it touched read who did it
+            } catch (RuntimeException e) {
+                GPTGOD.LOGGER.warn("Sign failed", e);
             }
             try {
                 FxBrainTools.afterPower(name, input); // an effect the god bound to this power (fx_bind)

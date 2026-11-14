@@ -9,6 +9,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.List;
 
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import net.bigyous.gptgod.client.relic.Relics;
@@ -29,7 +30,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 /**
- * Relics drawn from art alone, with no resource pack. First the plugin's own painted relics, from the
+ * Relics drawn from art alone, with no resource pack. First a relic with a true shape (see trueShape).
+ * Then the plugin's own painted relics, from the
  * very messages it sends (src/test/resources/protocol/relics), taken in the way network bytes are: all
  * of them as item displays by day, from the side and by night (the glowing texels stay bright), in the
  * hotbar and inventory, held by the player, and held by armour stands beside the game's own sword and
@@ -133,6 +135,11 @@ public class RelicShotsTest implements FabricClientGameTest {
             ctx.waitTicks(10);
             // Before any art: a relic stack is whatever the resource packs make of it (nothing, here).
             ItemModel vanilla = ctx.computeOnClient(mc -> model(mc, "demo_blade"));
+            trueShape(ctx, sp);
+            sp.getServer().runCommand("kill @e[type=!minecraft:player]");
+            sp.getServer().runCommand("clear @a");
+            ctx.runOnClient(mc -> Relics.clear());
+            if (System.getenv("GPTGOD_RELIC_SHAPE_ONLY") != null) return;
             pluginRelics(ctx, sp, vanilla);
             sp.getServer().runCommand("kill @e[type=!minecraft:player]");
             sp.getServer().runCommand("clear @a");
@@ -353,6 +360,120 @@ public class RelicShotsTest implements FabricClientGameTest {
         });
         List<?> identity = (List<?>) state.getModelIdentity();
         return new Object[] { identity.size() > 1 ? identity.get(1) : identity.get(0), box };
+    }
+
+    /**
+     * Gravecall, the plugin's scythe, which carries a true shape, beside the same relic without it (drawn
+     * from its picture as before) and the game's own stick: in item frames on a wall and as item displays
+     * (as the god holds relics), from the front, three quarters and the side, by day and by night; in the
+     * hand, first person and from behind and in front; and in the hotbar, where it is the flat picture.
+     */
+    private static void trueShape(ClientGameTestContext ctx, TestSingleplayerContext sp) {
+        double[] at = ctx.computeOnClient(mc -> new double[] { mc.player.getX(), mc.player.getY(), mc.player.getZ() });
+        String home = "tp @a " + at[0] + " " + at[1] + " " + at[2];
+        byte[] message = message("gravecall");
+        JsonObject plain = JsonParser.parseString(new String(message, StandardCharsets.UTF_8)).getAsJsonObject();
+        plain.remove("shape");
+        plain.addProperty("id", "gravecall_voxels");
+        byte[] voxels = plain.toString().getBytes(StandardCharsets.UTF_8);
+        ctx.runOnClient(mc -> {
+            ItemModel missing = model(mc, "gravecall");
+            if (!Relics.receive(message) || !Relics.receive(voxels)) throw new AssertionError("gravecall was not taken as a relic message");
+            if (model(mc, "gravecall") == missing || model(mc, "gravecall_voxels") == missing) throw new AssertionError("gravecall has no model");
+        });
+
+        // A stone wall to the south with three frames on it; in front of it, higher up, three item displays.
+        int bx = (int) Math.floor(at[0]), by = (int) Math.floor(at[1]), bz = (int) Math.floor(at[2]);
+        String wall = (bx - 4) + " " + by + " " + (bz + 6) + " " + (bx + 4) + " " + (by + 4) + " " + (bz + 6);
+        sp.getServer().runCommand("fill " + wall + " minecraft:stone");
+        String[] shown = { "gravecall", null, "gravecall_voxels" };
+        for (int i = 0; i < shown.length; i++) {
+            int dx = 2 - i * 2; // to the left (east) first
+            String item = "id:\"minecraft:stick\",count:1"
+                    + (shown[i] == null ? "" : ",components:{\"minecraft:item_model\":\"gptgodmc:relic/" + shown[i] + "\"}");
+            sp.getServer().runCommand("summon minecraft:item_frame " + (bx + dx) + " " + (by + 1) + " " + (bz + 5)
+                    + " {Facing:2b,Fixed:1b,Invulnerable:1b,Item:{" + item + "}}");
+            String name = shown[i] == null ? "vanilla stick" : shown[i].equals("gravecall") ? "true shape" : "voxels";
+            sp.getServer().runCommand(label(name, bx + dx + 0.5, by + 0.75, bz + 5.4));
+            sp.getServer().runCommand("execute at @a run summon minecraft:item_display ^" + dx + " ^3.2 ^3.6 {item:{" + item + "},"
+                    + "transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,0f,0f],scale:[1.6f,1.6f,1.6f]}}");
+        }
+        int fov = ctx.computeOnClient(mc -> mc.options.fov().get());
+        ctx.runOnClient(mc -> {
+            if (!mc.gui.hud.isHidden()) mc.gui.hud.toggle();
+        });
+        int n = 0;
+        for (String time : new String[] { "day", "night" }) {
+            sp.getServer().runCommand("time set " + (time.equals("day") ? "noon" : "midnight"));
+            sp.getServer().runCommand(home + " 0 0");
+            shot(ctx, String.format("relic-shape-%02d-front-%s", ++n, time), 25);
+            sp.getServer().runCommand(lookFrom(at, 3.6, 1.2, 0, 2.4, 4.4));
+            shot(ctx, String.format("relic-shape-%02d-three-quarters-%s", ++n, time), 10);
+            sp.getServer().runCommand(lookFrom(at, 6.0, 3.4, 0, 2.6, 3.8));
+            shot(ctx, String.format("relic-shape-%02d-side-%s", ++n, time), 10);
+            ctx.runOnClient(mc -> mc.options.fov().set(35));
+            sp.getServer().runCommand(lookFrom(at, 3.4, 2.0, 1.2, 1.5, 5.6));
+            shot(ctx, String.format("relic-shape-%02d-frames-three-quarters-%s", ++n, time), 10);
+            sp.getServer().runCommand(lookFrom(at, 2.8, 1.6, 0.6, 3.2, 3.6));
+            shot(ctx, String.format("relic-shape-%02d-displays-three-quarters-close-%s", ++n, time), 10);
+            ctx.runOnClient(mc -> mc.options.fov().set(fov));
+        }
+
+        // Dropped on the grass, the true shape on the left and its voxels on the right, seen from close above.
+        for (int i = 0; i < 2; i++) {
+            String relic = i == 0 ? "gravecall" : "gravecall_voxels";
+            sp.getServer().runCommand("summon minecraft:item " + (at[0] + (i == 0 ? 0.45 : -0.45)) + " " + at[1] + " " + (at[2] + 1.4)
+                    + " {PickupDelay:32767,Age:-32768,Motion:[0d,0d,0d],Item:{id:\"minecraft:stick\",count:1,components:"
+                    + "{\"minecraft:item_model\":\"gptgodmc:relic/" + relic + "\"}}}");
+        }
+        ctx.runOnClient(mc -> mc.options.fov().set(45));
+        for (String time : new String[] { "day", "night" }) {
+            sp.getServer().runCommand("time set " + (time.equals("day") ? "noon" : "midnight"));
+            sp.getServer().runCommand(lookFrom(at, 0, 0.2, 0, 0.1, 1.4));
+            shot(ctx, String.format("relic-shape-%02d-dropped-%s", ++n, time), time.equals("day") ? 20 : 25);
+        }
+        ctx.runOnClient(mc -> mc.options.fov().set(fov));
+        sp.getServer().runCommand("kill @e[type=minecraft:item]");
+
+        // In the hand, turned away from the wall: the true shape, then its voxels, then the game's stick.
+        sp.getServer().runCommand("time set noon");
+        sp.getServer().runCommand(home + " 180 0");
+        String scythe = stack("stick", "gravecall"), plainScythe = stack("stick", "gravecall_voxels");
+        sp.getServer().runCommand("item replace entity @a weapon.mainhand with " + scythe);
+        ctx.runOnClient(mc -> mc.gui.hud.toggle());
+        shot(ctx, String.format("relic-shape-%02d-hand-day", ++n), 25);
+        sp.getServer().runCommand("time set midnight");
+        shot(ctx, String.format("relic-shape-%02d-hand-night", ++n), 25);
+        sp.getServer().runCommand("time set noon");
+        sp.getServer().runCommand("item replace entity @a weapon.mainhand with " + plainScythe);
+        shot(ctx, String.format("relic-shape-%02d-hand-voxels-day", ++n), 25);
+        sp.getServer().runCommand("item replace entity @a weapon.mainhand with minecraft:stick");
+        shot(ctx, String.format("relic-shape-%02d-hand-vanilla-stick-day", ++n), 20);
+        sp.getServer().runCommand("item replace entity @a weapon.mainhand with " + scythe);
+        for (CameraType camera : new CameraType[] { CameraType.THIRD_PERSON_BACK, CameraType.THIRD_PERSON_FRONT }) {
+            ctx.runOnClient(mc -> mc.options.setCameraType(camera));
+            String way = camera == CameraType.THIRD_PERSON_BACK ? "behind" : "front";
+            sp.getServer().runCommand("time set noon");
+            shot(ctx, String.format("relic-shape-%02d-third-person-%s-day", ++n, way), 20);
+            sp.getServer().runCommand("time set midnight");
+            shot(ctx, String.format("relic-shape-%02d-third-person-%s-night", ++n, way), 25);
+        }
+        sp.getServer().runCommand("time set noon");
+        sp.getServer().runCommand("item replace entity @a weapon.mainhand with " + plainScythe);
+        shot(ctx, String.format("relic-shape-%02d-third-person-front-voxels-day", ++n), 20);
+        ctx.runOnClient(mc -> mc.options.setCameraType(CameraType.FIRST_PERSON));
+
+        // The hotbar: the true shape, its voxels and the stick, all flat pictures there.
+        sp.getServer().runCommand("item replace entity @a hotbar.0 with " + scythe);
+        sp.getServer().runCommand("item replace entity @a hotbar.1 with " + plainScythe);
+        sp.getServer().runCommand("item replace entity @a hotbar.2 with minecraft:stick");
+        sp.getServer().runCommand("item replace entity @a weapon.offhand with " + scythe);
+        shot(ctx, String.format("relic-shape-%02d-hotbar", ++n), 15);
+        ctx.runOnClient(mc -> mc.gui.setScreen(new InventoryScreen(mc.player)));
+        shot(ctx, String.format("relic-shape-%02d-inventory", ++n), 5);
+        ctx.runOnClient(mc -> mc.gui.setScreen(null));
+        sp.getServer().runCommand("fill " + wall + " minecraft:air");
+        sp.getServer().runCommand(home + " 0 0");
     }
 
     private static void pluginRelics(ClientGameTestContext ctx, TestSingleplayerContext sp, ItemModel vanilla) {

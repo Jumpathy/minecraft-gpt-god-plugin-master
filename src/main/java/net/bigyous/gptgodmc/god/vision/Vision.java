@@ -60,7 +60,7 @@ public final class Vision {
     }
 
     private record Captured(Scene scene, View view, Renderer.Camera camera, int cx, int cy, int cz, int radius,
-            Renderer.OverheadMode mode, String caption) {
+            Renderer.OverheadMode mode, String caption, String world) {
     }
 
     private static final int POV_DIST = 96;
@@ -82,7 +82,48 @@ public final class Vision {
         }
         byte[] png = encode(img);
         save(png, c.view().name().toLowerCase(Locale.ROOT));
-        return new Result(png, c.caption());
+        return new Result(png, c.caption() + named(c, req.xray()));
+    }
+
+    /**
+     * The picture's cubes, by name: what was built within sight and what any sign in it says. Only for the views
+     * with a camera (eyes, vessel, orbit); survey_area lists an area and x-ray already tells kinds apart by color.
+     */
+    private static String named(Captured c, boolean xray) {
+        if (xray || c.camera() == null || c.view() == View.OVERHEAD || c.view() == View.PANORAMA) return "";
+        try {
+            List<Sightings.Seen> seen = Sightings.notable(
+                    Sightings.scan(c.scene().voxels, c.scene().palette, c.camera(), 640.0 / 360, Vision::kindName));
+            if (seen.isEmpty()) return " Nothing built is in view within " + (int) Sightings.REACH + " blocks.";
+            java.util.Map<String, String> signs = Sync.call(() -> {
+                java.util.Map<String, String> out = new java.util.HashMap<>();
+                World world = org.bukkit.Bukkit.getWorld(c.world());
+                if (world == null) return out;
+                var plain = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText();
+                for (Sightings.Seen s : seen) {
+                    if (!kindName(s.code()).contains("SIGN")) continue;
+                    if (!(world.getBlockAt(s.x(), s.y(), s.z()).getState() instanceof org.bukkit.block.Sign sign)) continue;
+                    List<String> lines = new ArrayList<>();
+                    for (org.bukkit.block.sign.Side side : org.bukkit.block.sign.Side.values()) {
+                        sign.getSide(side).lines().forEach(l -> {
+                            String text = plain.serialize(l).trim();
+                            if (!text.isEmpty()) lines.add(text);
+                        });
+                    }
+                    String text = net.bigyous.gptgodmc.god.Guard.clean(String.join(" / ", lines)).replace('"', '\'');
+                    out.put(s.x() + "," + s.y() + "," + s.z(), text.length() > 120 ? text.substring(0, 120) + "…" : text);
+                }
+                return out;
+            }, 3000);
+            return " " + Sightings.describe(seen, Vision::kindName, signs);
+        } catch (ToolException | RuntimeException e) {
+            return ""; // the picture stands without its legend
+        }
+    }
+
+    private static String kindName(int code) {
+        org.bukkit.Material[] all = org.bukkit.Material.values();
+        return code >= 0 && code < all.length ? all[code].name() : "UNKNOWN";
     }
 
     private static Captured capture(Request req) throws ToolException {
@@ -143,11 +184,18 @@ public final class Vision {
                 Location aim = focus.clone().add(0, 1.2, 0);
                 Location want = aim.clone().add(-back[0] * dist, dist * 0.55, -back[2] * dist);
                 Location camLoc = collide(aim, want);
+                // A spot walled in on that side would pull the camera inside the walls, where it sees a dark room
+                // corner and nothing else: stay outside and show what encloses it.
+                boolean enclosed = camLoc.distance(aim) < Math.min(4, dist * 0.5);
+                if (enclosed) camLoc = want;
                 double[] yp = Renderer.lookAt(camLoc.getX(), camLoc.getY(), camLoc.getZ(), aim.getX(), aim.getY(), aim.getZ());
                 cam = new Renderer.Camera(camLoc.getX(), camLoc.getY(), camLoc.getZ(), yp[0], yp[1], 70);
                 center = focus;
                 caption = String.format("Third-person view of %s from %d blocks %s of it.", target,
-                        Math.round(camLoc.distance(aim)), Perception.facing((float) (yp[0] + 180)));
+                        Math.round(camLoc.distance(aim)), Perception.facing((float) (yp[0] + 180)))
+                        + (enclosed ? " That spot is walled in or roofed over, so this shows what stands around it from "
+                                + "outside; to see inside, look through the eyes of a mortal in there or use the "
+                                + "overhead view with layer cave." : "");
             }
             case PANORAMA -> {
                 String target = req.target() == null || req.target().isBlank() ? "vessel" : req.target();
@@ -219,7 +267,7 @@ public final class Vision {
                         : "")
                 + " Grey haze = unloaded or distant terrain.";
         return new Captured(scene, view, cam, center.getBlockX(), center.getBlockY(), center.getBlockZ(), radius, mode,
-                caption + legend);
+                caption + legend, world.getName());
     }
 
     private static List<Scene.Box> boxes(World world, Location center, int radius, Player viewer,

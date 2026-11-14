@@ -19,9 +19,14 @@ public final class Samples {
      * for a special relic also its second (awake) form and what it is imbued with.
      */
     public record Sample(String name, String kind, String note, String[] legend, String[] rows, String[] altRows,
-            String[] powers) {
+            String[] powers, JsonArray shape) {
         public Sample(String name, String kind, String note, String[] legend, String[] rows) {
-            this(name, kind, note, legend, rows, null, new String[0]);
+            this(name, kind, note, legend, rows, null, new String[0], null);
+        }
+
+        public Sample(String name, String kind, String note, String[] legend, String[] rows, String[] altRows,
+                String[] powers) {
+            this(name, kind, note, legend, rows, altRows, powers, null);
         }
 
         public JsonObject json() {
@@ -42,6 +47,7 @@ public final class Samples {
                 for (String row : altRows) alt.add(row);
                 o.add("alt_rows", alt);
             }
+            if (shape != null) o.add("shape", shape.deepCopy());
             return o;
         }
 
@@ -259,6 +265,101 @@ public final class Samples {
                     "stat: attack_speed 1.8 | when on", "on_hit: ignite 3 | when on", "on_swing: slash 2 | when on",
                     "on_use: wave 6 | cooldown 8 | when on" });
 
+    /** A reaper's scythe as a picture: a long dark shaft on the diagonal, a steel crescent at its head, a gold collar and a gem. */
+    private static String[] scytheRows() {
+        int n = 24;
+        char[][] g = new char[n][n];
+        for (char[] row : g) java.util.Arrays.fill(row, '.');
+        for (int y = 3; y <= 22; y++) {
+            g[y][22 - y] = 'w';
+            g[y][23 - y] = 'w';
+        }
+        for (int y = 0; y < 10; y++) {
+            for (int x = 0; x < 21; x++) {
+                double d = Math.hypot(x - 14.5, y - 12.5);
+                if (d >= 9.6 && d <= 11.8 && g[y][x] == '.') g[y][x] = 's';
+            }
+        }
+        g[2][19] = 'g';
+        g[2][20] = 'g';
+        g[3][20] = 'r';
+        g[3][21] = 'g';
+        String[] rows = new String[n];
+        for (int y = 0; y < n; y++) rows[y] = new String(g[y]);
+        return rows;
+    }
+
+    /** The same scythe as a true shape: a turned shaft, a pommel, a gold collar and a curved, tapering blade. */
+    private static JsonArray scytheShape() {
+        JsonArray parts = new JsonArray();
+        // Blocks first, as Minecraft builds: the shaft a long box laid on the diagonal (roll -45), a cube for the
+        // pommel and a broader box for the collar. Only the blade, whose curve is what makes it a scythe, is round.
+        parts.add(part("{\"form\":\"box\",\"size\":[1.1,18.0,1.1],\"offset\":[7.46,7.16,0],\"roll\":-45,"
+                + "\"material\":\"darkwood\"}"));
+        parts.add(part("{\"form\":\"box\",\"size\":1.7,\"offset\":[1.0,0.7,0],\"roll\":-45,\"material\":\"gold\"}"));
+        parts.add(part("{\"form\":\"box\",\"size\":[2.1,1.4,2.1],\"offset\":[13.6,13.3,0],\"roll\":-45,"
+                + "\"material\":\"gold\"}"));
+        // The blade: a thin crescent from the head of the shaft round to the left, its edge on the inside. It is
+        // built in short pieces: the scenes' shading lights the side of a part facing away from its own middle,
+        // and only a short piece of a curved sheet has its middle inside it.
+        int steps = 10, per = 2;
+        double cx = 8.6, cy = 9.0;
+        double[][] out = new double[steps + 1][], in = new double[steps + 1][];
+        double[] half = new double[steps + 1];
+        for (int i = 0; i <= steps; i++) {
+            double t = i / (double) steps, a = Math.toRadians(42 + 160 * t);
+            double ro = 6.7, ri = 4.9 + (6.6 - 4.9) * t;
+            out[i] = new double[] { cx + Math.cos(a) * ro, cy + Math.sin(a) * ro };
+            in[i] = new double[] { cx + Math.cos(a) * ri, cy + Math.sin(a) * ri };
+            half[i] = 0.32 - 0.26 * t;
+        }
+        for (int from = 0; from < steps; from += per) {
+            JsonArray quads = new JsonArray();
+            for (int i = from; i < Math.min(steps, from + per); i++) {
+                double h0 = half[i], h1 = half[i + 1];
+                quads.add(quad(out[i], h0, out[i + 1], h1, in[i + 1], h1 * 0.2, in[i], h0 * 0.2));
+                quads.add(quad(in[i], -h0 * 0.2, in[i + 1], -h1 * 0.2, out[i + 1], -h1, out[i], -h0));
+                quads.add(quad(out[i], -h0, out[i + 1], -h1, out[i + 1], h1, out[i], h0));
+                quads.add(quad(in[i], h0 * 0.2, in[i + 1], h1 * 0.2, in[i + 1], -h1 * 0.2, in[i], -h0 * 0.2));
+            }
+            if (from == 0) quads.add(quad(out[0], half[0], in[0], half[0] * 0.2, in[0], -half[0] * 0.2, out[0], -half[0]));
+            JsonObject blade = new JsonObject();
+            blade.addProperty("form", "quads");
+            blade.add("quads", quads);
+            blade.addProperty("material", "steel");
+            parts.add(blade);
+        }
+        return parts;
+    }
+
+    private static JsonObject part(String json) {
+        return com.google.gson.JsonParser.parseString(json).getAsJsonObject();
+    }
+
+    private static JsonArray quad(double[] a, double za, double[] b, double zb, double[] c, double zc, double[] d, double zd) {
+        JsonArray q = new JsonArray();
+        for (double[] p : new double[][] { { a[0], a[1], za }, { b[0], b[1], zb }, { c[0], c[1], zc }, { d[0], d[1], zd } }) {
+            JsonArray v = new JsonArray();
+            for (double x : p) v.add(Math.round(x * 100) / 100.0);
+            q.add(v);
+        }
+        return q;
+    }
+
+    /**
+     * A special relic with a true shape: its picture is what everyone sees in an inventory and what players
+     * without the client mod hold; with the mod it is a real scythe, a round shaft and a curved blade.
+     */
+    public static final Sample SCYTHE = new Sample("Gravecall", "staff",
+            "A special relic with a true shape (\"shape\"): the picture traced in parts, built as Minecraft builds. "
+                    + "The shaft is a long box laid on the diagonal (roll -45), the pommel a cube, the collar a broader "
+                    + "box; only the blade curves, because the curve is what makes it a scythe: quads, a thin crescent "
+                    + "of steel thickest at the collar and fading to an edge and a point, in five short pieces.",
+            new String[] { "w", "darkwood", "s", "steel", "g", "gold", "r", "gem #7a5cff" }, scytheRows(), null,
+            new String[] { "stat: attack_damage 9", "stat: attack_speed 1.0", "on_hit: potion wither 1 4",
+                    "on_swing: trail #9aa3b5" },
+            scytheShape());
+
     /** Every example, in the order they are shown. */
-    public static final List<Sample> ALL = List.of(BLADE, STAFF, AMULET, TOME, CROWN, VIAL, WISP, KINDLED);
+    public static final List<Sample> ALL = List.of(BLADE, STAFF, AMULET, TOME, CROWN, VIAL, WISP, KINDLED, SCYTHE);
 }

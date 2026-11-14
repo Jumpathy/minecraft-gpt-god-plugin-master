@@ -143,7 +143,11 @@ public final class GodManager implements Listener {
             Persona p = g.persona();
             boolean awake = g.get(God::isAwake);
             boolean paused = g.get(God::isPaused);
-            list.add(new MenuModel.Deity(g.id, p == null ? null : p.shortName(), p == null ? null : p.epithet,
+            // A god of other worlds is listed too (this is the whole server's list), but says where it rules.
+            boolean elsewhere = !g.host().id.equals(realm.host().id);
+            String rules = elsewhere ? "Rules another world: " + g.world().getName() : null;
+            list.add(new MenuModel.Deity(g.id, p == null ? null : p.shortName(),
+                    rules != null ? rules : p == null ? null : p.epithet,
                     p == null ? g.archetype : p.archetype, g.power().id,
                     net.bigyous.gptgodmc.god.Godslayer.isSlain(g) ? "slain" : g.dormant() ? "off"
                             : !awake ? "asleep" : paused ? "paused" : "awake", g == realm,

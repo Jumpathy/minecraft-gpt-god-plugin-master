@@ -51,7 +51,8 @@ public final class ModGuiRequests {
      * One action of the screen.
      *
      * @param kind the chest menu's click it stands for (the same code carries both out), or null for
-     *             the two edits only the screen and the mind viewer have (a mortal's title and summary)
+     *             what the chest menu lacks: a mortal's title and summary (the mind viewer has them too)
+     *             and reviving a slain god (/god revive)
      * @param args the arguments it needs
      */
     public record Spec(Kind kind, Confirm confirm, String... args) {
@@ -65,6 +66,7 @@ public final class ModGuiRequests {
         m.put("wake", new Spec(Kind.WAKE, Confirm.NONE));
         m.put("pause", new Spec(Kind.TOGGLE_PAUSE, Confirm.NONE));
         m.put("dormant", new Spec(Kind.TOGGLE_DORMANT, Confirm.NONE));
+        m.put("revive", new Spec(null, Confirm.NONE)); // /god revive, with the rift of ReviveRite
         m.put("mood", new Spec(Kind.MOOD, Confirm.NONE, "mood"));
         m.put("calm_heart", new Spec(Kind.CALM_HEART, Confirm.NONE));
         m.put("summon", new Spec(Kind.SUMMON, Confirm.NONE));

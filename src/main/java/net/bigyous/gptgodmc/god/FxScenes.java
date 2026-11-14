@@ -28,7 +28,7 @@ public final class FxScenes {
     public static final int MAX_TICKS = 20 * 60;
 
     public static final List<String> TYPES = List.of("particles", "beam", "shockwave", "dome", "screen", "post", "sky", "sound",
-            "debris", "glyph", "lightning", "rift", "tendrils", "spikes", "halo", "illusion", "camera", "synth", "field", "solid");
+            "debris", "glyph", "lightning", "rift", "tendrils", "spikes", "halo", "illusion", "camera", "synth", "field", "solid", "reskin", "trigger", "seal");
     public static final List<String> WAVES = List.of("sine", "triangle", "saw", "square", "noise", "crackle");
     /** Sounds the client mod already has; usable as a sound layer's key (others hear nothing for these). */
     public static final List<String> MOD_SOUNDS = List.of("gptgodmc:god.arrival", "gptgodmc:god.departure", "gptgodmc:god.trueform",
@@ -72,7 +72,7 @@ public final class FxScenes {
             + "with a rising lowpass is a whoosh, low sines falling in pitch are booms, crackle is embers or static, "
             + "several sines a chord}. debris {count, radius, speed, up, spin: tears blocks loose from the ground as a harmless "
             + "illusion}. glyph {text, color, size, duration: words of light in the air}. "
-            + net.bigyous.gptgodmc.god.fx.FxFormulas.HELP + " Example: "
+            + FxSeal.HELP + " " + net.bigyous.gptgodmc.god.fx.FxFormulas.HELP + " Example: "
             + "[{\"type\":\"particles\",\"shape\":\"sphere\",\"motion\":\"inward\",\"radius\":6,\"count\":400,\"speed\":0.3,"
             + "\"sprite\":\"spark\",\"color\":[\"#FFF6D0\",\"#FFB040\"]},{\"type\":\"shockwave\",\"delay\":20,\"radius\":14,"
             + "\"duration\":20,\"color\":\"#FFD86A\"},{\"type\":\"screen\",\"delay\":20,\"kind\":\"flash\",\"intensity\":0.7,"
@@ -114,10 +114,11 @@ public final class FxScenes {
             String type = word(l, "type", "particles");
             if (!TYPES.contains(type)) throw new Invalid("Layer " + n + ": unknown type '" + type + "'. Types: " + TYPES + ".");
             l.addProperty("type", type);
-            member(l, "shape", SHAPES, n);
+            if (!type.equals("seal")) member(l, "shape", SHAPES, n);
             member(l, "motion", MOTIONS, n);
             member(l, "sprite", SPRITES, n);
             if (net.bigyous.gptgodmc.god.fx.FxFormulas.TYPES.contains(type)) net.bigyous.gptgodmc.god.fx.FxFormulas.check(l, type, n);
+            if (type.equals("seal")) FxSeal.check(l, n);
             if (type.equals("screen")) member(l, "kind", SCREENS, n);
             if (type.equals("post")) member(l, "kind", POSTS, n);
             if (type.equals("illusion")) member(l, "mode", ILLUSIONS, n);
@@ -144,7 +145,7 @@ public final class FxScenes {
                 if (!key.contains(":")) l.addProperty("key", "minecraft:" + key);
             }
             if (type.equals("glyph") && word(l, "text", "").isBlank()) throw new Invalid("Layer " + n + ": a glyph needs text.");
-            for (String c : Set.of("color")) color(l.get(c), n);
+            if (!type.equals("seal")) color(l.get("color"), n);
             out.add(l);
         }
         return out;
@@ -193,7 +194,10 @@ public final class FxScenes {
             case "camera" -> 40;
             case "sky" -> 100;
             case "glyph" -> 60;
+            case "seal" -> FxSeal.DEFAULT_TICKS;
             case "field", "solid" -> net.bigyous.gptgodmc.god.fx.FxFormulas.DEFAULT_TICKS;
+            case "reskin" -> net.bigyous.gptgodmc.god.fx.FxReskin.DEFAULT_TICKS;
+            case "trigger" -> net.bigyous.gptgodmc.god.fx.FxTrigger.DEFAULT_TICKS;
             default -> 1;
         };
     }

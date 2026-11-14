@@ -15,16 +15,19 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.imageio.ImageIO;
 
 import org.junit.jupiter.api.Test;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import net.bigyous.gptgod.client.config.ModConfig;
+import net.bigyous.gptgod.client.fx.FxSolid;
 import net.bigyous.gptgod.client.net.Protocol;
 import net.bigyous.gptgod.client.relic.RelicArt;
 import net.bigyous.gptgod.client.relic.RelicMesh;
@@ -32,6 +35,7 @@ import net.bigyous.gptgod.client.relic.RelicMesh.Face;
 import net.bigyous.gptgod.client.relic.RelicMesh.Side;
 import net.bigyous.gptgod.client.relic.RelicProtocol;
 import net.bigyous.gptgod.client.relic.RelicSamples;
+import net.bigyous.gptgod.client.relic.RelicShape;
 import net.bigyous.gptgod.client.relic.RelicStore;
 
 /** Relic art: decoding the plugin's messages, the store, and the shape a sprite is drawn as. All pure. */
@@ -629,7 +633,8 @@ class RelicTest {
 
     /** The plugin's own painted relics, exactly as its ModRelics.message wrote them (one file each). */
     private static final List<String> PLUGIN_RELICS = List.of("skysplinter", "skysplinter__on", "dawnbreaker", "starfall_greatsword",
-            "sunspire", "codex_of_ash", "crown_of_the_first_king", "heart_of_the_tide", "vial_of_starlight", "lantern_wisp", "the_watcher");
+            "sunspire", "codex_of_ash", "crown_of_the_first_king", "heart_of_the_tide", "vial_of_starlight", "lantern_wisp", "the_watcher",
+            "gravecall");
 
     @Test
     void everyRelicThePluginPaintsIsAccepted() throws Exception {
@@ -689,9 +694,11 @@ class RelicTest {
                 List<Face> faces = RelicMesh.build(a, frame);
                 assertTrue(faces.size() > 2 && faces.size() <= RelicMesh.MAX_FACES, id + " frame " + frame + ": " + faces.size() + " faces");
             }
+            // A true shape exactly when one was sent, and every one sent can be drawn.
+            assertEquals(sent.has("shape"), a.shape() != null, id + ": its true shape");
             assertEquals(List.of(id), store.accept(m).fresh());
         }
-        assertEquals(11, store.size());
+        assertEquals(12, store.size());
         assertTrue(store.get("lantern_wisp").translucent(), "its halo is soft");
         assertTrue(store.get("dawnbreaker").kind().handheld() && store.get("sunspire").kind().handheld());
         assertFalse(store.get("the_watcher").kind().handheld());
@@ -748,7 +755,7 @@ class RelicTest {
         assertEquals("dawnbreaker__on", assertInstanceOf(RelicProtocol.Gone.class, never).id());
         assertTrue(store.accept(never).isEmpty(), "a form the store never had: nothing to do");
         assertTrue(store.accept(decode("{\"t\":\"relic_gone\",\"id\":\"skysplinter__on\"}")).isEmpty(), "nor one already gone");
-        assertEquals(8, store.size());
+        assertEquals(9, store.size());
         assertTrue(new RelicStore().accept(never).isEmpty());
     }
 
@@ -831,6 +838,178 @@ class RelicTest {
         assertNull(art(o).walls());
         assertNull(RelicArt.of("a", 1, "a", RelicArt.Kind.TOME, 8, 8, 1, 1, new int[64], null, null, new int[5], 1).walls());
         assertNull(RelicArt.of("a", 1, "a", RelicArt.Kind.TOME, 8, 8, 1, 1, new int[64], null, null, new int[256 * 2], 2).walls());
+    }
+
+    @Test
+    void gravecallHasItsTrueShape() throws Exception {
+        byte[] bytes = golden("relics/gravecall");
+        JsonObject sent = JsonParser.parseString(new String(bytes, StandardCharsets.UTF_8)).getAsJsonObject();
+        JsonArray parts = sent.getAsJsonArray("shape");
+        RelicArt a = assertInstanceOf(RelicProtocol.Art.class, RelicProtocol.decode(bytes)).art();
+        assertTrue(a.kind().handheld(), "a scythe is held like a staff");
+        assertEquals(24, a.w());
+        RelicShape.Model model = a.shape();
+        assertNotNull(model);
+        float[] shape = model.faces();
+        assertEquals(0, shape.length % FxSolid.FLOATS);
+
+        // Built as the scenes build it: every part's own faces, no more, no fewer, each wearing its part's tile.
+        int faces = 0;
+        for (int i = 0; i < parts.size(); i++) {
+            JsonObject part = parts.get(i).getAsJsonObject();
+            int n = FxSolid.parse(part).faces();
+            for (int f = faces; f < faces + n; f++) assertEquals(part.get("texture").getAsString(), model.textures()[f], "face " + f);
+            faces += n;
+        }
+        assertEquals(faces, model.size());
+        assertTrue(faces > 41 && faces <= RelicShape.MAX_FACES, faces + " faces");
+
+        // Its materials' tiles came with it: 16 texels square, opaque, one for each texture its parts name.
+        Set<String> named = new HashSet<>(List.of(model.textures()));
+        assertEquals(Set.of("m_darkwood", "m_gold", "m_steel"), named);
+        assertEquals(sent.getAsJsonObject("textures").keySet(), model.tiles().keySet());
+        for (Map.Entry<String, int[]> tile : model.tiles().entrySet()) {
+            assertEquals(RelicShape.TILE * RelicShape.TILE, tile.getValue().length, tile.getKey());
+            assertTrue(java.util.Arrays.equals(pixels(sent.getAsJsonObject("textures").get(tile.getKey()).getAsString()), tile.getValue()));
+            for (int argb : tile.getValue()) assertEquals(255, argb >>> 24, tile.getKey() + " is opaque");
+        }
+        int[] wood = model.tiles().get("m_darkwood"), gold = model.tiles().get("m_gold");
+        assertTrue(red(wood) > blue(wood) && red(gold) > 2 * blue(gold) && green(gold) > blue(gold), "wood is brown and gold is gold");
+
+        // In the item's own space: centred on it, the shaft from the bottom left corner, the blade across the top.
+        float[] b = RelicShape.bounds(shape);
+        assertTrue(b[0] > -0.55f && b[0] < -0.4f, "left " + b[0]);
+        assertTrue(b[1] > -0.55f && b[1] < -0.4f, "bottom " + b[1]);
+        assertTrue(b[3] > 0.3f && b[3] < 0.5f, "right " + b[3]);
+        assertTrue(b[4] > 0.4f && b[4] < 0.5f, "top " + b[4]);
+        assertTrue(b[2] > -0.1f && b[5] < 0.1f && b[2] < 0 && b[5] > 0, "thin through: " + b[2] + ".." + b[5]);
+
+        // Uncoloured parts: the tile's own colours, only shaded by the scenes' sun (grey, never brighter than white).
+        for (int k = 0; k < shape.length; k += FxSolid.VERTEX) {
+            assertEquals(1f, shape[k + 6], 1e-4f, "solid");
+            assertEquals(shape[k + 3], shape[k + 4], 1e-4f);
+            assertEquals(shape[k + 3], shape[k + 5], 1e-4f);
+            assertTrue(shape[k + 3] > 0.2f && shape[k + 3] <= 1f);
+        }
+
+        // The tile laid as the plugin lays it: texels the picture's size (24 across, 1.5 to a sixteenth), running
+        // along the shaft. The shaft is a box 1.1 x 18 x 1.1 sixteenths: its four sides span 27 texels up and 1.65
+        // across, its two ends 1.65 each way.
+        double scale = 24 / 16.0 / RelicShape.TILE;
+        int sides = 0, ends = 0;
+        for (int f = 0; f < 6; f++) {
+            assertEquals("m_darkwood", model.textures()[f]);
+            float[] u = new float[4], v = new float[4];
+            for (int k = 0; k < 4; k++) {
+                u[k] = shape[f * FxSolid.FLOATS + k * FxSolid.VERTEX + 7];
+                v[k] = shape[f * FxSolid.FLOATS + k * FxSolid.VERTEX + 8];
+            }
+            double du = span(u), dv = span(v);
+            if (Math.abs(dv - 18 * scale) < 1e-4) {
+                sides++;
+                assertEquals(1.1 * scale, du, 1e-4, "across a side");
+                assertEquals(0, max(v), 1e-4, "v runs up the shaft from its foot");
+                assertEquals(-18 * scale, min(v), 1e-4);
+            } else {
+                ends++;
+                assertEquals(1.1 * scale, du, 1e-4, "an end");
+                assertEquals(1.1 * scale, dv, 1e-4, "an end");
+            }
+            assertEquals(0, min(u), 1e-4, "from the part's own corner");
+        }
+        assertEquals(4, sides);
+        assertEquals(2, ends);
+
+        // Quads keep the picture's own grid: a blade corner at x sixteenths has u = x * 1.5 / 16 tiles.
+        int blade = faces - FxSolid.parse(parts.get(parts.size() - 1).getAsJsonObject()).faces();
+        JsonArray quads = parts.get(parts.size() - 1).getAsJsonObject().getAsJsonArray("quads");
+        JsonArray first = quads.get(0).getAsJsonArray().get(0).getAsJsonArray();
+        assertEquals(first.get(0).getAsDouble() * scale, shape[blade * FxSolid.FLOATS + 7], 1e-3);
+        assertEquals(-first.get(1).getAsDouble() * scale, shape[blade * FxSolid.FLOATS + 8], 1e-3);
+
+        // The same shape again: built the same, faces for faces.
+        assertTrue(java.util.Arrays.equals(shape, RelicShape.build(parts, 24, model.tiles()).faces()));
+
+        // A tile that cannot be read costs only that tile: its parts are drawn in their shading alone.
+        sent.getAsJsonObject("textures").addProperty("m_gold", png(8, 8, new int[64]));
+        sent.getAsJsonObject("textures").addProperty("../bad", sent.getAsJsonObject("textures").get("m_steel").getAsString());
+        RelicShape.Model plain = art(sent).shape();
+        assertEquals(Set.of("m_darkwood", "m_steel"), plain.tiles().keySet());
+        assertEquals(model.size(), plain.size());
+        sent.add("textures", JsonParser.parseString("[1,2]"));
+        assertTrue(art(sent).shape().tiles().isEmpty());
+        sent.remove("textures");
+        assertTrue(art(sent).shape().tiles().isEmpty());
+    }
+
+    private static double span(float[] a) {
+        return max(a) - min(a);
+    }
+
+    private static double max(float[] a) {
+        double m = -Double.MAX_VALUE;
+        for (float x : a) m = Math.max(m, x);
+        return m;
+    }
+
+    private static double min(float[] a) {
+        double m = Double.MAX_VALUE;
+        for (float x : a) m = Math.min(m, x);
+        return m;
+    }
+
+    private static int red(int[] tile) {
+        return channel(tile, 16);
+    }
+
+    private static int green(int[] tile) {
+        return channel(tile, 8);
+    }
+
+    private static int blue(int[] tile) {
+        return channel(tile, 0);
+    }
+
+    private static int channel(int[] tile, int shift) {
+        long sum = 0;
+        for (int argb : tile) sum += (argb >> shift) & 255;
+        return (int) (sum / tile.length);
+    }
+
+    @Test
+    void aBadShapeCostsOnlyTheShape() throws Exception {
+        JsonObject o = message("ok", 1, 16, 16, 2);
+        assertNull(art(o).shape(), "no shape sent: the picture's form");
+        String ball = "{\"form\":\"ball\",\"radius\":2,\"offset\":[8,8,0],\"color\":\"#e8b94a\"}";
+        o.add("shape", JsonParser.parseString("[" + ball + "]"));
+        assertNotNull(art(o).shape(), "a ball in the middle of the square");
+        float[] b = RelicShape.bounds(art(o).shape().faces());
+        assertEquals(0, (b[0] + b[3]) / 2, 0.01f, "centred on the item");
+        assertEquals(4 / 16f, b[3] - b[0], 0.01f, "two sixteenths round");
+
+        String far = "{\"form\":\"ball\",\"radius\":2,\"offset\":[40,8,0],\"color\":\"#e8b94a\"}";
+        String deep = "{\"form\":\"box\",\"size\":[2,2,2],\"offset\":[8,8,30],\"color\":\"#e8b94a\"}";
+        StringBuilder profile = new StringBuilder();
+        for (int i = 0; i < 32; i++) profile.append(i == 0 ? "" : ",").append("[1,").append(i * 0.4).append(']');
+        String heavy = "{\"form\":\"lathe\",\"sides\":32,\"profile\":[" + profile + "],\"offset\":[8,2,0],\"color\":\"#44291c\"}";
+        StringBuilder many = new StringBuilder("[");
+        for (int i = 0; i <= RelicShape.MAX_PARTS; i++) many.append(i == 0 ? "" : ",").append(ball);
+        String[] bad = { "\"a scythe\"", "{}", "12", "null", "[]", many + "]", "[5]", "[[1,2]]", "[{\"form\":\"teapot\"}]",
+                "[{\"form\":\"lathe\",\"profile\":[[1,0]]}]", "[{\"form\":\"quads\",\"quads\":\"lots\"}]", "[" + far + "]",
+                "[" + deep + "]", "[" + ball + "," + far + "]", "[" + heavy + "," + heavy + "]",
+                "[{\"form\":\"ball\",\"radius\":30,\"offset\":[8,8,0]}]" };
+        for (String shape : bad) {
+            o.add("shape", JsonParser.parseString(shape));
+            RelicArt kept = assertInstanceOf(RelicProtocol.Art.class, decode(o), shape).art();
+            assertNull(kept.shape(), shape.length() > 60 ? shape.substring(0, 60) : shape);
+            assertEquals(STEEL, kept.pixel(1, 2, 2), "the picture stays");
+            assertTrue(RelicMesh.build(kept, 0).size() > 2, "and is drawn from its picture");
+        }
+        // One heavy part alone is fine: the limit is on all parts together.
+        o.add("shape", JsonParser.parseString("[" + heavy + "]"));
+        assertNotNull(art(o).shape());
+        assertTrue(art(o).shape().size() <= RelicShape.MAX_FACES);
+        assertNull(RelicShape.build(null, 16, null));
     }
 
     /** A message's base64 PNG read on its own, as ARGB row by row. */

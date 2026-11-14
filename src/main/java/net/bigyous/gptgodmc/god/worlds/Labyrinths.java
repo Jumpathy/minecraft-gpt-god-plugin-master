@@ -125,6 +125,23 @@ public final class Labyrinths implements Listener {
         return HELD.containsKey(id);
     }
 
+    /**
+     * The perception's section on the mortals this god holds in the labyrinth; empty when it holds none. The minutes
+     * left are told here and not in the labyrinth power's description: a description that changes every minute
+     * rewrites the whole cached prompt on every thought.
+     */
+    public static String perceive(String realmId) {
+        StringBuilder sb = new StringBuilder();
+        long now = System.currentTimeMillis();
+        for (Sentence s : HELD.values()) {
+            if (s.realm != null && !s.realm.equals(realmId)) continue;
+            sb.append("- ").append(s.player).append(": ").append(Math.max(1, (s.until - now + 59_999) / 60_000))
+                    .append(" min left\n");
+        }
+        if (sb.isEmpty()) return "";
+        return "## Your labyrinth (mortals you hold in it; labyrinth with action release frees one early)\n" + sb + "\n";
+    }
+
     /** "Steve (4 min left)", for the god. */
     public static String held() {
         List<String> out = new ArrayList<>();

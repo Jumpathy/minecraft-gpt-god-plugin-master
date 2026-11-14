@@ -20,7 +20,7 @@ final class MusicTools {
                 GodTool.sync("compose_song",
                         "Compose a short ORIGINAL song played with note-block sounds: a hymn for a blessing, a dirge "
                                 + "for the dead, a mocking jingle, or a tune in the spirit of something a mortal "
-                                + "mentioned (search the web first if you do not know it). Never transcribe an "
+                                + "mentioned (search the web first with web_search or search_web if you do not know it, then turn what you learn into notes). Never transcribe an "
                                 + "existing copyrighted song note for note; evoke its style instead. Optionally give "
                                 + "mortals a music disc of it (they right-click to play it, or use a jukebox) and/or "
                                 + "play it now at a target. Note blocks span F#3 to F#5.",

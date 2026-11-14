@@ -117,8 +117,8 @@ public final class DemoScenes {
         // The three below are written with formulas (field) and designed geometry (solid): shapes no list offers.
         ALL.put("galaxy", """
                 {"layers":[
-                 {"type":"field","count":1300,"duration":160,"sprite":"star","x":"cos(mod(i,3)/3*tau + (1+9*r)*0.55 + (rand(2)-0.5)*0.5 - t*0.02)*(1+9*r)","y":"6 + noise(i*0.37, t*0.02)*0.5","z":"sin(mod(i,3)/3*tau + (1+9*r)*0.55 + (rand(2)-0.5)*0.5 - t*0.02)*(1+9*r)","size":"0.1 + 0.22*rand(1)*(1-r)","shade":"r","color":["#FFFFFF","#FFE9A8","#C77DFF","#3A1A8A"]},
-                 {"type":"field","count":220,"duration":160,"x":"sin(acos(1-2*r))*cos(rand(1)*tau)*(0.9+0.25*sin(t*0.15))","y":"6 + (1-2*r)*(0.9+0.25*sin(t*0.15))","z":"sin(acos(1-2*r))*sin(rand(1)*tau)*(0.9+0.25*sin(t*0.15))","size":0.35,"alpha":0.8,"shade":"rand(2)","color":["#FFFFFF","#FFD86A"]},
+                 {"type":"field","count":1300,"duration":160,"sprite":"star","x":"cos(mod(i,3)/3*tau + (1+9*r)*0.55 + (rand(2)-0.5)*0.5 - t*0.02)*(1+9*r)","y":"6 + noise(i*0.37, t*0.02)*0.5","z":"sin(mod(i,3)/3*tau + (1+9*r)*0.55 + (rand(2)-0.5)*0.5 - t*0.02)*(1+9*r)","size":"0.04 + 0.2*rand(1)^3*(1-r)","alpha":"0.35+0.65*sin(t*0.13+rand(3)*tau)^2","shade":"r","color":["#FFFFFF","#FFE9A8","#C77DFF","#3A1A8A"]},
+                 {"type":"field","count":220,"duration":160,"x":"sin(acos(1-2*r))*cos(rand(1)*tau)*(0.9+0.25*sin(t*0.15))","y":"6 + (1-2*r)*(0.9+0.25*sin(t*0.15))","z":"sin(acos(1-2*r))*sin(rand(1)*tau)*(0.9+0.25*sin(t*0.15))","size":"0.08+0.2*rand(3)","alpha":"0.4+0.5*sin(t*0.2+i)^2","shade":"rand(2)","color":["#FFFFFF","#FFD86A"]},
                  {"type":"post","kind":"bloom","intensity":0.7,"duration":160},
                  {"type":"sky","color":"#0A0618","strength":0.8,"duration":165}
                 ]}""");
@@ -137,7 +137,27 @@ public final class DemoScenes {
                  {"type":"solid","form":"lathe","profile":[[1.6,0],[1.3,0.4],[0.9,0.6],[0.9,5],[1.4,5.4],[1.4,5.8]],"sides":16,"texture":"demo.veins","tile":[6,4],"duration":170},
                  {"type":"solid","form":"box","size":[2.2,2.2,2.2],"texture":"demo.veins","y":"7.7+sin(t*0.07)*0.3","yaw":"t*2","pitch":"t*1.3","duration":170},
                  {"type":"solid","form":"quads","light":true,"quads":[[[-2.5,1,3],[-2.5,6,3],[2.5,6,3],[2.5,1,3]],[[-2.5,1,-3],[-2.5,6,-3],[2.5,6,-3],[2.5,1,-3]]],"texture":"demo.sigil","alpha":"0.6+0.4*sin(t*0.15)","duration":170},
-                 {"type":"field","count":60,"duration":170,"texture":"demo.sigil","x":"cos(i/n*tau+t*0.02)*5","z":"sin(i/n*tau+t*0.02)*5","y":"1+3*rand(1)+sin(t*0.05+i)","size":0.5}
+                 {"type":"field","count":60,"duration":170,"texture":"demo.sigil","x":"cos(i/n*tau+t*0.02)*5","z":"sin(i/n*tau+t*0.02)*5","y":"1+3*rand(1)+sin(t*0.05+i)","size":"0.35+0.3*rand(2)","alpha":"0.5+0.5*sin(t*0.08+i*1.3)^2"}
+                ]}""");
+        // Blocks that look like something else for a while: a wilting that creeps outward over some of the ground,
+        // and a painted skin over the rest near the middle.
+        ALL.put("blight", """
+                {"layers":[
+                 {"type":"reskin","color":"#3A2A12","strength":0.75,"radius":"min(9,1+t*0.12)","density":0.6,"height":3,"duration":170},
+                 {"type":"reskin","texture":"demo.veins","radius":"min(3.5,t*0.06)","height":3,"duration":170},
+                 {"type":"field","count":120,"duration":170,"x":"cos(rand(1)*tau)*8*sqrt(r)","z":"sin(rand(1)*tau)*8*sqrt(r)","y":"mod(rand(2)*3+t*0.02,3)","size":0.12,"alpha":"sin(mod(rand(2)*3+t*0.02,3)/3*pi)*0.8","color":["#5A3A1A","#C8A050"],"shade":"rand(3)","glow":0}
+                ]}""");
+        // What only the watcher's own game can do: motes that keep their motion, fall, bounce off the ground and
+        // shy away from whoever walks among them; an eye that swells as you near it; and a trigger that answers
+        // the moment you look straight at it.
+        ALL.put("wake", """
+                {"layers":[
+                 {"type":"field","count":500,"duration":300,"x":"cos(rand(1)*tau)*7*sqrt(rand(k+2))","y":"3+3*rand(k+3)","z":"sin(rand(1)*tau)*7*sqrt(rand(k+2))","vy":"0.02+0.05*rand(6)","ax":"(px-ex)*0.03/max(0.4,(px-ex)^2+(pz-ez)^2)","ay":-0.004,"az":"(pz-ez)*0.03/max(0.4,(px-ex)^2+(pz-ez)^2)","drag":0.03,"bounce":0.6,"life":"80+80*r","size":"0.06+0.1*rand(4)","alpha":"sin(a*pi)","shade":"rand(5)","color":["#8FD0FF","#FFFFFF","#FFE9A8"]},
+                 {"type":"solid","form":"ball","radius":0.6,"sides":14,"light":true,"y":4,"scale":"1+1.2*smooth(14,3,d)+0.25*look","duration":300,"color":["#3A1A8A","#FFE9A8"]},
+                 {"type":"trigger","offset":[0,4,0],"when":"(look > 0.985) * (d < 20)","hold":10,"again":100,"duration":300,"tell":"looked into the eye","then":[
+                   {"type":"shockwave","offset":[0,4,0],"radius":7,"duration":18,"color":"#FFE9A8"},
+                   {"type":"screen","kind":"flash","intensity":0.35,"duration":12,"color":"#FFE9A8"},
+                   {"type":"sound","key":"minecraft:block.bell.resonate","pitch":0.7,"volume":2}]}
                 ]}""");
         ALL.put("orrery", """
                 {"layers":[

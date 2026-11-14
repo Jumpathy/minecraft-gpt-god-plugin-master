@@ -318,7 +318,7 @@ class ModGuiTest {
         // The two exceptions are edits the mind viewer has too; everything else is carried out by the
         // chest menu's own click, so the screen cannot do anything the menu cannot.
         for (Map.Entry<String, Spec> e : ModGuiRequests.ACTIONS.entrySet()) {
-            if (e.getKey().equals("title_set") || e.getKey().equals("summary_set")) continue;
+            if (List.of("title_set", "summary_set", "revive").contains(e.getKey())) continue;
             assertNotNull(e.getValue().kind(), e.getKey());
         }
     }

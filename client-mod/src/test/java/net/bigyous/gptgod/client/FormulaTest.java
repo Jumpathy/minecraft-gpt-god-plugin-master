@@ -106,4 +106,39 @@ class FormulaTest {
         assertEquals(2f, maxU);
         assertEquals(3f, maxV);
     }
+
+    /** A reskin decodes with its limits, and one that would change nothing is skipped. */
+    @Test
+    void reskinsDecode() {
+        Scene s = scene("{\"layers\":[{\"type\":\"reskin\",\"blocks\":[\"grass_block\"],\"color\":\"#3A2A12\",\"radius\":\"min(5,t*0.1)\","
+                + "\"density\":0.4,\"duration\":300},{\"type\":\"reskin\"},{\"type\":\"reskin\",\"as\":\"dirt\",\"radius\":9999,\"limit\":99999999}]}");
+        assertEquals(2, s.layers().size());
+        assertEquals(300, s.life());
+        net.bigyous.gptgod.client.fx.FxReskin r = assertInstanceOf(Scene.Reskin.class, s.layers().get(0)).spec();
+        assertEquals(2, r.reach(20, new double[FxExpr.VARS]), 1e-9);
+        assertTrue(r.changes("grass_block") && !r.changes("stone"));
+        assertTrue(r.inside(2, 0, 1, 2.5) && !r.inside(2, 0, 2, 2.5));
+        net.bigyous.gptgod.client.fx.FxReskin wide = assertInstanceOf(Scene.Reskin.class, s.layers().get(1)).spec();
+        assertEquals(net.bigyous.gptgod.client.fx.FxReskin.MAX_RADIUS, wide.reach(1, new double[FxExpr.VARS]));
+        assertEquals(net.bigyous.gptgod.client.fx.FxReskin.MAX_BLOCKS, wide.limit);
+    }
+
+    /** A trigger decodes with the scene it plays, an unreadable one is skipped, and the demo that uses them reads. */
+    @Test
+    void triggersAndFreeParticlesDecode() {
+        Scene s = scene("{\"layers\":[{\"type\":\"trigger\",\"when\":\"(look > 0.9) * (d < 20)\",\"hold\":5,\"key\":\"k1\",\"tell\":\"looked\","
+                + "\"then\":[{\"type\":\"sound\",\"key\":\"minecraft:block.bell.use\"}]},{\"type\":\"trigger\",\"when\":\"nope(\"},"
+                + "{\"type\":\"field\",\"x\":\"u\",\"ay\":-0.02,\"bounce\":0.5}]}");
+        assertEquals(2, s.layers().size());
+        net.bigyous.gptgod.client.fx.FxTrigger g = assertInstanceOf(Scene.Trigger.class, s.layers().get(0)).spec();
+        assertEquals("k1", g.key);
+        assertEquals(5, g.hold);
+        com.google.gson.JsonObject then = new com.google.gson.JsonObject();
+        then.add("layers", g.then);
+        assertEquals(1, Scene.decode(then).layers().size());
+        assertTrue(assertInstanceOf(Scene.Field.class, s.layers().get(1)).spec().free);
+        Scene wake = scene(net.bigyous.gptgod.client.fx.DemoScenes.ALL.get("wake"));
+        assertTrue(wake.layers().stream().anyMatch(l -> l instanceof Scene.Trigger));
+        assertEquals(3, wake.layers().size());
+    }
 }

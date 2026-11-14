@@ -77,6 +77,13 @@ final class WorldEditTools {
                 return ToolResult.ok("Your latest WorldEdit act is undone.");
             }
             int[] from = corner(a, "from"), to = corner(a, "to"), at = null;
+            // Corners may name one of its worlds ("god_ashen_reach 0 64 0"); both must be in the same one.
+            if (a.has("from")) {
+                world = Targets.parseCoords(a.str("from")).getWorld();
+                if (a.has("to") && !world.equals(Targets.parseCoords(a.str("to")).getWorld())) {
+                    throw new ToolException("'from' and 'to' must be in the same world.");
+                }
+            }
             if (a.has("at")) {
                 Location l = Targets.location(a.str("at"));
                 world = l.getWorld();

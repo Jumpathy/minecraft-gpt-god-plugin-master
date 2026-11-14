@@ -69,7 +69,9 @@ public final class RelicTools {
                         .strings("powers", "Optional: what it is imbued with, one power per line, written as "
                                 + "imbue_relic describes. Powers that say \"toggle\" or \"when on\" make it a relic of "
                                 + "two forms.", false, 12)
-                        .str("give_to", "Optional: a mortal to hand it to as soon as it is made.", false),
+                        .str("give_to", "Optional: a mortal to hand it to as soon as it is made.", false)
+                        .bool("keep", "Keep it in your own armory, to draw into your body's hand and strike with "
+                                + "(see armory). Default false.", false),
                 RelicTools::forge));
         tools.add(GodTool.sync("give_relic", () -> "Hand a mortal a relic you have forged (see forge_relic). " + known(),
                 Schema.object()
@@ -192,10 +194,16 @@ public final class RelicTools {
             }
         });
         Atelier.Made made;
+        // A bar across the top of every mortal's screen in its world, so the long wait reads as work being done.
+        net.bigyous.gptgodmc.god.art.ForgeBar bar = net.bigyous.gptgodmc.god.art.ForgeBar.open(realm, smith, name);
+        Atelier.WATCH.set(bar::step);
         try {
             made = Atelier.artist.make(new Atelier.Brief(name, kind, look, patron(realm), special, twoForms));
         } catch (Atelier.Failed e) {
             throw new ToolException(e.getMessage());
+        } finally {
+            Atelier.WATCH.remove();
+            bar.close();
         }
         Sprite awake = made.sprite().alt();
         String imbued = "";
@@ -210,6 +218,10 @@ public final class RelicTools {
         }
         Relic r = Relics.add(realm.id, realm.displayName(), name, kind, look, made.sprite(), lines, now);
         RelicsModule.changed();
+        if (a.bool("keep", false)) {
+            String refusedKeep = net.bigyous.gptgodmc.god.art.Armory.keep(realm.id, r);
+            imbued += refusedKeep == null ? " It is in your armory: draw it with armory draw." : " " + refusedKeep;
+        }
         String given = "";
         if (a.has("give_to")) {
             String who = a.str("give_to");
@@ -224,6 +236,15 @@ public final class RelicTools {
         if (awake != null) {
             picture = SpriteSheet.stacked(picture, SpriteSheet.enlarged(SpritePainter.paint(awake, Atelier.halo(kind)), 0,
                     scale, 0x17111F));
+        }
+        if (made.sprite().shape() != null) {
+            try {
+                picture = SpriteSheet.stacked(picture, net.bigyous.gptgodmc.god.art.RelicShape.picture(
+                        net.bigyous.gptgodmc.god.art.RelicShape.model(net.bigyous.gptgodmc.god.art.RelicShape.normalized(
+                                made.sprite().shape()), made.art().w()), 128, 0x17111F));
+            } catch (net.bigyous.gptgodmc.god.art.RelicShape.Flaw e) {
+                // the artist's attempt was checked; a shape that no longer builds is simply not shown
+            }
         }
         return ToolResult.image("Forged \"" + r.name() + "\" (" + r.kind() + ", id " + r.id() + ") in " + made.attempts()
                 + " attempt" + (made.attempts() == 1 ? "" : "s") + ". This is how it looks"

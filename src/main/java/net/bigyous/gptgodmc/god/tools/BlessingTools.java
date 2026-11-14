@@ -60,7 +60,13 @@ final class BlessingTools {
                         Schema.object().str("player", "The mortal's name, or 'all'.", true),
                         a -> {
                             List<String> healed = new ArrayList<>();
+                            List<String> dead = new ArrayList<>();
                             for (Player p : Targets.players(a.str("player"))) {
+                                // Health given to someone on the death screen locks their Respawn button.
+                                if (p.isDead()) {
+                                    dead.add(p.getName());
+                                    continue;
+                                }
                                 p.setHealth(p.getAttribute(Attribute.MAX_HEALTH).getValue());
                                 p.setFoodLevel(20);
                                 p.setSaturation(20f);
@@ -75,7 +81,10 @@ final class BlessingTools {
                                 p.playSound(p.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 0.8f, 1.4f);
                                 healed.add(p.getName());
                             }
-                            return ToolResult.ok("Healed: " + String.join(", ", healed));
+                            String late = dead.isEmpty() ? "" : (healed.isEmpty() ? "" : " ") + String.join(", ", dead)
+                                    + (dead.size() == 1 ? " is" : " are") + " dead and cannot be healed (use revive).";
+                            if (healed.isEmpty() && !dead.isEmpty()) return ToolResult.error(late);
+                            return ToolResult.ok("Healed: " + String.join(", ", healed) + "." + late);
                         }),
                 GodTool.sync("apply_effect",
                         "Bless or curse with a potion effect: e.g. speed, strength, regeneration, resistance, "
@@ -101,12 +110,24 @@ final class BlessingTools {
                             return ToolResult.ok("%s is now level %d.", p.getName(), p.getLevel());
                         }),
                 GodTool.sync("revive",
-                        "Bring a dead mortal (spectating) back to life at their bed or the world spawn.",
+                        "Bring a dead mortal back to life at their bed or the world spawn: one still on the death "
+                                + "screen rises at once, one left spectating becomes mortal again.",
                         Schema.object().str("player", "The mortal's name.", true),
                         a -> {
                             Player p = Targets.player(a.str("player"));
+                            if (p.isDead()) {
+                                // On the death screen: the game's own respawn is the only safe way back.
+                                p.spigot().respawn();
+                                Location at = p.getLocation();
+                                p.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, at.clone().add(0, 1, 0), 60, 0.5, 1,
+                                        0.5);
+                                p.playSound(at, Sound.ITEM_TOTEM_USE, 0.8f, 1f);
+                                return ToolResult.ok("%s lives again at %s.", p.getName(), Targets.describe(at));
+                            }
                             if (p.getGameMode() != GameMode.SPECTATOR) {
-                                return ToolResult.error(p.getName() + " is not dead.");
+                                return ToolResult.error(p.getName() + " is not dead: they already rose again by "
+                                        + "themself (health " + Math.round(p.getHealth()) + "/20), so this was not "
+                                        + "your doing; do not tell them you brought them back.");
                             }
                             Location bed = p.getRespawnLocation();
                             Location spawn = bed != null && Realm.current().governs(bed.getWorld()) ? bed
@@ -302,9 +323,20 @@ final class BlessingTools {
         }
         Material m = material(id, true);
         int want = a.integer("count", 1, 1, 2304);
-        Map<Integer, ItemStack> missing = p.getInventory().removeItem(new ItemStack(m, want));
-        int notFound = missing.values().stream().mapToInt(ItemStack::getAmount).sum();
-        int taken = want - notFound;
+        // By kind, not by exact stack: removeItem(new ItemStack(m)) only matches pristine items, so a sword that has
+        // been swung once, or anything enchanted or renamed, was "not there".
+        ItemStack[] slots = p.getInventory().getContents();
+        int[] counts = new int[slots.length];
+        for (int i = 0; i < slots.length; i++) counts[i] = slots[i] != null && slots[i].getType() == m ? slots[i].getAmount() : 0;
+        int[] from = takeFrom(counts, want, p.getInventory().getHeldItemSlot());
+        int taken = 0;
+        for (int i = 0; i < slots.length; i++) {
+            if (from[i] == 0) continue;
+            taken += from[i];
+            if (from[i] >= slots[i].getAmount()) p.getInventory().setItem(i, null);
+            else slots[i].setAmount(slots[i].getAmount() - from[i]);
+        }
+        int notFound = want - taken;
         if (taken == 0) {
             return ToolResult.error(p.getName() + " has no " + m.getKey().getKey() + ".");
         }
@@ -312,6 +344,25 @@ final class BlessingTools {
         p.getWorld().spawnParticle(Particle.SMOKE, p.getLocation().add(0, 1, 0), 15, 0.3, 0.5, 0.3, 0.01);
         return ToolResult.ok("Took %d %s from %s%s.", taken, m.getKey().getKey(), p.getName(),
                 notFound > 0 ? " (they only had that many)" : "");
+    }
+
+    /**
+     * How many to take from each slot, given how many of the wanted kind each slot holds: the slot in hand first
+     * (taking what a mortal wields is the point of a confiscation), then the rest in order, {@code want} in all.
+     */
+    static int[] takeFrom(int[] counts, int want, int held) {
+        int[] from = new int[counts.length];
+        int left = Math.max(0, want);
+        if (held >= 0 && held < counts.length) {
+            from[held] = Math.min(counts[held], left);
+            left -= from[held];
+        }
+        for (int i = 0; i < counts.length && left > 0; i++) {
+            if (i == held) continue;
+            from[i] = Math.min(counts[i], left);
+            left -= from[i];
+        }
+        return from;
     }
 
     static Location safeAbove(Location loc) {

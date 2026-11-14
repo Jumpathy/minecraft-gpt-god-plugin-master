@@ -18,6 +18,7 @@ public final class FieldParticle extends SingleQuadParticle {
     // Scratch for the formulas: particles are only ticked on the client thread, one at a time.
     private static final double[] VARS = new double[FxExpr.VARS];
     private static final double[] OUT = new double[FxField.OUT];
+    private static final Viewer.Blocks BLOCKS = new Viewer.Blocks();
 
     private final FxField field;
     private final Anchor anchor;
@@ -26,6 +27,11 @@ public final class FieldParticle extends SingleQuadParticle {
     private final float scale;
     private final float u0, v0;
     private final boolean glows, ray;
+    /** Its own small life, whatever the formulas say: a shimmer on its own clock and a slow turn. */
+    private final float phase, rate, spin;
+    /** What a particle that keeps its motion remembers (FxField.STATE numbers), or null. */
+    private final double[] state;
+    private final ClientLevel world;
 
     /**
      * @param index which particle of count this is
@@ -53,8 +59,16 @@ public final class FieldParticle extends SingleQuadParticle {
         this.v0 = (i / 4) / 2f;
         this.ray = sprite == Scene.Sprite.RAY;
         this.glows = field.glow >= 0.5f;
-        if (sprite != Scene.Sprite.RAY && sprite != Scene.Sprite.MOTE) {
-            this.roll = this.oRoll = random.nextFloat() * 6.2832f;
+        boolean turns = sprite != Scene.Sprite.RAY && sprite != Scene.Sprite.MOTE && field.texture.isEmpty();
+        if (turns) this.roll = this.oRoll = random.nextFloat() * 6.2832f;
+        this.phase = random.nextFloat() * 6.2832f;
+        this.rate = 0.12f + random.nextFloat() * 0.3f;
+        this.spin = turns ? (random.nextFloat() - 0.5f) * 0.06f : 0;
+        this.world = level;
+        this.state = field.free ? new double[FxField.STATE] : null;
+        if (state != null) {
+            viewer();
+            field.birth(index, count, born, seed, VARS, state);
         }
         place(born);
         xo = x;
@@ -71,11 +85,30 @@ public final class FieldParticle extends SingleQuadParticle {
             remove();
             return;
         }
+        oRoll = roll;
+        roll += spin;
+        if (state != null) {
+            viewer();
+            BLOCKS.level = field.bounce >= 0 ? world : null;
+            BLOCKS.x = anchor.x + field.offset[0] * scale;
+            BLOCKS.y = anchor.y + field.offset[1] * scale;
+            BLOCKS.z = anchor.z + field.offset[2] * scale;
+            BLOCKS.scale = scale;
+            field.step(index, count, born + age, seed, VARS, state, BLOCKS);
+            BLOCKS.level = null;
+        }
         place(born + age);
     }
 
+    /** What the formulas know of the player watching, as seen from this layer's place. */
+    private void viewer() {
+        Viewer.fill(VARS, anchor.x + field.offset[0] * scale, anchor.y + field.offset[1] * scale, anchor.z + field.offset[2] * scale, scale);
+    }
+
     private void place(int t) {
-        field.at(index, count, t, seed, VARS, OUT);
+        viewer();
+        if (state != null) field.look(index, count, t, seed, VARS, state, OUT);
+        else field.at(index, count, t, seed, VARS, OUT);
         x = anchor.x + (field.offset[0] + OUT[FxField.X]) * scale;
         y = anchor.y + (field.offset[1] + OUT[FxField.Y]) * scale;
         z = anchor.z + (field.offset[2] + OUT[FxField.Z]) * scale;
@@ -84,8 +117,12 @@ public final class FieldParticle extends SingleQuadParticle {
         gCol = ((rgb >> 8) & 255) / 255f;
         bCol = (rgb & 255) / 255f;
         // Additive light piles up fast where particles overlap, so each glowing one is kept faint (as GlowParticle does).
-        alpha = (float) OUT[FxField.ALPHA] * (glows ? 0.3f + 0.25f * (1 - field.glow) : 1f);
-        quadSize = Math.max(0.005f, (float) OUT[FxField.SIZE] * scale);
+        // No two particles of a field are quite alike or quite still: each shimmers a little on its own clock,
+        // or a thousand of them read as a thousand copies of one picture.
+        float shimmer = (float) Math.sin(t * rate + phase);
+        alpha = (float) OUT[FxField.ALPHA] * (glows ? 0.3f + 0.25f * (1 - field.glow) : 1f) * (0.84f + 0.16f * shimmer);
+        // size is a particle's width in blocks; the game's quad reaches that far to each side, hence the half.
+        quadSize = Math.max(0.004f, (float) OUT[FxField.SIZE] * scale * 0.5f * (1 + 0.07f * (float) Math.sin(t * rate * 0.7f + phase * 1.7f)));
         painted = FxTextures.get(field.texture) != null;
     }
 

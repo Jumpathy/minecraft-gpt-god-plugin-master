@@ -180,6 +180,30 @@ public final class Wards {
     }
 
     /** Raises a ward (replacing this god's ward of the same name). */
+    /**
+     * What a mortal reads on stepping into a ward: whose it is, what it does and for how long, then the
+     * god's own words. Without this a bare greeting in chat reads like the server glitching.
+     */
+    public static String notice(String god, String name, List<String> effects, String greeting, int minutes) {
+        StringBuilder sb = new StringBuilder("\u2726 You enter ").append(god == null ? "a god" : god).append("'s ward \"")
+                .append(name.replace('_', ' ')).append("\"");
+        if (effects != null && !effects.isEmpty()) {
+            sb.append(" (").append(String.join(", ", effects).replace('_', ' ')).append(")");
+        }
+        sb.append(", raised for ").append(minutes).append(" min.");
+        if (greeting != null && !greeting.isBlank()) sb.append(" \"").append(greeting.trim()).append("\"");
+        return sb.toString();
+    }
+
+    private static String godName(String realm) {
+        try {
+            net.bigyous.gptgodmc.god.Realm r = net.bigyous.gptgodmc.god.Realm.byId(realm);
+            return r == null ? null : r.displayName();
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
     public static synchronized Ward raise(String realm, String name, Location centre, int radius, List<String> effects,
             String greeting, int minutes) throws Refusal {
         if (!enabled()) throw new Refusal("The keepers of this server have turned wards off.");
@@ -210,7 +234,7 @@ public final class Wards {
         w.radius = radius;
         w.effects = checked;
         w.until = System.currentTimeMillis() + minutes * 60_000L;
-        b.raise(centre.getWorld(), w, greeting == null || greeting.isBlank() ? null : greeting.trim());
+        b.raise(centre.getWorld(), w, notice(godName(realm), w.name, checked, greeting, minutes));
         all().removeIf(x -> x.id.equals(id));
         all().add(w);
         save();

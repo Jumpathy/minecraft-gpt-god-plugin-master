@@ -23,8 +23,19 @@ final class MapTools {
                         + "nearest thing they built), a structure name, or the id or name of one of your works.",
                         true),
                 a -> {
-                    Vision.Result r = net.bigyous.gptgodmc.god.vision.BuildView.render(a.str("target"));
-                    return ToolResult.image(r.caption(), r.png());
+                    try {
+                        Vision.Result r = net.bigyous.gptgodmc.god.vision.BuildView.render(a.str("target"));
+                        return ToolResult.image(r.caption(), r.png());
+                    } catch (net.bigyous.gptgodmc.god.vision.BuildView.NoRecord none) {
+                        // Nothing on record is not "nothing there": show what the mortal is looking at instead.
+                        Vision.Result r = Vision.render(new Vision.Request(Vision.View.EYES, none.player, false, 0, null));
+                        return ToolResult.image("You have no record of " + none.player + " placing blocks lately and "
+                                + "no structure is theirs here, which is no proof that nothing stands there (blocks set "
+                                + "by commands, by other hands or long ago leave no record). So this is what "
+                                + none.player + " is looking at right now. Answer from what the picture and its list "
+                                + "of blocks show; look again (view orbit at a place) if it is not in frame, and do "
+                                + "not say nothing is there unless you saw that. " + r.caption(), r.png());
+                    }
                 }));
     }
 

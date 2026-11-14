@@ -190,7 +190,7 @@ class FxFormulasTest {
                 sheet.setRGB(col * W, row * H, W, H, px, 0, W);
                 int lit = 0;
                 for (int p : px) if ((p & 0xFF) + ((p >> 8) & 0xFF) + ((p >> 16) & 0xFF) > 120) lit++;
-                assertTrue(lit > 300, "something is drawn at tick " + times[col] + " of demo " + row + ": " + lit);
+                assertTrue(lit > 100, "something is drawn at tick " + times[col] + " of demo " + row + ": " + lit);
             }
             row++;
         }

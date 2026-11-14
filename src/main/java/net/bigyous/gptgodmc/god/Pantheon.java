@@ -36,6 +36,8 @@ public final class Pantheon {
         public String name;
         public long createdAt;
         public String createdBy;
+        /** For a god created to rule a world no god ruled: that world's name(s). Its domain is its own id. */
+        public List<String> worlds;
     }
 
     private static final class Book {
@@ -166,7 +168,7 @@ public final class Pantheon {
 
     /** Acts other gods never see: looking, remembering, the god's own bookkeeping. */
     static final Set<String> PRIVATE = Set.of("observe_player", "survey_area", "look", "remember", "judge", "recall",
-            "search_annals", "rename_self", "command_done", "blueprints", "compose_song", "commune", "map", "see_build");
+            "search_annals", "rename_self", "command_done", "blueprints", "compose_song", "commune", "map", "see_build", "locate");
 
     /** Speech tools, seen as words in the other gods' conversation. */
     public static final Set<String> SPOKEN = Set.of("announce", "vessel_say");

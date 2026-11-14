@@ -184,6 +184,10 @@ public final class Senses implements Listener {
             return "looks like a redstone contraption";
         }
         if (all.contains("tnt")) return "they are placing TNT";
+        if (Writings.mayBeWriting(w, l, h, blocks)) {
+            return "a sparse flat pattern: it may be letters or a picture made of blocks (see_build with their name "
+                    + "shows it)";
+        }
         int big = Math.max(w, l), small = Math.min(w, l);
         if (h >= 6 && h >= big * 2) return "looks like a tower or pillar";
         if (h <= 2 && small >= 3) return blocks >= w * l * 0.6 ? "looks like a floor or platform" : "looks like a layout or foundation";
@@ -209,6 +213,8 @@ public final class Senses implements Listener {
     private static final Map<UUID, Deque<Change>> WORK = new ConcurrentHashMap<>();
     private static final Map<UUID, Long> LAST_ALERT = new ConcurrentHashMap<>();
     private static final long ALERT_GAP_MS = 60_000;
+    /** The shape of the block writing each mortal was last noticed for, so each piece is noticed once. */
+    private static final Map<UUID, Long> LAST_WRITING = new ConcurrentHashMap<>();
 
     private static void note(Player p, Block b, Material type, boolean placed) {
         Deque<Change> d = WORK.computeIfAbsent(p.getUniqueId(), k -> new ArrayDeque<>());
@@ -314,6 +320,22 @@ public final class Senses implements Listener {
 
     /** Every two seconds: a close danger a mortal has not seen wakes the gods of that world (at most once a minute each). */
     public static void start() {
+        // Every four seconds: a mortal who has finished laying blocks out like letters wakes the gods of that
+        // world once per piece of writing, and the god is shown it (vision.auto-read-writing).
+        Bukkit.getScheduler().runTaskTimer(GPTGOD.get(), () -> {
+            if (!enabled() || !GPTGOD.get().getConfig().getBoolean("vision.auto-read-writing", true)) return;
+            long now = System.currentTimeMillis();
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                Writings.Spotted s = Writings.spot(recentWork(p.getUniqueId()), now);
+                if (s == null || Long.valueOf(s.signature()).equals(LAST_WRITING.put(p.getUniqueId(), s.signature()))) {
+                    continue;
+                }
+                String name = p.getName();
+                EventLogger.log(p.getWorld(), () -> new GenericEventLoggable(name + " has " + Writings.MARK + " ("
+                        + s.blocks() + " blocks near " + s.x() + ", " + s.y() + ", " + s.z() + ").",
+                        name + " wrote something in blocks"));
+            }
+        }, 120, 80);
         Bukkit.getScheduler().runTaskTimer(GPTGOD.get(), () -> {
             if (!alerts()) return;
             long now = System.currentTimeMillis();

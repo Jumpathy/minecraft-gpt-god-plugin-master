@@ -30,8 +30,8 @@ final class DimensionTools {
                                 + "are free, back exactly where they stood, when they find the gold at its heart or when their "
                                 + "time runs out; dying there only returns them to its start. You are told how it ends. "
                                 + "action release frees one early (your mercy). Sizes: small (a minute or two), medium, large, "
-                                + "vast (long and cruel). At most " + Labyrinths.maxMinutes() + " minutes. In it now: "
-                                + Labyrinths.held() + ".",
+                                + "vast (long and cruel). At most " + Labyrinths.maxMinutes() + " minutes. Whoever you hold in "
+                                + "it is listed in your perception.",
                         Schema.object()
                                 .choice("action", "cast (default) or release.", false, List.of("cast", "release"))
                                 .str("player", "The mortal.", true)
@@ -45,8 +45,10 @@ final class DimensionTools {
                                 + "but a small platform, for you to fill), flat, normal (new lands), nether or end. create makes "
                                 + "it (or finds the one of that name), send takes a mortal to it (name 'home' returns them to the "
                                 + "first world's spawn), list names them, unmake closes one (its mortals are sent home; nothing "
-                                + "is deleted from disk). A sealed world cannot be changed by mortals at all. Your other powers "
-                                + "still act in the world you rule; this only makes places and moves mortals between them. "
+                                + "is deleted from disk). A sealed world cannot be changed by mortals at all (you still can). The "
+                                + "worlds you make are yours: you see the mortals in them and your other powers work there. "
+                                + "Aim a power into one by naming it before the coordinates (\"god_ashen_reach 0 64 0\"), go "
+                                + "there with vessel_go, and give script or worldedit that world to shape it. "
                                 + "At most " + GodWorlds.max() + " god-made worlds. They are: " + GodWorlds.names() + ".",
                         Schema.object()
                                 .choice("action", "What to do.", true, List.of("create", "send", "list", "unmake"))

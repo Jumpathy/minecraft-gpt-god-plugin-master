@@ -26,11 +26,14 @@ import net.bigyous.gptgodmc.GPTGOD;
 
 /**
  * A demigod's wings and halo in the world: {@link DemigodWings#COUNT} block displays riding one
- * invisible root display that follows the player. Moving costs one teleport of the root (the pieces
- * ride along on the client); the pieces' transforms are sent, interpolated, only when the pose or the
- * facing changes: every 2 ticks in flight, never while a demigod stands still. Entities are
- * non-persistent and PDC-tagged; a rig is taken down when its player stops being a demigod, dies,
- * turns invisible or spectates, leaves, or changes worlds. Server thread only.
+ * invisible root display, and the root rides the player (it sits on top of their head, so every piece
+ * is moved down by the player's current height). Each client moves the whole rig with the player itself,
+ * so the wings stay on the body with no delay; a teleport that throws the root off is mended the next
+ * tick (if the player will not carry it, the root follows by teleport instead). The pieces' transforms
+ * are sent, interpolated, only when the pose or the facing changes: every 2 ticks in flight, never while
+ * a demigod stands still. Entities are non-persistent and PDC-tagged; a rig is taken down when its
+ * player stops being a demigod, dies, turns invisible or spectates, leaves, or changes worlds. Server
+ * thread only.
  */
 public final class DemigodRig {
     static final String TAG = "demigod_rig";
@@ -44,6 +47,10 @@ public final class DemigodRig {
     private final Transformation[] sent = new Transformation[DemigodWings.COUNT];
     private Location lastAt;
     private float open, beat, lastYaw, lastPitch;
+    /** How far above the feet the root sits (the player's height while it rides them, else 0). */
+    private float lift;
+    private boolean riding;
+    private long mountFailed = -1000;
     private String lastMode = "";
     private long lastShape;
 
@@ -129,9 +136,12 @@ public final class DemigodRig {
         World w = at.getWorld();
         root = w.spawn(at, BlockDisplay.class, b -> {
             setup(b);
-            // Close to how long other clients take to catch up with a moving player.
-            b.setTeleportDuration(3);
+            // Only used when the root cannot ride the player and must follow by teleport.
+            b.setTeleportDuration(2);
         });
+        riding = p.addPassenger(root);
+        if (!riding) mountFailed = tick;
+        lift = riding ? (float) p.getHeight() : 0;
         Mode m = Mode.of(p);
         open = m.target();
         lastYaw = m.yaw();
@@ -141,7 +151,7 @@ public final class DemigodRig {
         List<DemigodWings.Piece> pieces = DemigodWings.pieces(pose(p, m));
         for (int i = 0; i < pieces.size(); i++) {
             DemigodWings.Piece piece = pieces.get(i);
-            Transformation t = DemigodWings.transform(piece, m.yaw());
+            Transformation t = DemigodWings.transform(piece, m.yaw(), lift);
             BlockDisplay d = w.spawn(at, BlockDisplay.class, b -> {
                 setup(b);
                 b.setBlock(piece.material().createBlockData());
@@ -206,12 +216,30 @@ public final class DemigodRig {
                 p.getLocation().getPitch());
     }
 
+    /** Seats the root on the player again (a teleport ejects a player's passengers). */
+    private boolean mount(Player p) {
+        if (root.getVehicle() == p) return true;
+        if (tick - mountFailed < 40) return false; // a player who would not carry it: follow, try again later
+        if (root.getVehicle() != null) root.leaveVehicle();
+        root.teleport(feet(p), io.papermc.paper.entity.TeleportFlag.EntityState.RETAIN_PASSENGERS);
+        if (p.addPassenger(root)) return true;
+        mountFailed = tick;
+        return false;
+    }
+
     private void follow(Player p) {
-        Location at = feet(p);
-        if (lastAt == null || at.distanceSquared(lastAt) > 1e-6) {
-            root.teleport(at); // keeps its riders (Paper 1.21.10+)
-            lastAt = at;
+        riding = root.getVehicle() == p || mount(p);
+        if (!riding) {
+            Location at = feet(p);
+            if (lastAt == null || at.distanceSquared(lastAt) > 1e-6) {
+                root.teleport(at, io.papermc.paper.entity.TeleportFlag.EntityState.RETAIN_PASSENGERS);
+                lastAt = at;
+            }
         }
+        // Sneaking, gliding and swimming change the player's height, and the root on their head with it.
+        float wantLift = riding ? (float) p.getHeight() : 0;
+        boolean lifted = Math.abs(wantLift - lift) > 1e-3;
+        lift = wantLift;
         Mode m = Mode.of(p);
         float target = m.target();
         boolean easing = open != target;
@@ -222,17 +250,18 @@ public final class DemigodRig {
         float pitch = p.getLocation().getPitch();
         boolean leaning = m.gliding() || m.swimming();
         boolean changed = Math.abs(wrap(m.yaw() - lastYaw)) > 2 || !m.name().equals(lastMode)
-                || (leaning && Math.abs(pitch - lastPitch) > 3);
+                || (leaning && Math.abs(pitch - lastPitch) > 3) || lifted;
         int every = m.flying() || easing ? 2 : m.gliding() ? 4 : 20;
         if (!changed && tick - lastShape < every) return;
-        int duration = changed && every > 2 ? 2 : every;
+        // A new height moves the root at once on every client, so the pieces jump with it rather than glide.
+        int duration = lifted ? 0 : changed && every > 2 ? 2 : every;
         lastYaw = m.yaw();
         lastPitch = pitch;
         lastMode = m.name();
         lastShape = tick;
         List<DemigodWings.Piece> pieces = DemigodWings.pieces(pose(p, m));
         for (int i = 0; i < pieces.size() && i < parts.size(); i++) {
-            Transformation t = DemigodWings.transform(pieces.get(i), m.yaw());
+            Transformation t = DemigodWings.transform(pieces.get(i), m.yaw(), lift);
             if (!DemigodWings.differs(t, sent[i])) continue;
             BlockDisplay d = parts.get(i);
             d.setInterpolationDelay(0);

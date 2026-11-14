@@ -42,6 +42,8 @@ public final class Relics {
      */
     private static final Map<String, Integer> SLOTS = new HashMap<>();
     private static final BitSet TAKEN = new BitSet();
+    /** The tile textures each relic's true shape has registered (gptgod:relic_tile/&lt;slot&gt;/&lt;name&gt;). */
+    private static final Map<String, List<Identifier>> TILES = new HashMap<>();
 
     /** The strip as a texture the game can draw; it also counts client ticks for the animation. */
     static final class Sheet extends DynamicTexture implements TickableTexture {
@@ -59,6 +61,14 @@ public final class Relics {
 
         int age() {
             return age;
+        }
+    }
+
+    /** One material's tile for a relic's true shape: repeated across its parts, texel for texel. */
+    private static final class Tile extends DynamicTexture {
+        Tile(String id, NativeImage image) {
+            super(() -> "gptgod relic tile " + id, image);
+            sampler = RenderSystem.getSamplerCache().getRepeat(FilterMode.NEAREST);
         }
     }
 
@@ -169,7 +179,26 @@ public final class Relics {
             Minecraft.getInstance().getTextureManager().register(wallsName,
                     new Walls(art.id(), image(art.walls(), 2 * art.w(), 2 * art.h() * art.wallFrames())));
         }
-        MODELS.put(art.id(), new RelicItemModel(art, name, art.walls() == null ? null : wallsName, sheet));
+        // The true shape's material tiles: this painting's only, those of an older one let go.
+        releaseTiles(art.id());
+        Map<String, Identifier> tiles = new HashMap<>();
+        if (art.shape() != null) {
+            List<Identifier> made = new ArrayList<>();
+            TILES.put(art.id(), made);
+            for (Map.Entry<String, int[]> tile : art.shape().tiles().entrySet()) {
+                Identifier tileName = GodClientMod.id("relic_tile/" + slot + "/" + tile.getKey());
+                Minecraft.getInstance().getTextureManager().register(tileName,
+                        new Tile(art.id() + " " + tile.getKey(), image(tile.getValue(), RelicShape.TILE, RelicShape.TILE)));
+                made.add(tileName);
+                tiles.put(tile.getKey(), tileName);
+            }
+        }
+        MODELS.put(art.id(), new RelicItemModel(art, name, art.walls() == null ? null : wallsName, sheet, tiles));
+    }
+
+    private static void releaseTiles(String id) {
+        List<Identifier> tiles = TILES.remove(id);
+        if (tiles != null) tiles.forEach(Minecraft.getInstance().getTextureManager()::release);
     }
 
     private static NativeImage image(int[] argb, int width, int height) {
@@ -187,6 +216,7 @@ public final class Relics {
 
     private static void drop(String id) {
         MODELS.remove(id);
+        releaseTiles(id);
         Integer slot = SLOTS.remove(id);
         if (slot == null) return;
         TAKEN.clear(slot);

@@ -66,6 +66,7 @@ public final class Perception {
                 .append(realm.memory().heart.describe(System.currentTimeMillis())).append("\n\n");
         sb.append("## Your mortality\n").append(Godslayer.perceive(realm)).append("\n\n");
         sb.append(net.bigyous.gptgodmc.god.living.Living.perceive(realm));
+        sb.append(net.bigyous.gptgodmc.god.worlds.Labyrinths.perceive(realm.id));
 
         List<String> online = new ArrayList<>();
         sb.append("## Mortals present\n");
@@ -313,7 +314,8 @@ public final class Perception {
                 .append(Memory.favorLabel(favor)).append(")\n");
 
         if (p.isDead() || p.getGameMode() == GameMode.SPECTATOR) {
-            sb.append("    DEAD (spectating, can be revived)\n");
+            sb.append(p.isDead() ? "    DEAD (on the death screen; they will respawn themselves, or revive raises "
+                    + "them now; no other power reaches them until then)\n" : "    DEAD (spectating, can be revived)\n");
             return sb.toString();
         }
         double max = p.getAttribute(Attribute.MAX_HEALTH).getValue();
@@ -336,6 +338,10 @@ public final class Perception {
             }
         }
         sb.append("; armor: ").append(armor.isEmpty() ? "none" : String.join(", ", armor));
+        String looks = AvatarWatch.phrase(p);
+        if (looks != null) {
+            sb.append("; looks: ").append(looks);
+        }
         List<String> effects = new ArrayList<>();
         for (PotionEffect e : p.getActivePotionEffects()) {
             effects.add(e.getType().getKey().getKey());

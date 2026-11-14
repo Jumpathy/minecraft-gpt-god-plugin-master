@@ -32,6 +32,7 @@ public final class RelicsModule {
         Path dir = plugin.getDataFolder().toPath().resolve("god").resolve("relics");
         Relics.load(dir);
         RelicShrines.load(dir.resolve("shrines.json"));
+        Armory.load(dir.resolve("armory.json"));
         PluginCommand command = plugin.getCommand("relics");
         if (command != null) {
             RelicCommands commands = new RelicCommands();

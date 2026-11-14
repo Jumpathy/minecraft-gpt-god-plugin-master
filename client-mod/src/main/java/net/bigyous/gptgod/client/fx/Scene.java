@@ -21,7 +21,7 @@ public record Scene(String id, double[] at, int follow, float scale, int life, b
     public static final int MAX_RATE = 80;
     public static final int MAX_DEBRIS = 150;
 
-    public sealed interface Layer permits Particles, Mesh, Screen, Post, Camera, Sky, Sound, Tone, Debris, Glyph, Field, Solid {
+    public sealed interface Layer permits Particles, Mesh, Screen, Post, Camera, Sky, Sound, Tone, Debris, Glyph, Field, Solid, Reskin, Trigger {
         int delay();
 
         int duration();
@@ -102,6 +102,14 @@ public record Scene(String id, double[] at, int follow, float scale, int life, b
     public record Field(int delay, int duration, FxField spec) implements Layer {
     }
 
+    /** Blocks round the place that look like something else for a while (see FxReskin). */
+    public record Reskin(int delay, int duration, FxReskin spec) implements Layer {
+    }
+
+    /** A condition watched for this player; when it fires its layers play and the god is told (see FxTrigger). */
+    public record Trigger(int delay, int duration, FxTrigger spec) implements Layer {
+    }
+
     /** Geometry the god designed itself, moved by its formulas (see FxSolid). */
     public record Solid(int delay, int duration, FxSolid spec) implements Layer {
     }
@@ -159,6 +167,14 @@ public record Scene(String id, double[] at, int follow, float scale, int life, b
             case "field" -> {
                 FxField f = FxField.parse(o);
                 yield new Field(f.delay, f.duration, f);
+            }
+            case "trigger" -> {
+                FxTrigger g = FxTrigger.parse(o);
+                yield g == null ? null : new Trigger(g.delay, g.duration, g);
+            }
+            case "reskin" -> {
+                FxReskin r = FxReskin.parse(o);
+                yield r == null ? null : new Reskin(r.delay, r.duration, r);
             }
             case "solid" -> {
                 FxSolid s = FxSolid.parse(o);

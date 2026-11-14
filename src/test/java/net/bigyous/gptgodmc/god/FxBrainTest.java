@@ -387,7 +387,7 @@ class FxBrainTest {
         int from = names.indexOf("fx_style");
         assertEquals(mine, names.subList(from, from + mine.size()));
         assertEquals(List.of("map", "see_build", "drop_block", "forge_relic", "give_relic", "show_relic", "imbue_relic",
-                "tend", "witness_oath", "resolve_oath", "worldedit", "fx_paint", "feel", "muse", "reflect", "script", "labyrinth", "make_world", "ward", "land_history", "disguise"), names.subList(from + mine.size(), names.size()));
+                "tend", "witness_oath", "resolve_oath", "worldedit", "fx_paint", "feel", "muse", "reflect", "script", "labyrinth", "make_world", "ward", "land_history", "disguise", "armory", "strike", "statue", "search_web", "locate"), names.subList(from + mine.size(), names.size()));
         assertTrue(names.indexOf("fx_cast") < names.indexOf("fx_style"));
         // Live descriptions work with an empty library.
         assertTrue(ToolRegistry.get("fx_bind").description().contains("Your bindings: none"));

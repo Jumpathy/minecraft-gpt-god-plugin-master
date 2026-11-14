@@ -106,7 +106,7 @@ tasks.register('previews', Copy) {
     dependsOn tasks.named('test')
     from(layout.buildDirectory.dir('test-renders')) {
         include 'vessel-*.png', 'particles-*.png', 'rite-*.png', 'trueform-*.png',
-                'pov*.png', 'overhead*.png', 'panorama*.png', 'minimap-*.png', 'build-*.png', 'design-*.png', 'manager-*.png', 'servant*.png', 'relic-*.png', 'rift-*.png', 'guide-*.png'
+                'pov*.png', 'overhead*.png', 'panorama*.png', 'minimap-*.png', 'build-*.png', 'design-*.png', 'manager-*.png', 'servant*.png', 'relic-*.png', 'weapon-*.png', 'rift-*.png', 'guide-*.png', 'avatars*.png'
     }
     into layout.projectDirectory.dir('previews')
     includeEmptyDirs = false
@@ -118,7 +118,7 @@ tasks.register('previews', Copy) {
                 : n.startsWith('design-') ? 'builds'
                 : n.startsWith('manager-') ? 'manager'
                 : n.startsWith('servant') ? 'servants'
-                : n.startsWith('relic-') ? 'relics'
+                : (n.startsWith('relic-') || n.startsWith('weapon-')) ? 'relics'
                 : n.startsWith('rift-') ? 'rift'
                 : n.startsWith('guide-') ? 'guide'
                 : 'vision'

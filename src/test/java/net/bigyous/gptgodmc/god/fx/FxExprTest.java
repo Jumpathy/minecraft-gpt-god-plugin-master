@@ -122,7 +122,7 @@ class FxExprTest {
     /** The mod works out the same formulas with the same code: its copies differ only in the package line. */
     @Test
     void theModsCopiesAreTheSameFiles() throws Exception {
-        for (String file : new String[] { "FxExpr", "FxField", "FxSolid" }) {
+        for (String file : new String[] { "FxExpr", "FxField", "FxSolid", "FxReskin", "FxTrigger" }) {
             String ours = body(Path.of("src/main/java/net/bigyous/gptgodmc/god/fx", file + ".java"));
             String theirs = body(Path.of("client-mod/src/main/java/net/bigyous/gptgod/client/fx", file + ".java"));
             assertEquals(ours, theirs, file + ".java differs between the plugin and the client mod: copy the changed one over");

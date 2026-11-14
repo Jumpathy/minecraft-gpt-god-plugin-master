@@ -85,7 +85,7 @@ public final class GodWorlds implements Listener {
     }
 
     public static int max() {
-        return plugin == null ? 4 : Math.max(0, plugin.getConfig().getInt("worlds.max", 4));
+        return plugin == null ? 25 : Math.max(0, plugin.getConfig().getInt("worlds.max", 25));
     }
 
     private static Path file() {

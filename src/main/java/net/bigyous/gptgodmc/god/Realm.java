@@ -139,6 +139,17 @@ public final class Realm {
             for (Realm r : fresh) {
                 if (r.id.equalsIgnoreCase(e.domain)) host = r;
             }
+            // A god created to rule a world of its own (one no god ruled when it was made).
+            if (e.id != null && e.worlds != null && !e.worlds.isEmpty() && e.id.equalsIgnoreCase(e.domain)
+                    && fresh.stream().noneMatch(r -> r.id.equalsIgnoreCase(e.id))) {
+                Set<String> own = new java.util.LinkedHashSet<>();
+                for (String w : e.worlds) own.add(w.toLowerCase(Locale.ROOT));
+                Realm lord = new Realm(e.id, own, god.resolve("realms").resolve(e.id), e.archetype, e.name, null);
+                lord.createdAt = e.createdAt;
+                fresh.add(lord);
+                GPTGOD.LOGGER.info("God '" + e.id + "' rules " + own);
+                continue;
+            }
             if (e.id == null || host == null || fresh.stream().anyMatch(r -> r.id.equalsIgnoreCase(e.id))) {
                 GPTGOD.LOGGER.warn("Skipping created god '" + e.id + "': the god whose worlds it shared ('" + e.domain
                         + "') is gone, or the id is taken. Its folder is kept.");
@@ -223,6 +234,13 @@ public final class Realm {
         String name = world.getName().toLowerCase(Locale.ROOT);
         for (Realm r : all()) {
             if (r.isHost() && r.worlds.contains(name)) return r;
+        }
+        // A world a god made belongs to its maker (and the gods who share the maker's worlds): they see it,
+        // hear it and may shape it. The labyrinth is a prison, not a domain, and stays as it was.
+        net.bigyous.gptgodmc.god.worlds.GodWorlds.Made made = net.bigyous.gptgodmc.god.worlds.GodWorlds.of(world);
+        if (made != null && !made.name().equals(net.bigyous.gptgodmc.god.worlds.Labyrinths.WORLD)) {
+            Realm maker = byId(made.realm());
+            if (maker != null) return maker.host();
         }
         Realm p = primary();
         if (ruleAll || VANILLA.contains(world.getKey().asString())) return p;
@@ -434,6 +452,53 @@ public final class Realm {
         e.name = clean;
         e.createdAt = r.createdAt;
         e.createdBy = by;
+        if (folder != null) Pantheon.add(e);
+        REALMS.add(r);
+        return r;
+    }
+
+    /**
+     * Makes a god for a world that no god rules (a Multiverse world outside every realm): it is that
+     * world's first god, with its own realm, and further gods can be created beside it there.
+     */
+    public static synchronized Realm found(World world, String name, String archetype, String power, String by) {
+        if (of(world) != null) throw new IllegalArgumentException("A god already rules " + world.getName() + ".");
+        Realm first = primary();
+        String clean = name == null ? null : name.trim();
+        if (clean != null && clean.isEmpty()) clean = null;
+        if (clean != null) {
+            String problem = GodNames.operatorProblem(clean);
+            if (problem != null) throw new IllegalArgumentException(problem);
+            for (Realm r : all()) {
+                String other = r.displayName();
+                if (other.equalsIgnoreCase(clean) || Pantheon.names(clean, other) || Pantheon.names(other, clean)) {
+                    throw new IllegalArgumentException("A god named " + other + " already exists; names must not "
+                            + "contain one another.");
+                }
+            }
+        }
+        String base = clean != null ? Pantheon.slug(clean) : Pantheon.slug(world.getName());
+        if (base.isEmpty() || Pantheon.RESERVED.contains(base)) base = "god";
+        String id = base;
+        for (int n = 2; byId(id) != null || folderTaken(first, id) || Pantheon.RESERVED.contains(id); n++) {
+            id = base + n;
+        }
+        Set<String> own = new java.util.LinkedHashSet<>();
+        own.add(world.getName().toLowerCase(Locale.ROOT));
+        Path folder = first.folder == null ? null : godFolder(first).resolve("realms").resolve(id);
+        Realm r = new Realm(id, own, folder, blankToNull(archetype), clean, null);
+        r.createdAt = System.currentTimeMillis();
+        Power p = Power.parse(power);
+        if (p != null) r.profile().power = p.id;
+        r.profile().save();
+        Pantheon.Entry e = new Pantheon.Entry();
+        e.id = id;
+        e.domain = id;
+        e.archetype = blankToNull(archetype);
+        e.name = clean;
+        e.createdAt = r.createdAt;
+        e.createdBy = by;
+        e.worlds = new ArrayList<>(own);
         if (folder != null) Pantheon.add(e);
         REALMS.add(r);
         return r;

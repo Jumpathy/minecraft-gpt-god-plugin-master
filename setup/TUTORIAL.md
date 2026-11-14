@@ -315,9 +315,9 @@ stand-in servers, so try it on a test world first.
 
 ## 15. Extras: EssentialsX, LuckPerms, Bedrock players
 
-- **EssentialsX** has its own `/god` (god mode). If `/god` turns on god mode instead of talking to
-  GPTGOD, use **`/gptgod`**, which works the same. The server console says so at start
-  (`Another plugin owns /god`).
+- **EssentialsX** has its own `/god` (god mode). GPTGOD takes `/god` back once all plugins have
+  loaded, so Essentials' god mode moves to `/egod`. If you set `operator.claim-god-command: false`,
+  use **`/gptgod`** instead, which works the same.
 - **LuckPerms:** to let someone who isn't an operator use the admin commands, type
   `lp user <name> permission set gptgodmc.admin true` in the console.
 - **Bedrock players** (phones, consoles, Windows Bedrock) can join through **Geyser** and

@@ -30,6 +30,7 @@ public final class VoiceModule {
     private static final Synthesizer synthesizer = new Synthesizer();
     private static final ExecutorService ears = Executors.newSingleThreadExecutor(r -> daemon(r, "god-ears"));
     private static final ExecutorService voice = Executors.newSingleThreadExecutor(r -> daemon(r, "god-voice"));
+    private static final VoicePacing PACING = new VoicePacing();
     private static final VoiceModule INSTANCE = new VoiceModule();
 
     private VoiceModule() {
@@ -233,14 +234,40 @@ public final class VoiceModule {
             boolean any = false;
             try {
                 List<String> parts = Phrases.split(text);
+                boolean smooth = GodSettings.ttsSmooth();
+                // Parts made but not yet handed to playback: held while the voice server is slower than speech.
+                List<short[]> held = new ArrayList<>();
+                List<Integer> heldChars = new ArrayList<>();
+                long heldMs = 0;
+                boolean started = false;
                 for (int i = 0; i < parts.size(); i++) {
+                    long t0 = System.currentTimeMillis();
                     short[] pcm = render(parts.get(i), effect, i == parts.size() - 1);
                     if (pcm == null) break;
-                    if (!any) {
+                    PACING.learned(parts.get(i).length(), System.currentTimeMillis() - t0);
+                    held.add(pcm);
+                    heldChars.add(parts.get(i).length());
+                    heldMs += pcm.length * 1000L / GodVoiceFx.OUT_RATE;
+                    int remaining = 0;
+                    for (int k = i + 1; k < parts.size(); k++) remaining += parts.get(k).length();
+                    if (!started && smooth && !PACING.mayStart(heldMs, remaining)) continue;
+                    if (!started) {
                         GPTGOD.LOGGER.info("[God voice] first words ready after " + (System.currentTimeMillis() - asked)
-                                + " ms (" + text.length() + " characters in " + parts.size() + " part(s))");
+                                + " ms (" + text.length() + " characters in " + parts.size() + " part(s)"
+                                + (held.size() > 1 ? ", " + held.size() + " held for a smooth start" : "") + ")");
                     }
-                    play.accept(pcm, onStart(pcm, parts.get(i).length(), cue, any ? null : reveal));
+                    started = true;
+                    for (int k = 0; k < held.size(); k++) {
+                        play.accept(held.get(k), onStart(held.get(k), heldChars.get(k), cue, any ? null : reveal));
+                        any = true;
+                    }
+                    held.clear();
+                    heldChars.clear();
+                    heldMs = 0;
+                }
+                // A part failed after others were held: say what was made.
+                for (int k = 0; k < held.size(); k++) {
+                    play.accept(held.get(k), onStart(held.get(k), heldChars.get(k), cue, any ? null : reveal));
                     any = true;
                 }
             } finally {

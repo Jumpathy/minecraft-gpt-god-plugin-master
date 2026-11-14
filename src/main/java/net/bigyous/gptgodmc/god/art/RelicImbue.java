@@ -571,6 +571,66 @@ public final class RelicImbue implements Listener {
         }
     }
 
+    /**
+     * A blow of the relic in its god's own hand (the vessel's strike, not a mortal's): what it does on a hit,
+     * as far as that needs no mortal bearer (extra damage, fire, frost, a potion on the foe, knockback, a
+     * launch, lightning, a burst, a saved effect). Returns the extra damage. Server thread.
+     *
+     * @param from where the blow comes from (the vessel), for knockback
+     */
+    public static double strikeEffects(Relic r, boolean awake, LivingEntity foe, Location from) {
+        double extra = 0;
+        World w = foe.getWorld();
+        for (Power pw : RelicPowers.of(r)) {
+            if (pw.trigger() != Trigger.HIT || !fits(pw, awake) || !lucky(pw)) continue;
+            double n = pw.amount();
+            switch (pw.effect()) {
+                case DAMAGE -> extra += n;
+                case IGNITE -> foe.setFireTicks(Math.max(foe.getFireTicks(), (int) n * 20));
+                case FREEZE -> {
+                    foe.setFreezeTicks(Math.min(foe.getMaxFreezeTicks() + (int) n * 20, foe.getFreezeTicks() + 140 + (int) n * 20));
+                    foe.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, (int) n * 20, 1, true, true, true));
+                    w.spawnParticle(Particle.SNOWFLAKE, middle(foe), 18, 0.3, 0.5, 0.3, 0.02);
+                }
+                case POTION -> {
+                    PotionEffectType type = potion(pw.word());
+                    if (type != null && !type.isInstant() && !pw.aim().equals("self")) {
+                        foe.addPotionEffect(new PotionEffect(type, pw.seconds() * 20, (int) n - 1, true, true, true));
+                    }
+                }
+                case KNOCKBACK -> {
+                    Vector away = foe.getLocation().toVector().subtract(from.toVector()).setY(0);
+                    if (away.lengthSquared() > 1e-4) {
+                        foe.setVelocity(foe.getVelocity().add(away.normalize().multiply(0.45 * n).setY(0.28)));
+                    }
+                }
+                case LAUNCH -> foe.setVelocity(foe.getVelocity().setY(0.45 + 0.25 * n));
+                case LIGHTNING -> {
+                    w.strikeLightningEffect(foe.getLocation());
+                    extra += n;
+                }
+                case BURST -> {
+                    w.spawnParticle(Particle.EXPLOSION, middle(foe), 1);
+                    w.playSound(foe.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 0.8f, 1.4f);
+                    extra += n * 0.5;
+                }
+                case FX -> fx(null, r, pw, foe);
+                default -> {
+                }
+            }
+        }
+        return extra;
+    }
+
+    /** The attack damage a relic lends in a form (its stat), or NaN when it sets none. */
+    public static double attackDamage(Relic r, boolean awake) {
+        double v = Double.NaN;
+        for (Power pw : RelicPowers.of(r)) {
+            if (pw.trigger() == Trigger.STAT && pw.stat() == Stat.ATTACK_DAMAGE && fits(pw, awake)) v = pw.amount();
+        }
+        return v;
+    }
+
     private static void fx(Player p, Relic r, Power pw, LivingEntity foe) {
         Realm realm = owner(r);
         if (realm == null) return;

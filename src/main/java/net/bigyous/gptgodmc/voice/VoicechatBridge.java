@@ -223,7 +223,7 @@ final class VoicechatBridge implements VoiceBackend, VoicechatPlugin {
         for (AudioPlayer p : players) {
             while (p.isPlaying() && System.currentTimeMillis() < deadline) {
                 try {
-                    Thread.sleep(20);
+                    Thread.sleep(4); // the next part starts within a few ms of this one ending
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     return;

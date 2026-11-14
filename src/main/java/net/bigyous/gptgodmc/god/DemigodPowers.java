@@ -110,7 +110,7 @@ public final class DemigodPowers implements Listener {
     /** The moment of apotheosis: light, thunder and a title for everyone. */
     public static void crown(Player p, String godName) {
         bless(p);
-        p.setHealth(Math.min(p.getAttribute(Attribute.MAX_HEALTH).getValue(), p.getHealth() + 20));
+        if (!p.isDead()) p.setHealth(Math.min(p.getAttribute(Attribute.MAX_HEALTH).getValue(), p.getHealth() + 20));
         Location at = p.getLocation();
         at.getWorld().strikeLightningEffect(at);
         at.getWorld().playSound(at, Sound.UI_TOAST_CHALLENGE_COMPLETE, 2f, 0.8f);

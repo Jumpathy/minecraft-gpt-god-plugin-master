@@ -67,11 +67,21 @@ From Claude Code the same chain is a handful of tools: `server_deploy` → `worl
 `god_tool vessel_go` → `camera_launch` → `camera_screenshot` → `god_tool particles` → `camera_screenshot` →
 `camera_close` → `server_stop`.
 
-## MCP server
+## MCP server and daemon
 
-The repo-root `.mcp.json` registers `god-harness` (`node harness/src/mcp-server.js`, started from the repo root;
-approve it when Claude Code asks). A server it starts is its child process: when the MCP server exits it stops that
-server cleanly first.
+One long-running process, the **daemon** (`node harness/src/daemon.js`, port 8790, localhost only), owns the sandbox
+server (its child), the bots, the real clients, the spend guard and the session record, and serves every tool:
+
+- `POST /mcp`: MCP over streamable HTTP. The repo-root `.mcp.json` registers `god-harness`
+  (`node harness/src/mcp-server.js`), a stdio forwarder that starts the daemon when it is down. Tools added to the
+  daemon appear without restarting Claude Code, and several sessions share one server and one set of bots.
+- `POST /api/<tool>` with a JSON body, `GET /api/tools`, `GET /health`: the same tools for scripts.
+- `node harness/call.js <tool> key=value ...` (or one JSON argument), `--list [filter]`, `--start`, `--stop`.
+
+The daemon works on the sandbox in `GOD_SANDBOX_DIR` of the environment it was started in. When it exits it
+disconnects bots, closes clients and stops a server it started. `node harness/src/mcp-server.js --inprocess` runs
+the tools without a daemon (what `npm run selftest` uses). Tools are defined once in `src/tools.js` and
+`src/tools-more.js`.
 
 | Server and world | |
 |---|---|
@@ -103,6 +113,29 @@ server cleanly first.
 | `god_tool` | run one power directly, e.g. `{name: "particles", input: {target: "vessel", shape: "vortex", particle: "end_rod"}}` |
 | `god_wake`, `god_inject_event`, `god_console`, `god_reset_memory` | |
 | `god_view` | the plugin's own ray-traced view (`eyes`/`vessel`/`overhead`/`panorama`/`orbit`), not the real client |
+
+| Players (real clients) | |
+|---|---|
+| `player_launch` | start Minecraft 26.3 with Fabric, Fabric API and the god's client mod under an offline name and join as a player (own game dir `harness/client/players/<name>`; about 2 GB and 40-90 s each) |
+| `player_say`, `player_look`, `player_move`, `player_goto`, `player_stop` | chat or `/command`; aim at yaw/pitch, a point, or the nearest entity (`minecraft:interaction` = the vessel); hold movement keys for N ticks; steer to x,z |
+| `player_attack`, `player_dig`, `player_use`, `player_hotbar`, `player_inventory`, `player_screen`, `player_do` | clicks on what the crosshair is on (`sneak` + use on the vessel with an item = an offering); any other puppet route |
+| `player_state`, `player_events`, `player_wait_for` | what the client reports and perceived (chat, system, action bar, titles, deaths, mod messages) |
+| `player_screenshot` | the client's own framebuffer, as this player sees it (falls back to a window capture) |
+| `player_list`, `player_close` | |
+
+These clients are driven through the client mod's **puppet port**: a localhost HTTP server inside the game that
+exists only when the JVM property `gptgod.puppet.port` is set (`client-mod/.../client/puppet/`; a per-launch token is
+required). It acts in-process (key mappings, the game's own attack/use/chat calls), so no keystroke or mouse input is
+sent and the window stays unfocused behind other windows. Mods come from `harness/client/mods/*.jar`: put a build
+of the client mod there (`client-mod`: `./gradlew build`); Fabric API is copied from `%APPDATA%.minecraftmods`. The
+Fabric Loader profile for 26.3 must be installed (`%APPDATA%.minecraftersionsabric-loader-*-26.3`).
+
+| Budget and session record | |
+|---|---|
+| `budget_set` | cap the god's API spend in USD; a watchdog reads the plugin's own cost counter every 4 s and at `stopAtUsd` (default 87 % of the cap) runs `gptgod pause`, writes `brain.mode: off` and reloads. The ledger (`plugins/gptgodmc/harness-budget.json`) survives server restarts |
+| `budget_status` | spend, remaining, token counts, whether the guard tripped |
+| `session_start`, `session_note`, `session_report` | record one merged timeline (the god's journal, bot and player events, your notes) under `harness/out/session-<time>-<label>/`; the report writes `timeline.md` and counts thoughts, powers used, vision use and cost |
+| `sandbox_info` | which sandbox folder and address the daemon works on |
 
 | Camera (the real client) | |
 |---|---|

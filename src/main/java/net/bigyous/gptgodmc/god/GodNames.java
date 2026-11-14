@@ -8,8 +8,10 @@ import java.util.Set;
 
 /**
  * What a god may call itself: an invented, otherworldly name (Azaeleus, Vhal'myr, Oruun), never an
- * ordinary human name, a famous deity, a well-known character, or a plain word like "God". Used for
- * the names the memory model invents, the fallback tables, and the god's own rename_self.
+ * ordinary human name, a figure of a living religion, a well-known fictional character, or a plain word
+ * like "God". The gods of ancient myth (Zeus, Athena, Odin, Anubis...) are allowed while
+ * {@code god.myth-names} is on (the default). Used for the names the memory model invents, the fallback
+ * tables, and the god's own rename_self; a name the operator chooses passes {@link #operatorProblem}.
  */
 public final class GodNames {
     private GodNames() {
@@ -53,17 +55,26 @@ public final class GodNames {
             "sergei", "yuki", "kenji", "hiro", "wei", "li", "chen", "raj", "priya", "arjun", "fatima", "ali", "omar",
             "ahmed", "kai", "zuri", "efe", "makena", "ari", "sunny", "noor", "ari", "kari", "sari", "ari");
 
-    /** Famous gods, holy figures and well-known characters (no borrowing). */
-    private static final Set<String> FAMOUS = set(
+    /**
+     * Gods of ancient myth (Greek, Roman, Norse, Egyptian, Mesopotamian, Aztec): allowed while
+     * god.myth-names is on, refused like any famous name when it is off.
+     */
+    static final Set<String> MYTHIC = set(
             "zeus", "hera", "poseidon", "hades", "athena", "apollo", "artemis", "ares", "aphrodite", "hermes",
             "hephaestus", "dionysus", "demeter", "kronos", "cronus", "gaia", "uranus", "jupiter", "juno", "mars",
-            "venus", "mercury", "neptune", "pluto", "saturn", "odin", "thor", "loki", "freya", "freyja", "frigg",
-            "baldur", "tyr", "heimdall", "ra", "re", "osiris", "isis", "horus", "anubis", "set", "seth", "thoth",
-            "amun", "bastet", "sekhmet", "brahma", "vishnu", "shiva", "krishna", "rama", "kali", "ganesha",
+            "venus", "mercury", "neptune", "pluto", "saturn", "persephone", "hestia", "nyx", "helios", "selene",
+            "hecate", "hekate", "nemesis", "prometheus", "rhea", "eros", "thanatos", "hypnos", "morpheus", "diana",
+            "minerva", "vulcan", "bacchus", "ceres", "vesta", "odin", "thor", "loki", "freya", "freyja", "frigg",
+            "baldur", "tyr", "heimdall", "hel", "ra", "re", "osiris", "isis", "horus", "anubis", "set", "seth",
+            "thoth", "amun", "bastet", "sekhmet", "marduk", "ishtar", "inanna", "quetzalcoatl", "tlaloc",
+            "huitzilopochtli");
+
+    /** Figures of living religions and well-known fictional characters (never borrowed). */
+    private static final Set<String> FAMOUS = set(
+            "brahma", "vishnu", "shiva", "krishna", "rama", "kali", "ganesha",
             "indra", "buddha", "allah", "yahweh", "jehovah", "jesus", "christ", "elohim", "satan", "lucifer",
             "beelzebub", "baal", "moloch", "mammon", "asmodeus", "gabriel", "raphael", "uriel", "metatron",
-            "azrael", "marduk", "ishtar", "inanna", "tiamat", "quetzalcoatl", "tlaloc", "huitzilopochtli",
-            "amaterasu", "susanoo", "izanagi", "izanami", "cthulhu", "nyarlathotep", "azathoth", "yog-sothoth",
+            "azrael", "tiamat", "amaterasu", "susanoo", "izanagi", "izanami", "cthulhu", "nyarlathotep", "azathoth", "yog-sothoth",
             "sauron", "morgoth", "melkor", "gandalf", "voldemort", "dumbledore", "thanos", "galactus", "darkseid",
             "aslan", "kratos", "ganon", "ganondorf", "zelda", "link", "mario", "bowser", "sephiroth", "herobrine",
             "notch", "jeb", "dinnerbone", "vecna", "tiamat", "bahamut", "lolth", "arceus", "palutena", "zenos");
@@ -126,6 +137,17 @@ public final class GodNames {
      * @param taken names already in use (online players, mortals the god knows); compared case-insensitively
      */
     public static String problem(String name, Collection<String> taken) {
+        return problem(name, taken, mythAllowed());
+    }
+
+    /** god.myth-names (default true; true without a running plugin). */
+    static boolean mythAllowed() {
+        net.bigyous.gptgodmc.GPTGOD plugin = net.bigyous.gptgodmc.GPTGOD.get();
+        return plugin == null || plugin.getConfig().getBoolean("god.myth-names", true);
+    }
+
+    /** As {@link #problem(String, Collection)}, saying whether the gods of ancient myth are allowed. */
+    public static String problem(String name, Collection<String> taken, boolean myth) {
         if (name == null || name.isBlank()) return "A name needs letters.";
         String n = name.trim();
         if (n.contains(" ")) return "One word only: no spaces in the name (an epithet can carry more words).";
@@ -141,11 +163,17 @@ public final class GodNames {
         if (WORDS.contains(key) || WORDS.contains(bare) || bare.startsWith("god") && bare.length() <= 5) {
             return "\"" + n + "\" is a word, not a name. Coin an otherworldly name of your own.";
         }
-        if (HUMAN.contains(key) || HUMAN.contains(bare)) {
+        boolean mythic = MYTHIC.contains(key) || MYTHIC.contains(bare);
+        if (mythic && !myth) {
+            return "\"" + n + "\" belongs to a god of myth, and this server wants invented names. Coin a name of "
+                    + "your own.";
+        }
+        if (!mythic && (HUMAN.contains(key) || HUMAN.contains(bare))) {
             return "\"" + n + "\" is an ordinary mortal name. A god's name should sound invented and otherworldly.";
         }
         if (FAMOUS.contains(key) || FAMOUS.contains(bare)) {
-            return "\"" + n + "\" belongs to another god or a famous character. Coin a name of your own.";
+            return "\"" + n + "\" belongs to a living faith or a famous character. Coin a name of your own"
+                    + (myth ? ", or take a god's name from ancient myth (Zeus, Freyja, Anubis)." : ".");
         }
         if (taken != null) {
             for (String t : taken) {

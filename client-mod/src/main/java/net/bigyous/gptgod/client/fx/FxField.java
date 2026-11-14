@@ -30,6 +30,23 @@ public final class FxField {
     public final int delay, duration, count;
     public final double[] offset;
     public final FxExpr x, y, z, size, alpha, shade;
+    /**
+     * A field whose particles keep their motion: x, y, z are then where each is born, vx, vy, vz its first speed
+     * (blocks a tick), ax, ay, az the push on it every tick, life how many ticks it lasts before it is born again.
+     */
+    public final boolean free;
+    public final FxExpr vx, vy, vz, ax, ay, az, life;
+    /** The share of its speed a free particle loses each tick, and keeps when it hits a block (below 0: it passes through). */
+    public final double drag, bounce;
+    public static final double MAX_SPEED = 2, MAX_PUSH = 1;
+    /** What a free particle remembers: its place, its speed, when it was born, how long it lives, which life. */
+    public static final int STATE = 9;
+    private static final String[] MOTION = { "vx", "vy", "vz", "ax", "ay", "az", "life" };
+
+    /** The blocks a free particle may bounce off: whether this point, in blocks from the layer's place, is inside one. */
+    public interface Blocks {
+        boolean solid(double x, double y, double z);
+    }
     /** The colours shade runs along, first to last. */
     public final int[] colors;
     public final String sprite;
@@ -38,7 +55,20 @@ public final class FxField {
     public final String texture;
 
     private FxField(int delay, int duration, int count, double[] offset, FxExpr[] f, int[] colors, String sprite, float glow,
-            String texture) {
+            String texture, FxExpr[] m, double drag, double bounce) {
+        boolean any = bounce >= 0;
+        for (FxExpr e : m) any |= e != null;
+        this.free = any;
+        FxExpr zero = FxExpr.of(0);
+        this.vx = m[0] == null ? zero : m[0];
+        this.vy = m[1] == null ? zero : m[1];
+        this.vz = m[2] == null ? zero : m[2];
+        this.ax = m[3] == null ? zero : m[3];
+        this.ay = m[4] == null ? zero : m[4];
+        this.az = m[5] == null ? zero : m[5];
+        this.life = m[6];
+        this.drag = drag;
+        this.bounce = bounce;
         this.delay = delay;
         this.duration = duration;
         this.count = count;
@@ -69,10 +99,18 @@ public final class FxField {
         String texture = tex != null && tex.isJsonPrimitive() ? tex.getAsString().trim().toLowerCase(Locale.ROOT) : "";
         if (!texture.matches("[a-z0-9_.-]{1,80}")) texture = "";
         int[] colors = texture.isEmpty() || o.has("color") ? colors(o.get("color")) : new int[] { 0xFFFFFF };
+        FxExpr[] m = new FxExpr[MOTION.length];
+        for (int k = 0; k < m.length; k++) {
+            try {
+                m[k] = formula(o.get(MOTION[k]), null);
+            } catch (FxExpr.Invalid e) {
+                m[k] = null;
+            }
+        }
         return new FxField((int) num(o.get("delay"), 0, 0, MAX_TICKS), (int) num(o.get("duration"), DEFAULT_TICKS, 1, MAX_TICKS),
                 (int) num(o.get("count"), 200, 1, MAX_COUNT), vec(o.get("offset"), 64), f, colors,
                 sprite != null && sprite.isJsonPrimitive() ? sprite.getAsString().trim().toLowerCase(Locale.ROOT) : "mote",
-                (float) num(o.get("glow"), 1, 0, 1), texture);
+                (float) num(o.get("glow"), 1, 0, 1), texture, m, num(o.get("drag"), 0.02, 0, 1), num(o.get("bounce"), -1, -1, 1));
     }
 
     /** The strict reading: says what is wrong with the first formula that cannot be read. */
@@ -86,6 +124,13 @@ public final class FxField {
                 formula(e, fallback(k));
             } catch (FxExpr.Invalid bad) {
                 throw new FxExpr.Invalid(FORMULAS[k] + ": " + bad.getMessage());
+            }
+        }
+        for (String key : MOTION) {
+            try {
+                formula(o.get(key), null);
+            } catch (FxExpr.Invalid bad) {
+                throw new FxExpr.Invalid(key + ": " + bad.getMessage());
             }
         }
         if (!any) {
@@ -104,14 +149,15 @@ public final class FxField {
 
     private static FxExpr fallback(int k) {
         // The shade of an unshaded field runs along its particles: the first has the first colour, the last the last.
-        if (k == 5) {
+        // An unsized field is small motes, no two the same size.
+        if (k == 5 || k == 3) {
             try {
-                return FxExpr.compile("u");
+                return FxExpr.compile(k == 5 ? "u" : "0.06 + 0.1*rand(7)");
             } catch (FxExpr.Invalid e) {
-                return FxExpr.of(0);
+                return FxExpr.of(k == 5 ? 0 : 0.1);
             }
         }
-        return FxExpr.of(k == 3 ? 0.25 : k == 4 ? 1 : 0);
+        return FxExpr.of(k == 4 ? 1 : 0);
     }
 
     /** A number, or a formula written as text. */
@@ -132,16 +178,87 @@ public final class FxField {
      * @param vars a scratch array of FxExpr.VARS numbers
      */
     public void at(int i, int n, double t, long seed, double[] vars, double[] out) {
+        fill(i, n, t, seed, vars);
+        for (int k = FxExpr.PX; k <= FxExpr.A; k++) vars[k] = 0;
+        out[X] = x.eval(vars, -REACH, REACH, 0);
+        out[Y] = y.eval(vars, -REACH, REACH, 0);
+        out[Z] = z.eval(vars, -REACH, REACH, 0);
+        looks(t, vars, out);
+    }
+
+    private void fill(int i, int n, double t, long seed, double[] vars) {
         vars[FxExpr.T] = t;
         vars[FxExpr.P] = Math.max(0, Math.min(1, t / duration));
         vars[FxExpr.I] = i;
         vars[FxExpr.U] = n > 1 ? i / (double) (n - 1) : 0;
         vars[FxExpr.N] = n;
         vars[FxExpr.SEED] = seed;
-        out[X] = x.eval(vars, -REACH, REACH, 0);
-        out[Y] = y.eval(vars, -REACH, REACH, 0);
-        out[Z] = z.eval(vars, -REACH, REACH, 0);
-        out[SIZE] = size.eval(vars, 0, 8, 0.25);
+    }
+
+    /** What a free particle knows of itself. */
+    private static void own(double t, double[] vars, double[] state) {
+        for (int k = 0; k < 6; k++) vars[FxExpr.PX + k] = state[k];
+        vars[FxExpr.K] = state[8];
+        vars[FxExpr.A] = state[7] > 0 ? Math.max(0, Math.min(1, (t - state[6]) / state[7])) : 0;
+    }
+
+    /** A free particle is born (again): at x, y, z with its first speed. state holds STATE numbers; state[8] is which life. */
+    public void birth(int i, int n, double t, long seed, double[] vars, double[] state) {
+        fill(i, n, t, seed, vars);
+        for (int k = 0; k < 8; k++) state[k] = 0;
+        state[6] = t;
+        own(t, vars, state);
+        state[0] = x.eval(vars, -REACH, REACH, 0);
+        state[1] = y.eval(vars, -REACH, REACH, 0);
+        state[2] = z.eval(vars, -REACH, REACH, 0);
+        state[3] = vx.eval(vars, -MAX_SPEED, MAX_SPEED, 0);
+        state[4] = vy.eval(vars, -MAX_SPEED, MAX_SPEED, 0);
+        state[5] = vz.eval(vars, -MAX_SPEED, MAX_SPEED, 0);
+        state[7] = life == null ? 0 : life.eval(vars, 1, MAX_TICKS, 0);
+    }
+
+    /**
+     * One tick of a free particle: it is pushed, slowed, moved, and turned back by blocks when it bounces; when
+     * its life is over it is born again.
+     *
+     * @param blocks what it may hit, or null
+     */
+    public void step(int i, int n, double t, long seed, double[] vars, double[] state, Blocks blocks) {
+        if (state[7] > 0 && t - state[6] >= state[7]) {
+            state[8]++;
+            birth(i, n, t, seed, vars, state);
+            return;
+        }
+        fill(i, n, t, seed, vars);
+        own(t, vars, state);
+        double px = ax.eval(vars, -MAX_PUSH, MAX_PUSH, 0), py = ay.eval(vars, -MAX_PUSH, MAX_PUSH, 0),
+                pz = az.eval(vars, -MAX_PUSH, MAX_PUSH, 0);
+        state[3] = Math.max(-MAX_SPEED, Math.min(MAX_SPEED, (state[3] + px) * (1 - drag)));
+        state[4] = Math.max(-MAX_SPEED, Math.min(MAX_SPEED, (state[4] + py) * (1 - drag)));
+        state[5] = Math.max(-MAX_SPEED, Math.min(MAX_SPEED, (state[5] + pz) * (1 - drag)));
+        boolean hits = bounce >= 0 && blocks != null;
+        for (int c = 0; c < 3; c++) {
+            double was = state[c];
+            state[c] = Math.max(-REACH, Math.min(REACH, was + state[3 + c]));
+            if (hits && blocks.solid(state[0], state[1], state[2])) {
+                state[c] = was;
+                state[3 + c] = -state[3 + c] * bounce;
+            }
+        }
+    }
+
+    /** Where a free particle is and how it looks, as {@link #at} gives it for the others. */
+    public void look(int i, int n, double t, long seed, double[] vars, double[] state, double[] out) {
+        fill(i, n, t, seed, vars);
+        own(t, vars, state);
+        out[X] = state[0];
+        out[Y] = state[1];
+        out[Z] = state[2];
+        looks(t, vars, out);
+    }
+
+    private void looks(double t, double[] vars, double[] out) {
+        out[SIZE] = size.eval(vars, 0, 8, 0.1);
         out[ALPHA] = alpha.eval(vars, 0, 1, 0) * fade(t, duration);
         out[SHADE] = shade.eval(vars, 0, 1, 0);
     }

@@ -81,9 +81,43 @@ final class ScriptWorld implements ScriptHost {
     private final String label;
     private Memory.Work work;
     private int placed, leftAlone, claimed;
+    /** A preview: nothing is placed or done; the blocks the program would place are kept here (key -> material ordinal). */
+    private boolean dry;
+    private final Map<Long, Integer> ghost = new LinkedHashMap<>();
+
+    /** Makes this run a preview: the world is read but never changed. */
+    void preview() {
+        dry = true;
+    }
+
+    /** What a preview would have placed. */
+    Map<Long, Integer> ghost() {
+        return ghost;
+    }
     /** What this script made (creatures and shapes), by the id the script knows it by. It can touch nothing else. */
     private final Map<Integer, UUID> made = new HashMap<>();
     private int nextId;
+    /** The longest power result a script reads back. */
+    static final int MAX_RESULT = 2000;
+    private volatile byte[] picture;
+    private volatile String pictureCaption;
+
+    /** The last picture a power made during this script, or null. */
+    byte[] picture() {
+        return picture;
+    }
+
+    String pictureCaption() {
+        return pictureCaption;
+    }
+
+    @Override
+    public java.util.List<String> powers() {
+        java.util.List<String> names = new java.util.ArrayList<>();
+        for (GodTool t : ToolRegistry.all()) names.add(t.name());
+        java.util.Collections.sort(names);
+        return names;
+    }
 
     /** @param label the name the script's blocks are remembered under, as one of the god's works */
     ScriptWorld(String label) {
@@ -162,25 +196,97 @@ final class ScriptWorld implements ScriptHost {
 
     @Override
     public Map<String, Object> power(String name, Map<String, Object> args) throws ScriptRefusal {
+        if (dry) {
+            Map<String, Object> skipped = new LinkedHashMap<>();
+            skipped.put("ok", true);
+            skipped.put("text", "(preview: " + name + " was not used)");
+            return skipped;
+        }
         if (Bukkit.isPrimaryThread()) throw new ScriptRefusal("powers cannot be used from here");
         JsonObject input = GSON.toJsonTree(args == null ? Map.of() : args).getAsJsonObject();
         ToolResult r = ToolRegistry.execute(name, input, "brain").result();
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("ok", !r.isError());
         String text = r.text() == null ? "" : r.text();
-        out.put("text", text.length() > 600 ? text.substring(0, 599) + "…" : text);
+        // The whole result, so the script can read it and act on it in its next call.
+        int max = name.equals("search_web") ? WebTools.MAX_ANSWER + 100 : MAX_RESULT;
+        out.put("text", text.length() > max ? text.substring(0, max - 1) + "…" : text);
+        if (r.hasImage()) {
+            // A script cannot see a picture; the god is shown the last one when the script ends.
+            picture = r.png();
+            pictureCaption = text.length() > 300 ? text.substring(0, 299) + "…" : text;
+        }
+        out.put("image", r.hasImage());
         return out;
     }
 
     @Override
     public void sleep(int ticks) throws InterruptedException {
+        if (dry) return; // a preview does not wait
         Thread.sleep(ticks * 50L);
         if (GPTGOD.get() == null || !GPTGOD.get().isEnabled()) throw new InterruptedException("the server is closing");
     }
 
     // ---- The calls (server thread) ---------------------------------------------------------------------
 
+    /** A preview's calls: blocks are remembered, the world is read as it is plus them, nothing else happens. */
+    private Object dryDispatch(String fn, List<Object> a) throws ToolException, ScriptRefusal {
+        switch (fn) {
+            case "world.place": {
+                World w = world();
+                if (ghost.size() + a.size() > GodSettings.maxBlockChanges()) {
+                    throw new ToolException("That would change " + (ghost.size() + a.size()) + " blocks; the limit is "
+                            + GodSettings.maxBlockChanges() + ".");
+                }
+                for (Object o : a) {
+                    Placement p = (Placement) o;
+                    if (p.y() < w.getMinHeight() || p.y() >= w.getMaxHeight()) {
+                        throw new ToolException("y " + p.y() + " is outside the world (" + w.getMinHeight() + " to "
+                                + (w.getMaxHeight() - 1) + ").");
+                    }
+                    Material m = data(p.block()).getMaterial();
+                    long key = net.bigyous.gptgodmc.god.vision.BuildSheet.key(p.x(), p.y(), p.z());
+                    if (m.isAir()) ghost.remove(key);
+                    else ghost.put(key, m.ordinal());
+                }
+                return null;
+            }
+            case "world.block": {
+                Location l = block(a, 0);
+                Integer g = ghost.get(net.bigyous.gptgodmc.god.vision.BuildSheet.key(l.getBlockX(), l.getBlockY(),
+                        l.getBlockZ()));
+                return g == null ? NOT_DRY : Material.values()[g].getKey().getKey();
+            }
+            case "world.spawn": {
+                List<Object> ids = new ArrayList<>();
+                int n = a.size() > 4 ? Math.max(1, Math.min(8, ScriptValues.whole(a, 4, "count"))) : 1;
+                for (int i = 0; i < n; i++) ids.add((double) -(i + 1));
+                return ids;
+            }
+            case "world.display":
+                return -1.0;
+            case "command":
+                return "(preview: the command was not run)";
+            case "world.time", "world.weather":
+                return a.isEmpty() ? NOT_DRY : null;
+            case "entity.get":
+                return new LinkedHashMap<String, Object>();
+            default:
+                break;
+        }
+        for (net.bigyous.gptgodmc.god.script.ScriptApi.Fn f : net.bigyous.gptgodmc.god.script.ScriptApi.ALL) {
+            if (f.name().equals(fn) && f.kind() == net.bigyous.gptgodmc.god.script.ScriptApi.Kind.DO) return null;
+        }
+        return NOT_DRY; // a question about the world: answered as usual
+    }
+
+    private static final Object NOT_DRY = new Object();
+
     private Object dispatch(String fn, List<Object> a) throws ToolException, ScriptRefusal {
+        if (dry) {
+            Object r = dryDispatch(fn, a);
+            if (r != NOT_DRY) return r;
+        }
         switch (fn) {
             case "world.place":
                 place(a);
@@ -656,8 +762,18 @@ final class ScriptWorld implements ScriptHost {
         if (refused != null) throw new ToolException(refused);
     }
 
+    /** The world a god's running script works in when it is not its home world (by realm id). */
+    private static final java.util.Map<String, World> WORKING = new java.util.concurrent.ConcurrentHashMap<>();
+
+    /** Sets (or with null clears) the world this god's script works in. */
+    static void workIn(String realm, World world) {
+        if (world == null) WORKING.remove(realm);
+        else WORKING.put(realm, world);
+    }
+
     private static World world() throws ToolException {
-        World w = Realm.current().world();
+        World chosen = WORKING.get(Realm.current().id);
+        World w = chosen != null && Bukkit.getWorld(chosen.getUID()) != null ? chosen : Realm.current().world();
         if (w == null) throw new ToolException("You have no world to act in right now.");
         return w;
     }

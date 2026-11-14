@@ -48,7 +48,9 @@ final class BuildTools {
                                 + "'prison'), 'vanilla:<structure>' (e.g. vanilla:village_plains), "
                                 + "'template:<path>' (from blueprints search) or 'schematic:<name>'. Built beside the "
                                 + "target and facing it (a prison or arena is built around the target). The ground "
-                                + "is cleared and leveled; it will not build over mortals' structures.",
+                                + "is cleared and leveled; it will not build over mortals' structures, and a design "
+                                + "whose spot already holds something built moves a little aside to spare it (the "
+                                + "result says so).",
                         Schema.object()
                                 .str("blueprint", "What to build.", true)
                                 .str("at", "Where: " + Targets.TARGET_HELP + ".", true)
@@ -60,7 +62,9 @@ final class BuildTools {
                                 .str("name", "A name for this work, e.g. 'Temple of the Violet Hour'.", false)
                                 .str("material", "Optional: build every full block of it in this one block, e.g. "
                                         + "diamond_block for a diamond mansion (stairs, slabs, glass and doors keep "
-                                        + "theirs).", false),
+                                        + "theirs).", false)
+                                .bool("over", "true = raise a design exactly on the spot even if something built "
+                                        + "already stands there and will be erased. Default false.", false),
                         BuildTools::build),
                 GodTool.sync("unbuild",
                         "Unmake one of your works, restoring what was there before.",
@@ -188,10 +192,19 @@ final class BuildTools {
             at = beside(targetLoc, targetPlayer, Math.max(plan.width(), plan.depth()) / 2 + 3);
             rot = rotation(a.str("facing", "toward"), at, targetLoc);
         }
-        Memory.Work w = Builder.build(plan.rotated(rot), at, name, design.id() + " (" + style.id() + ")",
+        Plan placed = plan.rotated(rot);
+        String moved = "";
+        if (!design.centerOnTarget() && !a.bool("over", false)) {
+            // Much of what mortals make is on no record: do not raise this on top of it.
+            net.bigyous.gptgodmc.god.build.Site.Choice site = net.bigyous.gptgodmc.god.build.Site.settle(placed, at,
+                    targetLoc, BuildTools::ground);
+            at = site.at();
+            moved = site.note();
+        }
+        Memory.Work w = Builder.build(placed, at, name, design.id() + " (" + style.id() + ")",
                 !design.id().equals("prison"), style.base());
-        return ToolResult.ok("Building %s [%s] (%s, %d blocks, %s style) at %s; it rises over the next moments.",
-                w.name, w.id, w.size, w.blocks, style.id(), Targets.describe(at));
+        return ToolResult.ok("Building %s [%s] (%s, %d blocks, %s style) at %s; it rises over the next moments.%s",
+                w.name, w.id, w.size, w.blocks, style.id(), Targets.describe(at), moved);
     }
 
     private static ToolResult vanilla(String id, Location at, String name) {

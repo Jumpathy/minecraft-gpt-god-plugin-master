@@ -48,6 +48,7 @@ public final class ModLink implements Listener {
         Bukkit.getPluginManager().registerEvents(new ModLink(), p);
         ticker = Bukkit.getScheduler().runTaskTimer(p, ModLink::tick, 40L, 10L);
         ModGui.enable(p);
+        net.bigyous.gptgodmc.god.FxTriggers.enable(p);
     }
 
     public static void disable() {

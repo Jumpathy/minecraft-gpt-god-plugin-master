@@ -166,6 +166,13 @@ public final class Vessel {
     private TrueFormShow trueForm;
     /** Display-entity wings, worn in moods that bring them. */
     private final VesselWings wingRig = new VesselWings();
+    /** What it holds in its right hand (a relic from its armory), or nothing. */
+    private final VesselHeld held = new VesselHeld();
+
+    /** Its right hand: what it holds, and the blows it readies. */
+    public VesselHeld held() {
+        return held;
+    }
 
     /** The god's choice for its wings: auto (they come and go), spread, fold or hide. */
     public VesselWings.Choice wingChoice() {
@@ -328,7 +335,7 @@ public final class Vessel {
         if (realm.dormant()) return; // turned off: no body until turned on
         if (trueForm != null) return; // the true form holds its place until it folds away
         if (departing != null) abortDeparture(); // called back while leaving: it forms anew
-        Location spot = safeSpot(groundSpot(at));
+        Location spot = apart(safeSpot(groundSpot(at)));
         if (arrival != null) {
             if (spot.getWorld().equals(pos.getWorld()) && spot.distanceSquared(pos) < 16) {
                 pos = spot; // close enough: the storm already gathering there will do
@@ -756,6 +763,7 @@ public final class Vessel {
 
     private void danceCues(Map<Bone, Frame> frames, float age) {
         for (Choreo.Cue c : Choreo.cuesBetween(dance, danceLastAge, age)) {
+            if (c.hit()) held.hit(bodyLocation(), frames, unit()); // a wielded weapon's blow lands now
             Location at = switch (c.at()) {
                 case "rhand" -> bodyPoint(frames, Bone.RIGHT_ARM, -1, -10, 0);
                 case "lhand" -> bodyPoint(frames, Bone.LEFT_ARM, 1, -10, 0);
@@ -1244,6 +1252,7 @@ public final class Vessel {
             if ((p.kind() == Kind.SKIN) == skinned) player.showEntity(GPTGOD.get(), p.entity());
             else player.hideEntity(GPTGOD.get(), p.entity());
         }
+        held.showTo(player);
     }
 
     /** Re-picks which body a player sees in every realm, after their resource pack status changed. */
@@ -1298,6 +1307,7 @@ public final class Vessel {
         if (dots != null) all.add(dots);
         if (nameplate != null) all.add(nameplate);
         all.addAll(wingRig.entities());
+        all.addAll(held.entities());
         return all;
     }
 
@@ -1306,6 +1316,7 @@ public final class Vessel {
         entities().forEach(Entity::remove);
         pieces.clear();
         wingRig.forget();
+        held.forget();
         hitbox = null;
         bubble = null;
         dots = null;
@@ -1336,6 +1347,7 @@ public final class Vessel {
     private void clearRefs() {
         pieces.clear();
         wingRig.forget();
+        held.forget();
         hitbox = null;
         bubble = null;
         dots = null;
@@ -1620,6 +1632,7 @@ public final class Vessel {
         wingRig.tick(this::setupDisplay, bodyLocation(), frames, unit(), trueForm == null && GodSettings.vesselWings(),
                 mood.wings, look == null ? null : look.name(), air, flight, time(), ticks,
                 GodSettings.vesselOutline() ? glowColor() : null);
+        held.tick(this::setupDisplay, bodyLocation(), frames, unit(), trueForm == null);
 
         if (ticks % 4 == 0) {
             Location body = bodyLocation();
@@ -1627,6 +1640,7 @@ public final class Vessel {
                 p.entity().teleport(body);
             }
             wingRig.teleport(body);
+            held.teleport(body);
             hitbox.teleport(hitboxSpot());
         }
         if (bubble != null) {
@@ -2111,6 +2125,43 @@ public final class Vessel {
             if (!b.isPassable()) return Math.max(0, h - body - 0.1);
         }
         return 24;
+    }
+
+    /**
+     * A spot near the wanted one where no other god's body stands or is forming, so several gods called to
+     * one place (a mortal joining) arrive side by side instead of inside each other.
+     */
+    private Location apart(Location spot) {
+        if (spot == null || spot.getWorld() == null) return spot;
+        java.util.List<Location> others = new java.util.ArrayList<>();
+        for (net.bigyous.gptgodmc.god.Realm r : net.bigyous.gptgodmc.god.Realm.all()) {
+            if (r == realm) continue;
+            try {
+                Location o = r.vessel().location();
+                if (o != null && spot.getWorld().equals(o.getWorld())) others.add(o);
+            } catch (RuntimeException e) {
+                // a god without a body takes no room
+            }
+        }
+        double gap = Math.max(2.5, 1.7 * scale());
+        if (others.isEmpty() || roomy(spot, others, gap)) return spot;
+        for (int ring = 1; ring <= 4; ring++) {
+            for (int k = 0; k < 8; k++) {
+                double a = k * Math.PI / 4 + ring * 0.4;
+                Location want = spot.clone().add(Math.cos(a) * gap * ring, 0, Math.sin(a) * gap * ring);
+                Location s = safeSpot(groundSpot(want));
+                if (s != null && Math.abs(s.getY() - spot.getY()) <= 4 && roomy(s, others, gap)) return s;
+            }
+        }
+        return spot;
+    }
+
+    private static boolean roomy(Location spot, java.util.List<Location> others, double gap) {
+        for (Location o : others) {
+            double dx = o.getX() - spot.getX(), dz = o.getZ() - spot.getZ();
+            if (dx * dx + dz * dz < gap * gap && Math.abs(o.getY() - spot.getY()) < 8) return false;
+        }
+        return true;
     }
 
     /** Open ground near a wanted spot that its body fits on (nearest first), or the spot itself. */

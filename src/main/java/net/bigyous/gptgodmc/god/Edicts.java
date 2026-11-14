@@ -243,8 +243,19 @@ public final class Edicts {
 
         /** True when an unfinished one-shot command has waited long enough to ask the god to look again. */
         public synchronized Edict needsNudge(int retries, long now) {
+            return needsNudge(retries, now, false, 0);
+        }
+
+        /**
+         * The same for a god whose mind may be at work. Never while it is thinking: it has the command
+         * before it and may yet close it (a nudge armed then would start a thought with nothing to do).
+         * And the wait runs from the end of its last thought, not from when that thought began.
+         */
+        public synchronized Edict needsNudge(int retries, long now, boolean thinking, long thoughtEnded) {
+            if (thinking) return null;
             for (Edict e : pending) {
-                if (!e.standing() && e.thoughts < retries && now - Math.max(e.issuedAt, e.lastSeenAt) >= NUDGE_MS) {
+                long since = Math.max(Math.max(e.issuedAt, e.lastSeenAt), thoughtEnded);
+                if (!e.standing() && e.thoughts < retries && now - since >= NUDGE_MS) {
                     return e;
                 }
             }
@@ -317,7 +328,9 @@ public final class Edicts {
     public static boolean mayCommand(CommandSender sender) {
         if (sender instanceof Player p) return p.hasPermission("gptgodmc.admin");
         return sender instanceof org.bukkit.command.ConsoleCommandSender
-                || sender instanceof org.bukkit.command.RemoteConsoleCommandSender;
+                || sender instanceof org.bukkit.command.RemoteConsoleCommandSender
+                // The debug bridge runs console commands with a sender of its own, to hand back the feedback.
+                || net.bigyous.gptgodmc.bridge.DebugBridge.isConsole(sender);
     }
 
     /**
@@ -371,7 +384,45 @@ public final class Edicts {
                 : who + " has carried out your command #" + number + " (\"" + shorten(e.text, 80) + "\"): " + report;
         Journal.add(Journal.Kind.INFO, "Command #" + number + (impossible ? " impossible: " : " done: ") + report);
         notify(e, text);
+        settle();
         return e;
+    }
+
+    /** The two wake reasons that name a binding command (see {@link #wakeFor} and {@link #tick}). */
+    private static final java.util.regex.Pattern NAMES_COMMAND = java.util.regex.Pattern.compile(
+            "(?:binding command #(\\d{1,9}) from the operator is not yet done"
+                    + "|the server operator gave you binding command #(\\d{1,9}))");
+
+    /**
+     * A waiting wake reason ("a; b; c", as {@link God#requestAttention} joins them) without the parts that
+     * only name a binding command which is no longer open. Null when nothing else is left. Pure.
+     */
+    static String withoutClosed(String reason, java.util.Collection<Integer> open) {
+        if (reason == null) return null;
+        List<String> keep = new ArrayList<>();
+        for (String part : reason.split("; ")) {
+            java.util.regex.Matcher m = NAMES_COMMAND.matcher(part);
+            if (m.matches()) {
+                int number = Integer.parseInt(m.group(1) != null ? m.group(1) : m.group(2));
+                if (!open.contains(number)) continue;
+            }
+            if (!part.isBlank()) keep.add(part);
+        }
+        return keep.isEmpty() ? null : String.join("; ", keep);
+    }
+
+    /**
+     * A command was closed, withdrawn or dropped: a wake that was waiting only to bring it before the god
+     * is no longer needed (it would begin a thought with nothing to do). Other reasons to look stay.
+     */
+    private static void settle() {
+        Realm r = Realm.current();
+        String had = r.attentionReason;
+        if (r.attentionAt == 0 || had == null) return;
+        String left = withoutClosed(had, book().pending().stream().filter(e -> !e.standing())
+                .map(e -> e.number).toList());
+        if (left == null) God.attentionServed(r);
+        else if (!left.equals(had)) r.attentionReason = left;
     }
 
     /** Operator: cancels one command (or all with number <= 0). Returns what was removed. */
@@ -380,6 +431,7 @@ public final class Edicts {
         for (Edict e : gone) {
             Journal.add(Journal.Kind.INFO, "Command #" + e.number + " cancelled by the operator");
         }
+        if (!gone.isEmpty()) settle();
         return gone;
     }
 
@@ -427,11 +479,15 @@ public final class Edicts {
         if (b.pending().isEmpty()) return;
         long now = System.currentTimeMillis();
         int retries = retries();
-        for (Notice n : b.expire(retries, now)) {
+        List<Notice> lapsed = b.expire(retries, now);
+        for (Notice n : lapsed) {
             notify(n.edict(), n.text());
         }
+        if (!lapsed.isEmpty()) settle();
         if (r.awake && !r.paused && !Godslayer.isSlain(r)) {
-            Edict waiting = b.needsNudge(retries, now);
+            GodBrain brain = r.brainIfStarted();
+            Edict waiting = b.needsNudge(retries, now, brain != null && brain.isThinking(),
+                    brain == null ? 0 : brain.lastThoughtEnded());
             if (waiting != null && r.attentionAt == 0) {
                 God.requestAttention("binding command #" + waiting.number + " from the operator is not yet done");
             }

@@ -94,6 +94,14 @@ god:
   language: en
   # Show the god's name, epithet and state at the top of the player list (Tab)
   tab-list: true
+  # When a god's power touches a player or the land near them, they read who did it above the hotbar
+  # ("Thyvoru healed you", "MusicMaker raised a ward here"), so nothing looks like the server glitching
+  signs: true
+  # true = a god may bear the name of a god of ancient myth (Zeus, Athena, Odin, Anubis...): when its
+  # personality makes it that god, or when it renames itself. false = gods invent their own names.
+  # Figures of living faiths and famous fictional characters are never taken. A name you choose
+  # yourself (/god create, the God Manager) is always allowed.
+  myth-names: true
 
 
 # --------------------------------------------------------------------------------------------
@@ -217,6 +225,10 @@ awareness:
   memories: true
   # Minutes between two such memories (5-240)
   memory-gap-minutes: 10
+  # It sees how each mortal looks: hair and clothes from their skin, or bare skin (a player whose skin
+  # is naked, with no armor over it). What it makes of that is its own choice, by its nature. Each skin
+  # is fetched once from Mojang's texture server and read by code: no model call, no cost.
+  avatars: true
 
 # --------------------------------------------------------------------------------------------
 #  SECURITY: guarding the god against manipulation (prompt injection)
@@ -255,6 +267,10 @@ operator:
   # (still in its own voice, and never ruining the world). Off by default; also in the God Manager
   # (Advanced > Mind).
   revere-ops: false
+  # EssentialsX (god mode) and WorldGuard also have a /god command, and whichever plugin loads first
+  # keeps it. true = once all plugins have loaded, /god is taken back for the gods; theirs stays at
+  # /essentials:god (or /egod) and /worldguard:god. false = leave /god to them and use /gptgod.
+  claim-god-command: true
 
 # --------------------------------------------------------------------------------------------
 #  PANTHEON (several gods in the same world)
@@ -478,8 +494,10 @@ worldedit:
 #  the god's worlds are also imported into it (mv import), so /mv commands know them.
 worlds:
   enabled: true
-  # The most god-made worlds at once (the labyrinth's world counts as one)
-  max: 4
+  # The most god-made worlds at once (the labyrinth's world counts as one). A god's powers work in
+  # the worlds it made too: it builds, reshapes and acts there by naming the world before the
+  # coordinates ("god_ashen_reach 0 64 0") or with the script and worldedit powers.
+  max: 25
   multiverse-import: true
 
 # The labyrinth: a mortal is taken to a maze in a sealed void world and is free again when they
@@ -625,6 +643,10 @@ vision:
   # An image costs about width x height / 750 input tokens: roughly 270 for one 448 px panel, and
   # about 340 when players are split over two panels.
   auto-minimap: "off"
+  # WRITING IN BLOCKS: when a player lays blocks out like letters ("I HATE VAEL" in dirt) and then stops
+  # for a few seconds, the god is woken and shown a picture of it so it can read it. Once per piece of
+  # writing; the picture costs about 525 input tokens. Needs senses.enabled.
+  auto-read-writing: true
   # Pixels along one side of a single panel (256-768). Larger is easier to read and costs more.
   minimap-size: 448
   # Blocks from the centre to the edge when the god does not say (12-96)
@@ -807,6 +829,11 @@ voice:
     # This is the longest the text will wait for the voice, in milliseconds; 0 = show text at once.
     # Nothing waits when nobody listening has the voice chat mod.
     text-wait-ms: 2500
+    # true = when the voice server makes speech slower than it plays (Kokoro on a busy CPU), a line's
+    # first words wait until the rest can be made while they play, so the voice has no gaps in the
+    # middle of a line. A fast server (GPU) still starts after its first phrase. false = always start
+    # at once (earliest first words, but choppy on a slow server).
+    smooth: true
     # For engine kokoro / openai-compatible
     url: http://localhost:8880/v1/audio/speech
     api-key: ""

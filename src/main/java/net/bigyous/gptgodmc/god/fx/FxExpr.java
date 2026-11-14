@@ -17,13 +17,40 @@ public final class FxExpr {
     public static final int MAX_STEPS = 160;
 
     /** The values a formula may read, in the order callers fill them in. */
-    public static final int T = 0, P = 1, I = 2, U = 3, N = 4, SEED = 5, VARS = 6;
+    public static final int T = 0, P = 1, I = 2, U = 3, N = 4, SEED = 5;
+    /** The mortal watching, as their own game fills it in: their eyes from the layer's place, and so on. */
+    public static final int EX = 6, EY = 7, EZ = 8, D = 9, LOOK = 10, SPEED = 11;
+    /** A particle that keeps its motion: where it is, how fast, which life it is on and how far through it. */
+    public static final int PX = 12, PY = 13, PZ = 14, VX = 15, VY = 16, VZ = 17, K = 18, A = 19, VARS = 20;
+    /** What d is where nobody's game is watching (the server's sketch for mortals without the mod). */
+    public static final double FAR = 8;
 
     public static final String NAMES = "t (ticks since the layer began), p (its progress 0-1), i (this one's number, from 0), "
             + "n (how many), u (i/(n-1), 0-1), r (a random 0-1 that stays with this one; rand(k) gives others), pi, tau; "
             + "+ - * / % ^ and < > <= >= == != (1 or 0); sin cos tan asin acos atan atan2(y,x) sqrt abs sign floor ceil "
             + "round fract exp log pow(a,b) min(a,b) max(a,b) mod(a,b) clamp(x,lo,hi) mix(a,b,k) step(edge,x) "
-            + "smooth(a,b,x) ease(x) noise(x,y,z) (-1 to 1, smooth) if(cond,a,b)";
+            + "smooth(a,b,x) ease(x) noise(x,y,z) (-1 to 1, smooth) if(cond,a,b); and, worked out for each mortal by "
+            + "their own game so each sees it answer to them: d (blocks from their eyes to the layer's place), look (0-1, "
+            + "1 = they look straight at it), speed (their blocks a tick), ex ey ez (their eyes, from the layer's place)";
+
+    /**
+     * Fills in what a formula knows of the mortal watching: their eyes (blocks from the layer's place), the way
+     * they look (a unit vector) and how fast they move.
+     */
+    public static void viewer(double[] vars, double ex, double ey, double ez, double lx, double ly, double lz, double speed) {
+        double d = Math.sqrt(ex * ex + ey * ey + ez * ez);
+        vars[EX] = ex;
+        vars[EY] = ey;
+        vars[EZ] = ez;
+        vars[D] = d;
+        vars[LOOK] = d < 1e-6 ? 1 : Math.max(0, -(ex * lx + ey * ly + ez * lz) / d);
+        vars[SPEED] = speed;
+    }
+
+    /** Nobody is watching from here: far enough, and looking elsewhere. */
+    public static void nobody(double[] vars) {
+        viewer(vars, 0, 0, FAR, 0, 0, 1, 0);
+    }
 
     /** Thrown with a message meant for the god. */
     public static final class Invalid extends Exception {
@@ -92,7 +119,7 @@ public final class FxExpr {
         return fixed;
     }
 
-    /** vars holds T, P, I, U, N and SEED. The result may be infinite or not a number. */
+    /** vars holds VARS numbers (the first six are enough for a formula of those). The result may be infinite or not a number. */
     public double eval(double[] vars) {
         return fixed ? value : run(vars);
     }
@@ -199,13 +226,18 @@ public final class FxExpr {
 
     /** A number 0..1 that depends only on what it is given. */
     public static double hash(long x, long y, long z, long seed) {
-        long h = x * 0x9E3779B97F4A7C15L ^ y * 0xC2B2AE3D27D4EB4FL ^ z * 0x165667B19E3779F9L ^ seed * 0x27D4EB2F165667C5L;
-        h ^= h >>> 32;
-        h *= 0xD6E8FEB86659FD93L;
-        h ^= h >>> 32;
-        h *= 0xD6E8FEB86659FD93L;
-        h ^= h >>> 32;
+        long h = mix(seed + 0x9E3779B97F4A7C15L);
+        h = mix(h ^ x);
+        h = mix(h ^ y);
+        h = mix(h ^ z);
         return (h >>> 11) * 0x1.0p-53;
+    }
+
+    /** Stirs a number so that near inputs give unrelated outputs. */
+    private static long mix(long h) {
+        h = (h ^ (h >>> 30)) * 0xBF58476D1CE4E5B9L;
+        h = (h ^ (h >>> 27)) * 0x94D049BB133111EBL;
+        return h ^ (h >>> 31);
     }
 
     /** Smooth noise, -1..1: the same place always gives the same value, and near places give near values. */
@@ -363,6 +395,20 @@ public final class FxExpr {
                 case "i" -> value(I);
                 case "u" -> value(U);
                 case "n" -> value(N);
+                case "ex" -> value(EX);
+                case "ey" -> value(EY);
+                case "ez" -> value(EZ);
+                case "d" -> value(D);
+                case "look" -> value(LOOK);
+                case "speed" -> value(SPEED);
+                case "px" -> value(PX);
+                case "py" -> value(PY);
+                case "pz" -> value(PZ);
+                case "vx" -> value(VX);
+                case "vy" -> value(VY);
+                case "vz" -> value(VZ);
+                case "k" -> value(K);
+                case "a" -> value(A);
                 case "r" -> {
                     number(0);
                     varies = true;

@@ -109,6 +109,20 @@ final class GodPages {
         // Quick actions.
         int bx = x + w - side, by = y;
         boolean paused = d != null && d.paused(), off = d != null ? d.dormant() : g.state().equals("off");
+        if (g.state().equals("slain")) {
+            // A slain god can only be called back.
+            boolean busy = s.m.busy("ov");
+            if (ui.button(busy ? "The veil tears…" : "✦ Revive " + g.label(), bx, by, side, 22, Ui.PRIMARY, !busy)) {
+                GuiClient.act("ov", realm, "revive", null);
+            }
+            ui.tipIf(bx, by, side, 22, "A rift opens in front of you and " + g.label() + " returns from death through it.");
+            by += 26;
+            ui.wrapSmall("Slain: it does not think, has no body and answers no prayers until it is revived.", bx, by, side,
+                    Ui.DIM, 5);
+            by += 44;
+            Pages.feedback(s, "ov", bx, by, side, 8);
+            return;
+        }
         if (ui.button("Wake now", bx, by, side, 16, Ui.PRIMARY, true)) GuiClient.act("ov", realm, "wake", null);
         ui.tipIf(bx, by, side, 16, "It looks at its world right now.");
         by += 19;

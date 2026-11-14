@@ -21,7 +21,8 @@ import net.bigyous.gptgodmc.god.vessel.VesselModel.Pose;
  * {@code t=0.5 body=pitch,turn,roll torso=bend head=turn,tilt larm=fwd,out[,twist] rarm=… lleg=fwd,out
  * rleg=… cape=flare rise=h slide=x,z ease=smooth|linear|snap}. A channel left out of a keyframe follows
  * the idle pose until a keyframe sets it. A cue is {@code t=1 fx=heart at=rhand n=8 sound=entity.player.levelup
- * pitch=1.2 vol=1}.
+ * pitch=1.2 vol=1}; a cue that says {@code hit} is the moment a weapon the god wields lands, when it strikes
+ * with the animation (the built-in weapon animations, {@link #WEAPON_STYLES}, have one).
  */
 public final class Choreo {
     private Choreo() {
@@ -94,8 +95,14 @@ public final class Choreo {
         }
     }
 
-    /** A moment's particles and/or sound. */
-    public record Cue(int tick, String particle, String at, int count, String sound, float pitch, float volume) {
+    /** A moment's particles and/or sound, and whether a wielded weapon lands then (hit). */
+    public record Cue(int tick, String particle, String at, int count, String sound, float pitch, float volume,
+            boolean hit) {
+    }
+
+    /** True when an animation has a moment where a wielded weapon lands. */
+    public static boolean strikes(Anim a) {
+        return a != null && a.cues().stream().anyMatch(Cue::hit);
     }
 
     /** A parsed, clamped animation. warnings lists every value that was clamped or ignored. */
@@ -170,7 +177,7 @@ public final class Choreo {
                 if (c == null) continue;
                 if (c.tick > length) {
                     warn.add("a cue at " + fmt(c.tick / 20f) + "s came after the last keyframe; moved to the end");
-                    c = new Cue(length, c.particle, c.at, c.count, c.sound, c.pitch, c.volume);
+                    c = new Cue(length, c.particle, c.at, c.count, c.sound, c.pitch, c.volume, c.hit);
                 }
                 cues.add(c);
             }
@@ -194,7 +201,7 @@ public final class Choreo {
             if (line.isEmpty()) continue;
             if (line.startsWith("loop") || line.startsWith("once")) {
                 loop = line.startsWith("loop");
-            } else if (line.contains("fx=") || line.contains("sound=")) {
+            } else if (line.contains("fx=") || line.contains("sound=") || line.matches(".*(^|\\s)hit(\\s|=|$).*")) {
                 cues.add(line);
             } else {
                 keys.add(line);
@@ -260,8 +267,13 @@ public final class Choreo {
         String fx = null, at = "body", sound = null;
         int n = 8;
         float pitch = 1, vol = 1;
+        boolean hit = false;
         for (String tok : tokens(line)) {
             int eq = tok.indexOf('=');
+            if (tok.equalsIgnoreCase("hit")) {
+                hit = true;
+                continue;
+            }
             if (eq <= 0) continue;
             String k = tok.substring(0, eq).toLowerCase(Locale.ROOT);
             String val = tok.substring(eq + 1).trim();
@@ -288,11 +300,12 @@ public final class Choreo {
                 }
                 case "pitch" -> pitch = Math.max(0.5f, Math.min(2f, num(val, 1)));
                 case "vol", "volume" -> vol = Math.max(0.1f, Math.min(2f, num(val, 1)));
+                case "hit" -> hit = !val.equalsIgnoreCase("false") && !val.equals("0") && !val.equalsIgnoreCase("no");
                 default -> warn.add("unknown cue field '" + k + "'");
             }
         }
-        if (fx == null && sound == null) return null;
-        return new Cue(tick, fx, at, n, sound, pitch, vol);
+        if (fx == null && sound == null && !hit) return null;
+        return new Cue(tick, fx, at, n, sound, pitch, vol, hit);
     }
 
     private static int seconds(String val, List<String> warn, String what) {
@@ -349,6 +362,7 @@ public final class Choreo {
                 .append(c.count);
         if (c.sound != null) sb.append(" sound=").append(c.sound).append(" pitch=").append(fmt(c.pitch))
                 .append(" vol=").append(fmt(c.volume));
+        if (c.hit) sb.append(" hit");
         return sb.toString();
     }
 
@@ -606,6 +620,61 @@ public final class Choreo {
                 t=2 rise=-0.36 lleg=96,8 rleg=72,6 torso=-2 larm=25,25 rarm=25,25 head=12,0 cape=4
                 t=4 rise=-0.36 lleg=88,8 rleg=80,6 torso=-4 larm=25,25 rarm=25,25 head=0,5 cape=0
                 """);
+        // Weapon work, for a god that wields a relic (strike): each has the hit moment its blow lands. Angles
+        // are the right arm's (rarm=forward,out,twist; out is away from the body), and the body turns into
+        // the blow. A held weapon points ahead of the fist, so an arm raised forward holds it upright.
+        m.put("draw_weapon", """
+                once
+                t=0 rarm=20,10 head=0,10
+                t=0.45 rarm=165,25,0 head=0,-25 torso=-6 cape=40
+                t=1.1 rarm=45,15,0 head=0,8 torso=2 cape=25
+                t=0.45 fx=enchant at=rhand n=24 sound=item.armor.equip_netherite pitch=0.8
+                t=0.5 fx=end_rod at=rhand n=8 sound=block.amethyst_block.resonate pitch=0.7
+                """);
+        m.put("slash", """
+                once
+                t=0 rarm=45,15 body=0,0,0 torso=0 head=0,0
+                t=0.4 rarm=40,95,-10 body=0,-40,0 torso=-6 head=-10,0 cape=35
+                t=0.58 rarm=45,-55,10 body=0,40,0 torso=10 head=10,10 cape=65 ease=linear
+                t=1.2 rarm=45,15,0 body=0,0,0 torso=0 head=0,0 cape=20
+                t=0.4 sound=item.trident.riptide_1 pitch=1.6 vol=0.6
+                t=0.5 hit fx=sweep_attack at=rhand n=1 sound=entity.player.attack.sweep pitch=0.8 vol=1.4
+                """);
+        m.put("overhead", """
+                once
+                t=0 rarm=45,15 larm=20,10 torso=0 head=0,0 rise=0
+                t=0.5 rarm=175,12,0 larm=70,25 torso=-14 head=0,-22 cape=55 rise=0.05
+                t=0.68 rarm=28,0,0 larm=40,12 torso=34 head=0,28 cape=8 rise=0 ease=linear
+                t=1.4 rarm=40,15,0 larm=20,10 torso=0 head=0,0 cape=20 rise=0
+                t=0.66 hit fx=crit at=rhand n=16 sound=entity.player.attack.strong pitch=0.7 vol=1.5
+                t=0.7 fx=explosion at=feet n=1 sound=entity.generic.explode pitch=1.6 vol=0.5
+                """);
+        m.put("thrust", """
+                once
+                t=0 rarm=45,15 torso=0 body=0,0,0 slide=0,0
+                t=0.42 rarm=25,30,0 torso=-8 body=0,-25,0 slide=0,-0.06
+                t=0.58 rarm=40,-4,0 torso=14 body=0,8,0 slide=0,0.2 ease=linear
+                t=1.2 rarm=45,15,0 torso=0 body=0,0,0 slide=0,0
+                t=0.58 hit fx=crit at=rhand n=10 sound=entity.player.attack.knockback pitch=0.8 vol=1.4
+                """);
+        m.put("reap", """
+                once
+                t=0 rarm=45,15 larm=30,10 torso=0 body=0,0,0 rise=0
+                t=0.55 rarm=30,105,-15 larm=60,-25 torso=10 body=0,-80,0 cape=45 rise=-0.05
+                t=0.82 rarm=40,-50,20 larm=50,40 torso=18 body=0,75,0 cape=75 rise=-0.08 ease=linear
+                t=1.6 rarm=40,15,0 larm=25,10 torso=0 body=0,0,0 cape=20 rise=0
+                t=0.5 sound=item.trident.riptide_1 pitch=0.6 vol=0.8
+                t=0.72 hit fx=sweep_attack at=rhand n=2 sound=entity.player.attack.sweep pitch=0.55 vol=1.6
+                """);
+        m.put("whirl", """
+                once
+                t=0 rarm=45,15 body=0,0,0 torso=0
+                t=0.3 rarm=20,95,0 body=0,-40,0 torso=5 cape=40
+                t=0.9 rarm=20,95,0 body=0,320,0 torso=5 cape=80 ease=linear
+                t=1.4 rarm=45,15,0 body=0,360,0 torso=0 cape=20
+                t=0.45 sound=item.trident.riptide_2 pitch=1.2 vol=0.7
+                t=0.62 hit fx=sweep_attack at=rhand n=3 sound=entity.player.attack.sweep pitch=0.7 vol=1.5
+                """);
         m.put("juggle", """
                 loop
                 t=0 rarm=70,-10 larm=70,-10 head=0,-20
@@ -618,6 +687,9 @@ public final class Choreo {
                 """);
         return java.util.Collections.unmodifiableMap(m);
     }
+
+    /** The built-in animations made for striking with a wielded weapon. */
+    public static final List<String> WEAPON_STYLES = List.of("slash", "overhead", "thrust", "reap", "whirl");
 
     /** A built-in animation by name, or null. */
     public static Anim preset(String name) {

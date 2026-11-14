@@ -109,6 +109,7 @@ public final class GodClientMod implements ClientModInitializer {
         net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents.COLLECT_SUBMITS.register(WORLD::submit);
 
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, ctx) -> DemoCommand.register(dispatcher));
+        net.bigyous.gptgod.client.puppet.Puppet.start(); // test-only remote control; does nothing without -Dgptgod.puppet.port
     }
 
     /**
@@ -125,6 +126,14 @@ public final class GodClientMod implements ClientModInitializer {
         if (!pinged && !ClientPlayNetworking.canSend(Payloads.Hello.TYPE)) return;
         helloSent = true;
         ClientPlayNetworking.send(new Payloads.Hello(Protocol.hello(version(), config.features())));
+    }
+
+    /** Tells the plugin that one of a scene's triggers fired for this player (key: the plugin's name for it). */
+    public static void triggered(String key) {
+        if (key == null || key.isEmpty() || Minecraft.getInstance().getConnection() == null) return;
+        if (!ClientPlayNetworking.canSend(Payloads.Main.TYPE)) return;
+        ClientPlayNetworking.send(new Payloads.Main(("{\"t\":\"trigger\",\"key\":\"" + key + "\"}")
+                .getBytes(java.nio.charset.StandardCharsets.UTF_8)));
     }
 
     private static void receive(byte[] data) {

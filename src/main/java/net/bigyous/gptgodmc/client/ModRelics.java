@@ -31,7 +31,13 @@ import net.bigyous.gptgodmc.god.art.SpriteSheet;
  * drawn texel = a film with no thickness); walls, when present, is a base64 PNG strip of the colours of
  * each texel's walls when it is given thickness: per frame a square of 2w x 2h whose quarters are the walls
  * seen from above, below, the west and the east (top-left, top-right, bottom-left, bottom-right; its frame
- * count may be 1 when the message would be too large). {"t":"relic_gone","id"} forgets one. The item a relic is carried
+ * count may be 1 when the message would be too large); shape, when present, is that form's true shape: a list
+ * of still solids in the language of scenes (FxSolid), checked and normalized by RelicShape, in sixteenths of
+ * the picture's square (x, y 0..16 from its bottom left, z -8..8): draw it at tick RelicShape.TICK, size 1/16,
+ * shifted by -0.5 in x and y, in place of the picture given thickness everywhere but inventories, lit by the
+ * world; each part names its material's tile as "texture", and textures holds those tiles (name -> base64 PNG,
+ * 16 x 16, repeating, nearest texel), laid on by u and v as RelicShape.texel does (texels the size of the picture's, w across the item): draw a part's faces as
+ * texture x vertex colour x the world's light. {"t":"relic_gone","id"} forgets one. The item a relic is carried
  * as has item_model gptgodmc:relic/&lt;id&gt;; a relic with a second, awakened form sends that form's art
  * as a second message under the id &lt;id&gt;__on, and the item's model changes to it while it is awake.
  */
@@ -70,6 +76,17 @@ public final class ModRelics {
             o.addProperty("png", strip(art, art.frames(), frames));
             if (art.lit() != null) o.addProperty("lit", strip(art, art.lit(), frames));
             o.addProperty("depth", Base64.getEncoder().encodeToString(art.depth()));
+            com.google.gson.JsonArray shape = shape(id, r);
+            if (shape != null) {
+                o.add("shape", shape);
+                JsonObject tiles = new JsonObject();
+                for (var t : net.bigyous.gptgodmc.god.art.RelicShape.tiles(shape).entrySet()) {
+                    tiles.addProperty(t.getKey(), Base64.getEncoder().encodeToString(SpriteSheet.png(SpriteSheet.strip(
+                            net.bigyous.gptgodmc.god.art.RelicTiles.SIZE, net.bigyous.gptgodmc.god.art.RelicTiles.SIZE,
+                            new int[][] { t.getValue() }))));
+                }
+                o.add("textures", tiles);
+            }
             if (wallFrames > 0 && art.walls() != null) {
                 int[][] walls = net.bigyous.gptgodmc.god.art.RelicForm.wallFrames(art);
                 o.addProperty("walls", Base64.getEncoder().encodeToString(SpriteSheet.png(SpriteSheet.strip(2 * art.w(),
@@ -78,6 +95,17 @@ public final class ModRelics {
             if (ModMessages.bytes(o).length <= ModSessions.MAX_BYTES) return o;
         }
         return null;
+    }
+
+    /** The true shape of one form of a relic, checked, or null when it has none (or it no longer builds). */
+    static com.google.gson.JsonArray shape(String id, Relic r) {
+        try {
+            net.bigyous.gptgodmc.god.art.Sprite s = Relics.sprite(r);
+            com.google.gson.JsonArray raw = id.endsWith(Relics.ON) ? (s.alt() == null ? null : s.alt().shape()) : s.shape();
+            return raw == null ? null : net.bigyous.gptgodmc.god.art.RelicShape.normalized(raw);
+        } catch (RuntimeException | net.bigyous.gptgodmc.god.art.RelicShape.Flaw e) {
+            return null;
+        }
     }
 
     private static String strip(Art art, int[][] frames, int count) {

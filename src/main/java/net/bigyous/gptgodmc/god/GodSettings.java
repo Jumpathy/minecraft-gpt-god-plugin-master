@@ -186,7 +186,31 @@ public final class GodSettings {
 
     /** live | external | off */
     public static String brainMode() {
-        return nonBlank(cfg().getString("brain.mode"), "live").toLowerCase(Locale.ROOT);
+        return brainMode(cfg().getString("brain.mode"));
+    }
+
+    /**
+     * The mode a config value means. YAML reads a bare {@code off} (or no) as the boolean false and
+     * {@code on} (or yes) as true, and Bukkit hands those back as "false" / "true": they mean off and live.
+     */
+    static String brainMode(String raw) {
+        String v = nonBlank(raw, "live").toLowerCase(Locale.ROOT);
+        return switch (v) {
+            case "false", "no" -> "off";
+            case "true", "yes", "on" -> "live";
+            default -> v;
+        };
+    }
+
+    /**
+     * After the config is read: a {@code brain.mode} that YAML took for a boolean becomes the word again
+     * (in memory), so the plugin's next save writes {@code mode: 'off'} and not {@code mode: false}.
+     * Returns true when it changed something.
+     */
+    public static boolean keepModeWord(FileConfiguration c) {
+        if (!c.isSet("brain.mode") || !c.isBoolean("brain.mode")) return false;
+        c.set("brain.mode", brainMode(String.valueOf(c.getBoolean("brain.mode"))));
+        return true;
     }
 
     public static int heartbeatSeconds() {
@@ -265,6 +289,11 @@ public final class GodSettings {
     /** awareness.sky: the one-line note on the moon and the rain ({@link Sky}). */
     public static boolean awarenessSky() {
         return cfg().getBoolean("awareness.sky", true);
+    }
+
+    /** awareness.avatars: how each mortal's skin looks, bare skin included ({@link AvatarWatch}). */
+    public static boolean awarenessAvatars() {
+        return cfg().getBoolean("awareness.avatars", true);
     }
 
     /** awareness.memories: an old memory comes back to it in quiet moments ({@link Reminiscence}). */
@@ -778,6 +807,11 @@ public final class GodSettings {
     }
 
     /** How long a line's text waits for its voice so both arrive together (0 = text at once). */
+    /** voice.tts.smooth: hold a line's first words until the rest can be made while they play. */
+    public static boolean ttsSmooth() {
+        return cfg().getBoolean("voice.tts.smooth", true);
+    }
+
     public static int ttsTextWaitMs() {
         return Math.max(0, Math.min(10_000, cfg().getInt("voice.tts.text-wait-ms", 2500)));
     }
@@ -890,6 +924,7 @@ public final class GodSettings {
         changed |= move(c, "objectiveDecay", "quests.default-minutes", false);
         changed |= move(c, "debugUrl", "debug.webhook-url", true);
         changed |= migrateTrueFormGaze(c);
+        keepModeWord(c); // the caller saves either way
 
         String override = firstNonBlank(c.getString("promptOverride"), c.getString("sandboxPrompt"));
         if (override != null && personaExtraBlank(c)) {

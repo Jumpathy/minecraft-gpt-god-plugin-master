@@ -30,9 +30,24 @@ class GodNamesTest {
     void rejectsHumanNamesWordsDigitsAndSpaces() {
         for (String n : List.of("John", "steve", "STEVE", "god", "God", "Lord", "Zeus", "Herobrine", "Az4el",
                 "Aza eleus", "", "A", "Vhal''myr", "-Oruun", "Oruun!", "x".repeat(25))) {
-            assertNotNull(GodNames.problem(n, List.of()), "should reject '" + n + "'");
+            assertNotNull(GodNames.problem(n, List.of(), false), "should reject '" + n + "'");
         }
         assertNotNull(GodNames.problem("Xaneth", List.of("xaneth")), "the name of a mortal online");
+    }
+
+    @Test
+    void godsOfAncientMythMayBeTakenWhenTheServerAllowsIt() {
+        for (String n : List.of("Zeus", "Athena", "Poseidon", "Freyja", "Anubis", "Diana", "Nyx")) {
+            assertNull(GodNames.problem(n, List.of(), true), n);
+        }
+        assertNotNull(GodNames.problem("Zeus", List.of(), false), "off: gods invent their names");
+        assertNotNull(GodNames.problem("Zeus", List.of("Zeus"), true), "a mortal online already bears it");
+        for (String n : List.of("Jesus", "Allah", "Shiva", "Gandalf", "Mario", "Herobrine", "John", "God")) {
+            String why = GodNames.problem(n, List.of(), true);
+            assertNotNull(why, n + " is never taken");
+        }
+        assertTrue(GodNames.problem("Gandalf", List.of(), true).contains("Zeus"), "it says what is allowed");
+        assertNull(GodNames.operatorProblem("Zeus"), "a name the operator chooses is always allowed");
     }
 
     @Test

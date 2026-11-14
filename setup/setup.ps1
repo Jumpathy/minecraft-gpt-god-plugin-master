@@ -1342,7 +1342,7 @@ if ($GeyserJar) {
 
 # -- Other plugins -----------------------------------------------------------------------------
 if (Get-ChildItem -LiteralPath $PluginsDir -Filter "EssentialsX*.jar" -File -ErrorAction SilentlyContinue) {
-    Add-Check "INFO" "EssentialsX" "found: it has its own /god (god mode)" @("If /god opens Essentials' god mode, use /gptgod instead.")
+    Add-Check "INFO" "EssentialsX" "found: it has its own /god (god mode)" @("GPTGOD takes /god back at start; Essentials' god mode moves to /egod.")
 }
 if (Get-ChildItem -LiteralPath $PluginsDir -Filter "LuckPerms*.jar" -File -ErrorAction SilentlyContinue) {
     Add-Check "INFO" "LuckPerms" "found" @("Let a non-op admin command the god:  lp user <name> permission set gptgodmc.admin true")

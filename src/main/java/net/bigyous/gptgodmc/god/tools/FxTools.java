@@ -27,7 +27,7 @@ final class FxTools {
     static List<GodTool> all() {
         return List.of(
                 GodTool.sync("fx_cast",
-                        "Conjure a visual effect of your own design: light, storms, sigils, wings, omens, anything "
+                        "Conjure a visual effect of your own design: light, storms, seals and glyphs, wings, omens, anything "
                                 + "you can describe as a scene. It is pure spectacle (it harms and changes nothing), "
                                 + "so use it freely and on your own initiative to make your presence, moods and "
                                 + "judgements felt, and make each one fit the moment rather than repeating yourself. "
@@ -119,6 +119,8 @@ final class FxTools {
             throw new ToolException("You have painted no texture called '" + unpainted + "'. Paint it first with fx_paint, or "
                     + "leave \"texture\" out. Your textures: " + net.bigyous.gptgodmc.god.FxPaint.of(realm).index() + ".");
         }
+        String crowded = net.bigyous.gptgodmc.god.FxSealShow.refusal(layers, scale);
+        if (crowded != null) throw new ToolException(crowded);
         // Style tokens ($primary, $mood...) become this god's colours as they are now.
         FxShow.Seen seen = FxShow.play(realm, handle, at, follow, scale, loop, FxBrainTools.styled(realm, layers), only);
         int secs = Math.max(1, FxScenes.length(layers) / 20);

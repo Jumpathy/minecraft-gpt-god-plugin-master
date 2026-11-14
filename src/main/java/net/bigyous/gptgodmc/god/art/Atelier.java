@@ -29,6 +29,7 @@ import com.anthropic.models.messages.ToolResultBlockParam;
 import com.anthropic.models.messages.ToolUnion;
 import com.anthropic.models.messages.ToolUseBlock;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -70,6 +71,9 @@ public final class Atelier {
             this(name, kind, look, god, false, false);
         }
     }
+
+    /** Set by whoever commissions on this thread: told (sprites painted so far, attempts allowed) before each step. */
+    public static final ThreadLocal<java.util.function.BiConsumer<Integer, Integer>> WATCH = new ThreadLocal<>();
 
     /** The finished work: the sprite as written, painted, how many attempts it took, and the artist's last words. */
     public record Made(Sprite sprite, Art art, int attempts, String said) {
@@ -193,6 +197,15 @@ public final class Atelier {
                 The picture you are shown includes the thing turned three quarters, so you can \
                 judge it as an object.
 
+                A special relic may also have a true shape: real geometry that players with the client mod see in \
+                place of the picture given thickness, so a blade can curve and a staff be round. Draw the \
+                picture first and get it right (it is still every inventory icon, and what everyone else \
+                holds), then trace it in parts. \
+                """).append(RelicShape.HELP).append("""
+                 You are shown the shape \
+                from the front and turned three quarters under the picture; front-on it should cover the picture. \
+                With two forms, "alt_shape" is the shape awake. Leave the shape out of plain relics.
+
                 When the commission asks for two forms, also give "alt_rows" (and "alt_accents" if you use \
                 accents): a second drawing on the same canvas with the same legend. "rows" is the thing \
                 asleep, as it is first held; "alt_rows" is the thing awake: a hilt with its blade of light \
@@ -291,6 +304,11 @@ public final class Atelier {
                 Map.of("type", "string"))));
         props.putAdditionalProperty("alt_accents", JsonValue.from(Map.of("type", "array", "description",
                 "Optional accents for alt_rows.", "items", Map.of("type", "string"))));
+        props.putAdditionalProperty("shape", JsonValue.from(Map.of("type", "array", "description",
+                "Only for a special relic: its true shape, a list of solid parts (see your instructions).", "items",
+                Map.of("type", "object"))));
+        props.putAdditionalProperty("alt_shape", JsonValue.from(Map.of("type", "array", "description",
+                "Only with alt_rows: the true shape awake.", "items", Map.of("type", "object"))));
         props.putAdditionalProperty("light", JsonValue.from(Map.of("type", "string", "description",
                 "Where the light comes from.", "enum", List.of("top-left", "top", "top-right"))));
         props.putAdditionalProperty("outline", JsonValue.from(Map.of("type", "string", "description",
@@ -357,6 +375,19 @@ public final class Atelier {
                 : "\nThat was your last attempt: this sprite is kept. Say in one line what you made.");
         java.awt.image.BufferedImage proof = SpriteSheet.proof(art);
         if (artAwake != null) proof = SpriteSheet.stacked(proof, SpriteSheet.proof(artAwake));
+        // A true shape is checked strictly: a mistake in it is a mistake in the attempt.
+        for (JsonArray shape : new JsonArray[] { sprite.shape(), awake == null ? null : awake.shape() }) {
+            if (shape == null) continue;
+            try {
+                proof = SpriteSheet.stacked(proof, RelicShape.picture(RelicShape.model(RelicShape.normalized(shape), sprite.w()), 150,
+                        0x17111F));
+            } catch (RelicShape.Flaw e) {
+                return new Attempt(null, null, "The picture painted, but its shape cannot be built: " + e.getMessage()
+                        + " Send the whole sprite again with the shape mended (or without it).", null, true);
+            }
+        }
+        if (sprite.shape() != null) sb.append(" Below them, its true shape from the front and turned three quarters"
+                + (awake != null && awake.shape() != null ? ", asleep then awake." : "."));
         return new Attempt(sprite, art, sb.toString(), SpriteSheet.png(proof), false);
     }
 
@@ -382,6 +413,14 @@ public final class Atelier {
         String said = "";
         // One request per attempt, plus one for its closing line.
         for (int turn = 0; turn <= attempts; turn++) {
+            java.util.function.BiConsumer<Integer, Integer> watching = WATCH.get();
+            if (watching != null) {
+                try {
+                    watching.accept(painted, attempts);
+                } catch (RuntimeException e) {
+                    // the work goes on unseen
+                }
+            }
             MessageCreateParams.Builder b = MessageCreateParams.builder().model(model).maxTokens(20_000)
                     .systemOfTextBlockParams(List.of(TextBlockParam.builder().text(system())
                             .cacheControl(CacheControlEphemeral.builder().build()).build()))

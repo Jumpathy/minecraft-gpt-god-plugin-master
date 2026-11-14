@@ -35,15 +35,76 @@ public final class BuildView {
     private BuildView() {
     }
 
-    private record Found(String name, String builder, World world, Set<Long> blocks, boolean grow, String how) {
+    record Found(String name, String builder, World world, Set<Long> blocks, boolean grow, String how) {
     }
 
-    private record Captured(Found found, Scene.Voxels voxels, Palette palette) {
+    /** A build read from the world and not yet drawn. */
+    record Captured(Found found, Scene.Voxels voxels, Palette palette) {
+    }
+
+    /**
+     * Draws blocks that do not exist yet (a script's preview) the way see_build draws a real build: alone,
+     * from four corners and from above. Any thread; {@code Palette.get()} must have been called on the server
+     * thread once before.
+     *
+     * @param blocks block key ({@link BuildSheet#key}) -> material ordinal
+     */
+    public static Vision.Result preview(String name, Map<Long, Integer> blocks) throws ToolException {
+        if (blocks.isEmpty()) throw new ToolException("It placed no blocks, so there is nothing to show.");
+        Set<Long> keys = new HashSet<>(blocks.keySet());
+        BuildSheet.Bounds b = BuildSheet.Bounds.of(keys);
+        if (Math.max(Math.max(b.width(), b.length()), b.height()) > MAX_SPAN) {
+            throw new ToolException("It is too large to show as one model (" + b.width() + " x " + b.length() + " x "
+                    + b.height() + " blocks). Preview a part of it.");
+        }
+        Scene.Voxels voxels = new Scene.Voxels() {
+            @Override
+            public int block(int x, int y, int z) {
+                Integer m = blocks.get(BuildSheet.key(x, y, z));
+                return m == null ? 0 : m;
+            }
+
+            @Override
+            public int light(int x, int y, int z, double daylight) {
+                return 15;
+            }
+
+            @Override
+            public int highestY(int x, int z) {
+                return b.maxY();
+            }
+
+            @Override
+            public int minY() {
+                return b.minY() - 4;
+            }
+
+            @Override
+            public int maxY() {
+                return b.maxY() + 2;
+            }
+        };
+        String where = String.format(Locale.ROOT, "AT %d %d %d", (int) Math.floor(b.cx()), b.minY(),
+                (int) Math.floor(b.cz()));
+        byte[] png = Vision.encode(BuildSheet.render(voxels, Palette.get(), keys,
+                new BuildSheet.About(name, "you (not built yet)", where), TILE));
+        Vision.save(png, "preview");
+        Map<String, Integer> materials = BuildSheet.materials(keys, voxels);
+        String text = String.format(Locale.ROOT, "Size: %d east-west x %d north-south x %d high, %d blocks, from "
+                + "(%d, %d, %d) to (%d, %d, %d). Made of: %s. The picture is one sheet: top row seen from the "
+                + "south-east, the south-west and straight above (north up); bottom row from the north-west and the "
+                + "north-east.", b.width(), b.length(), b.height(), keys.size(), b.minX(), b.minY(), b.minZ(), b.maxX(),
+                b.maxY(), b.maxZ(), BuildSheet.materialsLine(materials, 10));
+        return new Vision.Result(png, text);
     }
 
     /** Captures on the server thread, draws on the calling thread. Do not call from the server thread. */
     public static Vision.Result render(String target) throws ToolException {
-        Captured c = Sync.call(() -> capture(target), 8000);
+        return draw(Sync.call(() -> capture(target), 8000));
+    }
+
+    /** Any thread. */
+    static Vision.Result draw(Captured c) throws ToolException {
         Found f = c.found();
         Set<Long> blocks = f.grow() ? BuildSheet.grow(f.blocks(), c.voxels(), c.palette(), 6, MAX_BLOCKS)
                 : BuildSheet.standing(f.blocks(), c.voxels(), c.palette());
@@ -73,7 +134,8 @@ public final class BuildView {
         return new Vision.Result(png, text);
     }
 
-    private static Captured capture(String target) throws ToolException {
+    /** Server thread. */
+    static Captured capture(String target) throws ToolException {
         Found f = find(target == null ? "" : target.trim());
         if (f.blocks().isEmpty()) throw new ToolException("There is nothing of " + f.name() + " to see.");
         BuildSheet.Bounds b = BuildSheet.Bounds.of(f.blocks());
@@ -84,6 +146,21 @@ public final class BuildView {
         int radius = Math.max(b.width(), b.length()) / 2 + 12;
         return new Captured(f, SnapshotVoxels.capture(f.world(), (int) Math.floor(b.cx()), (int) Math.floor(b.cz()),
                 radius), Palette.get());
+    }
+
+    /**
+     * No placement by this mortal is on record and no structure is theirs here. That is not proof that nothing
+     * stands there (blocks set by commands, by other hands or long ago leave no record), so see_build answers it
+     * with what the mortal is looking at instead of a refusal the god could take for "there is nothing".
+     */
+    public static final class NoRecord extends ToolException {
+        public final String player;
+
+        NoRecord(String player) {
+            super("You have no record of " + player + " placing blocks lately, and no structure is theirs here. That "
+                    + "is no proof that nothing stands there: look (view eyes, target " + player + ") before you answer.");
+            this.player = player;
+        }
     }
 
     /** A structure by name, one of the god's works by id or name, or a mortal (what they are building). */
@@ -141,7 +218,7 @@ public final class BuildView {
             }
         }
         if (best == null) {
-            throw new ToolException(p.getName() + " has placed nothing lately and has no structure of their own here.");
+            throw new NoRecord(p.getName());
         }
         return structure(best, realm);
     }

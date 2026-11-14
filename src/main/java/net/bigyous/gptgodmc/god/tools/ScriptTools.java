@@ -61,8 +61,12 @@ final class ScriptTools {
                         .str("save_as", "Keep the program under this name if it runs without a mistake; the args you "
                                 + "gave become its parameters.", false)
                         .str("note", "With save_as: what it is for, in your words.", false)
-                        .choice("action", "run (default); read or forget a saved script by name; stop ends your "
-                                + "scripts' living handlers.", false, List.of("run", "read", "forget", "stop")),
+                        .str("world", "The world the program works in, when not your home world: one you made "
+                                + "(e.g. god_ashen_reach) or another of your realm.", false)
+                        .choice("action", "run (default); preview runs the program without changing anything "
+                                + "and shows you a picture of the blocks it would place; read or forget a saved "
+                                + "script by name; stop ends your scripts' living handlers.", false,
+                                List.of("run", "preview", "read", "forget", "stop")),
                 false, ScriptTools::script));
     }
 
@@ -108,7 +112,8 @@ final class ScriptTools {
                 + "was made for, with loops, maths, timing, and handlers that answer what mortals do.";
         if (!enabled()) return what + " The keepers of this server have turned it off.";
         ScriptLimits l = limits();
-        return what + " " + ScriptApi.HELP + "\nOne script may spend: " + l.describe() + ". A script that worked can be "
+        return what + " " + ScriptApi.HELP + "\nOne script may spend: " + l.describe() + ". " + PREVIEW_HELP
+                + " A script that worked can be "
                 + "kept (save_as) and run again by name with new args. Your saved scripts: "
                 + ScriptLibrary.of(Realm.current()).index(24) + ".";
     }
@@ -140,12 +145,76 @@ final class ScriptTools {
             case "run" -> {
                 return run(a, realm, lib);
             }
+            case "preview" -> {
+                return preview(a, realm, lib);
+            }
             default -> throw new ToolException("The action is run, read, forget or stop.");
         }
     }
 
     private static String missing(ScriptLibrary lib, String name) {
         return "You have no saved script called '" + name + "'. Your saved scripts: " + lib.index(40) + ".";
+    }
+
+    static final String PREVIEW_HELP = "When the SHAPE matters (a statue or likeness of a character, a face, lettering, "
+            + "pixel art, anything a mortal will judge by how it looks), do not build blind: run it first with action "
+            + "preview. Nothing is placed; you are shown the blocks from four corners and from above. Compare that with "
+            + "what you meant, feature by feature (proportions, colours, the details that make it recognisable), fix the "
+            + "program and preview again, at most three times, then run the corrected program for real. Plain builds "
+            + "(walls, platforms, fills) need no preview.";
+
+    /** Runs the program as a dry run and shows what it would build. */
+    private static ToolResult preview(Args a, Realm realm, ScriptLibrary lib) throws ToolException {
+        if (!enabled()) throw new ToolException("The keepers of this server have turned scripts off for you.");
+        if (Bukkit.isPrimaryThread()) throw new ToolException("A preview cannot be made from here; use action run.");
+        JsonObject given = arguments(a.raw().get("args"));
+        String code;
+        if (a.has("code")) {
+            if (!a.raw().get("code").isJsonPrimitive()) throw new ToolException("code must be the program's text.");
+            code = a.raw().get("code").getAsString();
+        } else if (a.has("name")) {
+            ScriptLibrary.Entry saved = lib.find(a.str("name"));
+            if (saved == null) throw new ToolException(missing(lib, a.str("name")));
+            code = saved.code;
+            given = ScriptLibrary.merged(saved, given);
+        } else {
+            throw new ToolException("Give code (a program) or name (a saved script) to preview.");
+        }
+        Map<String, Object> args = GSON.fromJson(given, new TypeToken<LinkedHashMap<String, Object>>() {
+        }.getType());
+        org.bukkit.World working = a.has("world") ? Targets.world(a.str("world")) : null;
+        if (!RUNNING.add(realm.id)) {
+            throw new ToolException("A script of yours is still running; wait for it to end.");
+        }
+        ScriptWorld host = new ScriptWorld("preview");
+        host.preview();
+        ScriptRun.Result r;
+        try {
+            ScriptWorld.workIn(realm.id, working);
+            // The colours of blocks are read on the server thread the first time.
+            net.bigyous.gptgodmc.god.Sync.call(() -> net.bigyous.gptgodmc.god.vision.Palette.get(), 8000);
+            ScriptRun run = new ScriptRun(code, args, limits(), host);
+            r = run.run();
+            run.stop("it was only a preview");
+        } finally {
+            RUNNING.remove(realm.id);
+            ScriptWorld.workIn(realm.id, null);
+        }
+        StringBuilder sb = new StringBuilder("PREVIEW ONLY: nothing was placed or done. ");
+        if (!r.ok()) {
+            return ToolResult.error(sb + "The program failed" + (r.spent().isEmpty() ? "" : " (" + r.spent() + ")") + ".\n"
+                    + r.error() + (r.log().isBlank() ? "" : "\nLog: " + oneLine(r.log(), 600)));
+        }
+        if (!r.log().isBlank()) sb.append("Log: ").append(oneLine(r.log(), 600)).append(' ');
+        if (host.ghost().isEmpty()) {
+            return ToolResult.ok(sb + "The program ran but would place no blocks, so there is no picture.");
+        }
+        net.bigyous.gptgodmc.god.vision.Vision.Result shown = net.bigyous.gptgodmc.god.vision.BuildView
+                .preview("preview", host.ghost());
+        sb.append(shown.caption()).append("\nLook at it as a mortal would. Is every part where it should be, the right "
+                + "size and colour? If not, fix the program and preview again; when it is right, run that same program "
+                + "with action run (other acts in it, such as particles, powers and waits, were skipped here).");
+        return ToolResult.image(sb.toString(), shown.png());
     }
 
     private static ToolResult run(Args a, Realm realm, ScriptLibrary lib) throws ToolException {
@@ -177,9 +246,11 @@ final class ScriptTools {
         Map<String, Object> args = GSON.fromJson(given, new TypeToken<LinkedHashMap<String, Object>>() {
         }.getType());
 
+        org.bukkit.World working = a.has("world") ? Targets.world(a.str("world")) : null;
         if (!RUNNING.add(realm.id)) {
             throw new ToolException("A script of yours is still running; wait for it to end. (A script cannot start another.)");
         }
+        ScriptWorld.workIn(realm.id, working);
         ScriptLimits limits = limits();
         ScriptWorld host = new ScriptWorld(label);
         ScriptRun run = new ScriptRun(code, args, limits, host);
@@ -190,6 +261,7 @@ final class ScriptTools {
             t.start();
         } catch (RuntimeException | Error e) {
             RUNNING.remove(realm.id);
+            ScriptWorld.workIn(realm.id, null);
             throw new ToolException("The script could not be started.");
         }
         if (saved != null) lib.used(saved, System.currentTimeMillis());
@@ -227,6 +299,10 @@ final class ScriptTools {
             kept = "Not kept, since it failed; fix it and run it again with save_as.";
         }
         String text = report(r, host, label, kept);
+        if (r.ok() && host.picture() != null) {
+            // What a power in the script saw (look, map...), shown to the god now.
+            return ToolResult.image(text + "\nThe picture: " + host.pictureCaption(), host.picture());
+        }
         return r.ok() ? ToolResult.ok(text) : ToolResult.error(text);
     }
 
@@ -244,7 +320,10 @@ final class ScriptTools {
             RUNNING.remove(realm.id);
         }
         done.complete(first);
-        if (!first.ok() || first.listeners() == 0) return;
+        if (!first.ok() || first.listeners() == 0) {
+            ScriptWorld.workIn(realm.id, null);
+            return;
+        }
         ScriptRun.Result after;
         try {
             after = run.serve();
@@ -253,6 +332,7 @@ final class ScriptTools {
             after = new ScriptRun.Result(false, "", "its handlers failed: " + t, 0, 0, "");
         } finally {
             ScriptEvents.remove(session);
+            ScriptWorld.workIn(realm.id, null);
         }
         String ended = "Your script '" + label + "' has ended its watch" + (after.ok() ? "" : " early. " + after.error())
                 + (after.log().isBlank() ? "" : (after.ok() ? ". " : " ") + "Its handlers logged: " + oneLine(after.log(), 600))

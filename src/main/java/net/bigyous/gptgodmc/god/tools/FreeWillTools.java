@@ -66,7 +66,9 @@ final class FreeWillTools {
                         .strings("keys", "Keyframes, e.g. 't=0 torso=0 rarm=10,8', 't=0.8 torso=55 head=0,30 "
                                 + "rarm=95,-25'. Leave out to replay by name.", false, Choreo.MAX_KEYS)
                         .strings("cues", "Particles and sounds at moments, e.g. 't=1 fx=heart at=hands n=6 "
-                                + "sound=entity.player.levelup'.", false, Choreo.MAX_CUES)
+                                + "sound=entity.player.levelup'. A cue that says hit ('t=0.5 hit') is the moment a "
+                                + "relic you hold lands its blow, when you strike with this animation.", false,
+                                Choreo.MAX_CUES)
                         .bool("loop", "Repeat it (dances, sitting, digging). Default false.", false)
                         .integer("seconds", "How long a loop plays (default 20).", false, 1, Choreo.MAX_LOOP_SECONDS)
                         .bool("save", "Keep it under its name to replay later.", false)

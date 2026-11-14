@@ -192,7 +192,7 @@ try {
   };
   delete env.GOD_BRIDGE_URL;
   delete env.GOD_BRIDGE_TOKEN;
-  const child = spawn(process.execPath, [path.join(HARNESS_DIR, 'src', 'mcp-server.js')], {
+  const child = spawn(process.execPath, [path.join(HARNESS_DIR, 'src', 'mcp-server.js'), '--inprocess'], {
     cwd: path.resolve(HARNESS_DIR, '..'),
     env,
     stdio: ['pipe', 'pipe', 'pipe'],

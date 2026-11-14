@@ -8,9 +8,11 @@ import org.bukkit.GameMode;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.entity.Animals;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Mob;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
+import org.bukkit.entity.Tameable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -18,7 +20,9 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityBreedEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.event.entity.EntityTransformEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerFishEvent;
@@ -26,6 +30,7 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.world.EntitiesLoadEvent;
 
 import io.papermc.paper.event.player.PrePlayerAttackEntityEvent;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 
 /** Holy-day scoring from what mortals do, and the servants' bodies (deaths, blows, touches, strays). */
 public final class LivingListener implements Listener {
@@ -42,9 +47,12 @@ public final class LivingListener implements Listener {
         if (s != null) {
             e.getDrops().clear();
             e.setDroppedExp(0);
+            EntityDamageEvent last = dead.getLastDamageCause();
             Entity by = killer;
-            if (by == null && dead.getLastDamageCause() instanceof EntityDamageByEntityEvent d) by = d.getDamager();
-            s.slain(by);
+            if (by == null && last instanceof EntityDamageByEntityEvent d) by = d.getDamager();
+            if (by instanceof Projectile pr && pr.getShooter() instanceof Entity shooter) by = shooter;
+            s.slain(ServantRules.death(nameOf(by), last == null ? null : last.getCause().name()),
+                    by instanceof Player p ? p.getName() : null);
             return;
         }
         if (HolyDayRunner.tagged(dead)) HolyDayRunner.mobDied(dead, killer);
@@ -55,6 +63,19 @@ public final class LivingListener implements Listener {
         if (killer == null) return;
         if (dead instanceof Monster) HolyDayRunner.credit(killer, "hostile_kills");
         else if (dead instanceof Animals) HolyDayRunner.credit(killer, "animal_kills");
+    }
+
+    /** What to call whoever slew a servant: a mortal's or a servant's name, a creature's own name or its kind. */
+    private static String nameOf(Entity by) {
+        if (by == null) return null;
+        if (by instanceof Player p) return p.getName();
+        Servants.Servant other = Servants.of(by);
+        if (other != null) return other.name + " (" + other.god.displayName() + "'s " + other.kind.id + ")";
+        if (by.customName() != null) {
+            String given = PlainTextComponentSerializer.plainText().serialize(by.customName()).trim();
+            if (!given.isEmpty()) return given;
+        }
+        return ServantRules.creature(by.getType().name());
     }
 
     // ---- Deeds ---------------------------------------------------------------------------------------
@@ -125,6 +146,11 @@ public final class LivingListener implements Listener {
             e.setCancelled(true);
             return;
         }
+        // An ordinary creature's blow lands lighter on the sturdier servants; mortals and their beasts strike in full.
+        if (victim != null && striker == null && attacker instanceof Mob
+                && !(attacker instanceof Tameable pet && pet.isTamed())) {
+            e.setDamage(e.getDamage() * ServantRules.mobHarm(victim.kind));
+        }
         if (victim != null) victim.hurt();
         if (victim != null && attacker instanceof Player p && victim.kind.damage > 0
                 && victim.order != ServantKind.Order.ATTACK && LivingSettings.servantsAttackPlayers()
@@ -137,6 +163,19 @@ public final class LivingListener implements Listener {
                 // it does not fight
             }
         }
+    }
+
+    /** A servant is steered, not walking: being pushed into a wall, deep water or a cactus does it no harm. */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onHarm(EntityDamageEvent e) {
+        if (ServantRules.shrugsOff(e.getCause().name()) && Servants.of(e.getEntity()) != null) e.setCancelled(true);
+    }
+
+    /** Creatures do not hunt the servants of a god; one that a servant struck may still turn on it. */
+    @EventHandler(ignoreCancelled = true)
+    public void onTarget(EntityTargetLivingEntityEvent e) {
+        if (e.getTarget() == null || ServantRules.mayHunt(e.getReason().name())) return;
+        if (Servants.of(e.getTarget()) != null) e.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)

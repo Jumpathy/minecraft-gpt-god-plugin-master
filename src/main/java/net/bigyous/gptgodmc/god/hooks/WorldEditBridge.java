@@ -45,7 +45,14 @@ final class WorldEditBridge implements WorldEditHook.Bridge {
         ParserContext ctx = new ParserContext();
         ctx.setWorld(weWorld);
         ctx.setExtent(weWorld);
-        ctx.setRestricted(true);
+        // Not restricted: a restricted parse needs a player to check permissions against ("No actor is
+        // known"); what may be placed is checked by WorldEditRules, and the mask guards mortals' builds.
+        ctx.setRestricted(false);
+        try {
+            ctx.setActor(BukkitAdapter.adapt(org.bukkit.Bukkit.getConsoleSender()));
+        } catch (RuntimeException | LinkageError e) {
+            // parsing plain block ids and tags needs no actor
+        }
         Pattern pattern = null;
         if (r.pattern() != null && !r.pattern().isBlank()) {
             try {

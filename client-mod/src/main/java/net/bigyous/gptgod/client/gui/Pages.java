@@ -110,7 +110,7 @@ final class Pages {
         out.add("Heart: " + (heart.length() == 0 ? "at peace" : heart));
         if (g.pending() > 0) out.add(g.pending() + " command" + (g.pending() == 1 ? "" : "s") + " pending");
         if (g.wounded()) out.add("§bHealth " + Math.round(g.health()) + "/" + Math.round(g.max()));
-        out.add("§dClick to manage");
+        out.add(g.state().equals("slain") ? "§dClick to manage or revive it" : "§dClick to manage");
         return out;
     }
 

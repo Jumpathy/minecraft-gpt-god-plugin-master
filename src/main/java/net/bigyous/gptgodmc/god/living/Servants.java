@@ -857,7 +857,7 @@ public final class Servants {
                 if (god.memory().favorOf(p.getName()) < 5) continue;
                 AttributeInstance max = p.getAttribute(Attribute.MAX_HEALTH);
                 double cap = max == null ? 20 : max.getValue();
-                if (p.getHealth() >= cap) continue;
+                if (p.isDead() || p.getHealth() >= cap) continue;
                 p.setHealth(Math.min(cap, p.getHealth() + 2));
                 p.getWorld().spawnParticle(Particle.HEART, p.getLocation().add(0, 2, 0), 2, 0.3, 0.2, 0.3, 0);
             }
@@ -931,18 +931,19 @@ public final class Servants {
             tellGod("Your " + kind.id + " \"" + name + "\" " + why + ".", null);
         }
 
-        /** It was slain in the world. */
-        void slain(Entity by) {
+        /**
+         * It was slain in the world. `how` is {@link ServantRules#death} ("slain by Zombie", "destroyed by an
+         * explosion"); `mortal` is the player who did it (that wakes its god), or null.
+         */
+        void slain(String how, String mortal) {
             if (!ALL.remove(this)) return;
             Location at = mob.getLocation().add(0, kind.height() / 2, 0);
             at.getWorld().spawnParticle(Particle.EXPLOSION, at, 1);
             at.getWorld().spawnParticle(particle(), at, 50, 0.5, 0.6, 0.5, 0.1);
             destroy(false);
-            String who = by instanceof Player p ? p.getName() : by == null ? "something" : by.getType().name()
-                    .toLowerCase(Locale.ROOT);
-            tellGod("Your " + kind.id + " \"" + name + "\" was SLAIN by " + who + ".", by instanceof Player
-                    ? who + " slew your servant" : null);
-            Journal.add(Journal.Kind.INFO, "servant " + name + " slain by " + who);
+            tellGod("Your " + kind.id + " \"" + name + "\" was " + how + ".",
+                    mortal != null ? mortal + " slew your servant" : null);
+            Journal.add(Journal.Kind.INFO, "servant " + name + " " + how);
         }
 
         void destroy(boolean removeFromList) {

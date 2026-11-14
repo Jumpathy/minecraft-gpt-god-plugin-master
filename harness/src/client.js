@@ -98,6 +98,20 @@ export class CameraClient {
     return CLIENT.name;
   }
 
+  /** Folder holding this client's game dir, natives and log. */
+  get baseDir() {
+    return CLIENT.dir;
+  }
+
+  get xmx() {
+    return CLIENT.xmx;
+  }
+
+  /** Extra classpath entries (before the game's), JVM arguments and main class: none for the vanilla camera. */
+  async extraLaunch() {
+    return { cp: [], jvm: [], mainClass: null };
+  }
+
   get running() {
     return !!(this.child && this.child.exitCode === null && this.child.signalCode === null);
   }
@@ -113,8 +127,9 @@ export class CameraClient {
       throw new HarnessError(`Minecraft ${version} is not installed at ${path.dirname(vjson)}. Install it once with the official launcher (play it once), or set GOD_CLIENT_VERSION / GOD_CLIENT_MCDIR.`);
     }
     const v = JSON.parse(await readFile(vjson, 'utf8'));
+    const extra = await this.extraLaunch({ mc, version });
     if (v.inheritsFrom) throw new HarnessError(`${version} inherits from ${v.inheritsFrom}; only plain vanilla versions are supported`);
-    const cp = [];
+    const cp = [...extra.cp];
     const missing = [];
     for (const lib of v.libraries ?? []) {
       if (!ruleAllows(lib.rules)) continue;
@@ -132,7 +147,7 @@ export class CameraClient {
     if (!existsSync(path.join(assetsDir, 'indexes', `${assetIndex}.json`))) throw new HarnessError(`asset index ${assetIndex} missing in ${assetsDir}`);
 
     const java = await findJava(v.javaVersion?.majorVersion ?? 25);
-    const base = CLIENT.dir;
+    const base = this.baseDir;
     const gameDir = path.join(base, 'game');
     const natives = path.join(base, 'natives');
     await mkdir(gameDir, { recursive: true });
@@ -145,7 +160,7 @@ export class CameraClient {
       classpath: cp.join(path.delimiter),
     };
     const sub = (s) => s.replace(/\$\{([a-z_]+)\}/g, (m, k) => (k in vars ? vars[k] : m));
-    const jvm = [`-Xms1G`, `-Xmx${CLIENT.xmx}`];
+    const jvm = [`-Xms1G`, `-Xmx${this.xmx}`, ...extra.jvm];
     for (const a of v.arguments?.jvm ?? []) {
       if (typeof a === 'string') jvm.push(sub(a));
       else if (ruleAllows(a.rules)) jvm.push(...[a.value].flat().map(sub));
@@ -167,7 +182,7 @@ export class CameraClient {
       '--height', String(CLIENT.height),
       '--quickPlayMultiplayer', `${host}:${port}`,
     ];
-    return { java, args: [...jvm, v.mainClass, ...game], gameDir, version };
+    return { java, args: [...jvm, extra.mainClass ?? v.mainClass, ...game], gameDir, version };
   }
 
   async writeOptions(gameDir) {
@@ -208,8 +223,8 @@ export class CameraClient {
     const allow = await this.sandbox.allowPlayer(this.name);
     const launch = await this.buildLaunch({ host, port });
     await this.writeOptions(launch.gameDir);
-    await mkdir(CLIENT.dir, { recursive: true });
-    const logFile = path.join(CLIENT.dir, 'client.log');
+    await mkdir(this.baseDir, { recursive: true });
+    const logFile = path.join(this.baseDir, 'client.log');
     const out = createWriteStream(logFile, { flags: 'w' });
     const logCursor = await this.sandbox.logCursor();
     // The window the user is working in, to hand the foreground back if the game takes it.
@@ -288,7 +303,7 @@ export class CameraClient {
 
   async logTail(n = 30) {
     try {
-      return (await readFile(path.join(CLIENT.dir, 'client.log'), 'utf8')).split(/\r?\n/).filter(Boolean).slice(-n);
+      return (await readFile(path.join(this.baseDir, 'client.log'), 'utf8')).split(/\r?\n/).filter(Boolean).slice(-n);
     } catch {
       return [];
     }
@@ -340,7 +355,7 @@ export class CameraClient {
       pid: this.running ? this.child.pid : undefined,
       name: this.name,
       version: CLIENT.version,
-      gameDir: path.join(CLIENT.dir, 'game'),
+      gameDir: path.join(this.baseDir, 'game'),
       windowMode: this.windowMode,
       lastExit: this.lastExit ?? undefined,
     };

@@ -8,7 +8,8 @@
     "FirstPersonHandsAndItemsMixin",
     "GameRendererMixin",
     "ModelManagerMixin",
-    "PostPassMixin"
+    "PostPassMixin",
+    "PuppetMixin"
   ],
   "injectors": {
     "defaultRequire": 1

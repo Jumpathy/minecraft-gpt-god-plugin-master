@@ -133,3 +133,225 @@ GPTGOD - every prompt sent in this thread to make the god, in order.
 64. can bedrock users see the gods
 
 65. is all of the messages i sent here prompt-wise in a .txt
+
+66. Not now
+
+67. also, make it so you can change the god's voice in the manager too! and also, begin a separate thread to make a basic setup_dependencies.exe or bat script that works on windows/linux, something easy and independently verified as not a virus, that can set up the backend (whisper, voices install, etc)? and makes installing this plugin 10x easier for non technically inclined users, we want this plugin as easy to set up as possible!!
+
+68. and make sure this server has bedrock support / geyser
+
+69. also, why some commands or actions it carries out seemingly take ages, like i commanded it to build a diamond mansion, it spawned one of its prebuilt structures, then waited 70s before turning it to diamond and saying it to me, that turnaround time is borderline unacceptable, without some sort of indication its working and it shouldnt do it in pages
+
+70. parts*
+
+71. grant the god websearch tool if needed, and ability to create custom music disks and play em, this would let it understand pop culture references
+
+72. I'll restart it
+
+73. i restarted server, now  cant join it, where tf did it go..
+
+74. getsokopt or wtv
+
+75. tunnel wireguard is active
+
+76. why my device always says 'this setting is managed by your organization' when an app like that is running, is it bc im on rdp, i cant fucking accept it, when i restarted server it asked for public but all i could do was cancel
+
+77. ok, how does voice chat work, someone cant connect to claude.jumpathy.dev for some reason, and has to use direct ip, voice chat simple voice chat wont load on their end, but they have it correctly installed
+
+78. is it bc they cant connect to .jumpath.dev or something
+
+79. how can i debug why they cant access it
+
+80. (pasted the DNS lookup and connection test for claude.jumpathy.dev)
+
+81. why the hell isnt it connecting..? yo8ure sure thats not why bc they have it installed correctly for fabric, and how do they change their dns, they have admin
+
+82. (pasted a player's game log: Fabric loaded only 4 mods, so voice chat wasn't installed)
+
+83. how do multiple gods work, how do i create more of them
+
+84. the god manager tool should be a new compass or some custom texture inventory tool thats enchanted and unable to be thrown away once you initiate the command, should bring back up chest menu when you right click it, like a faster way to manage the gods, maybe a nether star would be more fitting, throwing it twice in a row should just remove from inventory, but once just puts it back
+
+85. add option to toggle the god brain options, like if it responds to each message oo, like the internal internal stuff in the manager menu, we want it to be nice and complex and advanced, like the .yml option level advanced
+
+86. the god has a tendency to walk into walls and areas u cant walk into lol, and once it spawned a wolf and suffocated it bc it spawned it in a crafting tbl
+
+87. add option for it to listen to server operators as if theyre commanding it directly, this is off by default, but option in manager menu, people w operator would be like seen as 'above' a normal playher, still a player but if they ask for tons of armor or something it shoulod be more willing to oblige
+
+88. start another session to make more god skins, maybe some more human-like one options like zeus-looking etc, but default to the ethereal form thats purple or yellow or wtv
+
+89. should add tons pls
+
+90. add a godslayer sword, custom, optional to be crafted with netherrite and nether star and other shit, it can be given by /give @a godslayer or something, it should look insane, like a GOD killing sword, it will do a decent chunk of dmg to it, once the god is killed, it wont come back, unless enabled in settings, and should drop some crazy loot idk, and sometimes responses take way too long from the god, and also
+
+91. start a new session for it
+
+92. add option to show true form without killing people, more of a "you dare impose upon me?" maybe give it multiple true forms that are scary / biblically accurate, i like the eye concept a lot
+
+93. utilize texture pack if needed
+
+94. start these as separate conversations
+
+95. the death spectacle should be amazing, a visual show for it, tons of particles, waves, maybe like a firework-like final explosion as it gives out, sound effects, you get creative, maybe give it multiple variants
+
+96. When the god ignores someone who addresses it, should it still reply briefly? it ignores people? wdym
+
+97. yes, i always want a response by default, it should turn towards people speaking, and this should be disablable via the god manager
+
+98. the god should have an option to refuse, but only for ppl it REALLY dislikes, and also, it feels a bit aimless, can we make the god feel more like its not just 'there', maybe add an option to have it give us goals and stuff etc?
+
+99. can you also start a new session to create a basic power user web page that shows the different running god's brain / thought processes? like opens on port :4673 or something, and it shows current gods, each message its sent to the api alongside its system prompt, etc, tool uses, should look user-friendly-ish to the extent that it looks nice, but due to high level functionality it doesnt need to be simplified for dummies, can have less labels, just make it like show the brain, its state, current decision making etc, itd be a cool way to glimpse into its brain
+
+100. like let it see what memories it gives, what events its seeing, etc, inputs outputs
+
+101. can we give the god more auras, and particle fx, like maybe a healing ring for example with pluses and green ring circles etc, i want its ability to make physical particles and fx better, and more often, like when it does stuff i want particles to be seen a lot by default for like spawning in items etc
+
+102. to make the god feel more ALIVE, start a new session that lets it make its own animations live via prompts, and give it the ability to set its own goals, like maybe randomly it wants to build a house or act like a player, and it can just do that willingly, give it free-r will than just watching/observing, make it feel like a real being that interacts and cares (or doesnt) depending on personality settings for the beings of the world
+
+103. hows everything going? is all the new stuff almost ready
+
+104. what all have i added since the last server restart
+
+105. create a rare tool that the god uses highly sparingly for the rarest of circumstances, disabled by default, maybe a prize, it should let it make users gods like hercules, give them similar powers, cool particles, wings, etc
+
+106. lmk when all new stuff is added, then replace plugin and lmk so i can restart the server, also can we get a visual server manager, like pteradactyl set up on this device, on docker, tie it to this server, so its easier to manage than my bat script, you can spin that up in enw session
+
+107. why the god still has tendency to walk into walls and areas it shouldnt be able to, yes its a god, but this is crazy its always clipping through walls, i want it to toggle this ability on/off or be aware of its surroundings
+
+108. add an option for gods to have names above heads, when multiple of them
+
+109. god manager should have option to turn god on off, pause it etc, or delete them entirely
+
+110. i created a new god, i gave it custom name but it refers to itself as a different name
+
+111. even tho it shows as the chosen name
+
+112. add essentialsx and permissions to this server, sert upo basic permissions where users have warp, home, and other basic helpful cmds, echest etc for default users
+
+113. essentialsx and homes etc
+
+114. , also world poicker should only be worlds not subdimensions too
+
+115. had an issue in god manager, where stuck in page of god, no back btn  only option was close
+
+116. add god manager config menu to enable demigod etc and more advanced global options, not limited to just gods
+
+117. No, this is enough
+
+118. can i delete gods in menu yet
+
+119. dead gods shouldnt count towards limit, or show in leaderboard etc
+
+120. the god creation is confusing to use, it asks me to type name and personality, but then gets mad when i put personality and name in same msg, warns abt -s etc
+
+121. godslayers should strip demigods of power
+
+122. what else would make this god feel more alive and interactive with the world? / also the god manager menu is awesome, just wanted to know if there are like chest icons we could add? / and also maybe, what are the pros / cons of adding a client sided mod, likely fabric / similar that goes alongside the god, maybe to give it cooler particles and effect capabilities than plugins are capable of? / if it was a mod i'd like it to work on more than fabric if possible but if that means too many branches we could just keep it as fabric, but also not gonna be able to install this since we have bedrock users so it shouldn't be like a pivotal foundational piece of the God but if you were to add it, it should make it look much cooler maybe? I was thinking it could probably help with chest menu icons for for navigation, start a new session to help me brainstorm by asking questions what the mod should do, and then make a plana nd carry out the mod in that session
+
+123. the god manager menu is just sometimes a LITTLE unintuitive, like advanced settings being inside of an indiviudal god instead of at the root level, can we analyze its design choice in another sesssion to make the chest ui feel a bit more navigatable
+
+124. okay, i do love those ideas, lets start a new session to add rivalry potential, again, the gods should decide if they  like each other or not, you can make them like each other via god manager if needed, recurring events, and moods leaking into the world. id love angels or an ability to spawn custom entities, this may work well with the client mod we're adding, but we want everything to work with plugins only so bedrock can see it too, but mods make it prettier and cooling
+
+125. how easy is this god system to set up? i want it to be basicqally dummy-proof with scripts and good tutorial mds, so its very easy to make the gods work! can you also add support for different LLMs in a new session? like openai, or local models instead of anthropic if the user desires, we dont have resources to test local models beyond like 7b, but start that session, do you think itd be viable to have local models run the gods without it being too delayed? my other issue with delays, is voice chat for the god ocassionalyl sounds choppy when it speaks, and also it takes long time to generate the tts at times, could it maybe generate the words dynamically as the stream comes in instead of waiting the full time, and say it as it speaks maybe?
+
+126. continue
+
+127. yes, also, can kokoro run on igpu? or does it need dedicated gpu, it should default to gpu usage for user installations
+
+128. can you make them more PHYSICALLY aware? is this possible? like, maybe if zombies are near a player, it can warn them if they dont see it, see what players r constructing etc, without tripling token usage?
+
+129. you can do a new session for it, maybe add some specialized toolcalls that generate overhead images of where players are, respecting caves n stuff if theyre in a cave, shouldnt show the tiop of the world, only their level, like a minimap-level render, and it can place coordinates where each person is directly on the img, and send it to the llm, noting that they can move by the time its processed responses, and to check again if its doing something based on positioning, but its a good gague for awareness, this could be included as needed alongside prompts
+
+130. add a tool that lets it select the blocks they built, render them into a 3d model, and then automatically unwrap it into like a 360 view you can send to the llm as context so it can also SEE what they might be building, not just the "oak at 6,1,5" or something yk? doesnt always need to do this, shouldnt for token usage, but may help it a lot for understanding
+
+131. had some issue, where i asked it to drop an anvil on a player and it dropped a sand block, can you make sure its drop item ability works well and doesnt just keep doing sand or something bc ik internally its falling sand
+
+132. the god, it also sometimes is really obsessed about its goals, it won't let players be players it like constantly nags them about quests, why is this? at least it did last night, it should be more self directed & not require quests unless it deems so itself, i want it to keep moving forward in event loops and deciding what to do instead of always just responding to world events, this is what i meant by free will earlier
+
+133. a balance of the two is good
+
+134. make sure the quest it gives are tangible, like it told us to pet a cat i don't think we can do that
+
+135. lets make the god impervious to prompt injection please if we can, make a prompt-analyzer haiku model always running on user inputs or something on a separate layer that cant see tools if applicable, only if this wouldnt add noticeable latency
+
+136. can we add some sort of loading state animations for thinking, since sometimes complex responses can take a minute, to hinder the "..." process, like for example, if hit it could levitate first as a response before choosing what to do (this is an example, i want behavior to truly be dynamic, and not like pre-coded, like it shouldnt ALWAYS levitate), but i want some sort of placeholder animation, that like idk shows it 'casting a spell' when it starts working on something complex etc, it could raise its hands, send sparkles, tendrils of light, whatever you tgink of, as its working out punishments, commands or whatever to make it trulyt feel like part of the world
+
+137. make the god tend to punish you for attempting prompt injection as a built in defense mechanism, or keep strikes on players for it, based on the gods individual personalitiy
+
+138. i just got a javaw network public accss request, but my pc says im enrolled in an org, and i cant accept it, why does it fucking say this, prev session said it was liekly an uninstalled vpn app or something, how do i fix this?? what command to allow javaw access fo rthe god server to network properly
+
+139. idk where it came from
+
+140. well how te fuck do i fix it.
+
+141. what all has been added today? are all the branches done, is the newest exe working etc, ive had a LOT of sessions
+
+142. Not now
+
+143. can you keep the god mindful of character avatars too, maybe make it like mad for example if theyre nude lol
+
+144. is the new jar file staged
+
+145. "C:\Users\tyler\Desktop\projects\minecraft\srv1\plugins\gptgodmc-0.2.0.jar" why this is still 6:55 wym plugins/update
+
+146. update god_prompts.txt, andrebuild client mod
+
+147. essentials god command overwrote the god command pipeline
+
+148. the god needs to be more aware of its actions, like it tells players to eat, themselves then it uses owntools to heal them lol
+
+149. its actions need to match its words, the god is inconsistent oftne
+
+150. also, the demigod wings float with me, not on me, moving has a delay
+
+151. can you let the gods have greek names lol, i tried to input it and it told me once it was basic
+
+152. sometimes, the gods are too interactful with each other, like one smites me the other heals me instantly, i approve of this kind of acting, it makes them feel real, but dont make it ALWAYS do this unless its in the gods nature
+
+153. can it chain multiple tools together, like i asked it to blow up a forest, earlier, and it took ages, using a fill tool thought we did worldedit, and also, the voice keeps being VERY choppy
+
+154. the server performance is awful, why was its ping so bad, is therw a memory leak in this plugin somewhere
+
+155. also we said 'blow up the forest' and it only summoned like 3 meteors, sometimes the tasks it does are cool, but the results arent always consistent with the requests or wtv, im not sure if this is because it was a direct command or what
+
+156. and this server's protection plugin keeps making tnt and stuff not work, fix that, liekly towny
+
+157. sometimes when players die, the gods try to revive them and this softlocks the respawn btn and sends the players to a void.
+
+158. stop rq
+
+159. im gonna brb, i think ik why it was slow
+
+160. wdym no memory leak, claude your hundreds of session have dozens of old node processes and powershell and cmds running in the bg
+
+161. stop session, and wdym theyre always alive
+
+162. i have like 300 sessions claude
+
+163. youre just now telling me this
+
+164. continue your previous work sorry
+
+165. my shitty laptop kept crashing loading the texture pack and keeping me in air dude, what all was fixed
+
+166. its rebuilt and staged right
+
+167. why does it keep saying 'easy now nothing goes boom here' in the chat..
+
+168. well, thats fine, but it needs to be more obvious why its doing that, it felt like the server was glitching, and also the gods spawn into each other all at once when you join server, they all appear merged into each other
+
+169. some of their actions are too mysterious feeling
+
+170. make the god able to edit its own worlds and dimensions please, and raise default cap to 25
+
+171. this was old msg, also its abilit yto see what users made seems limited, i asked it to tell me what i wrote w blocks and it couldnt see it
+
+172. it did read it, it took a while tho
+
+173. we had a request where we asked it to make a statue of "ray-man", and it didnt come out correctly looking like desired character, this is a highly specific request though, and im not sure if this would be a generalized issue, can we have some sort of classifier or pre-render step that it can pass through haiku as-needed, this is an expensive step and should only be used for specific tasks like 'create a statue of "X's" player skin", it made the like general colors right, but it kinda js hallucinated the rest, how does the opus pixel art gen work so well but this doesn't? im not sure how to add a post-review step to the sandbox without it like becoming a bigger hassle? can we make the sandbox recursive, allow it to spawn another sandbox, but be aware of previous ones, so like maybe it could write one to create rayman, render it, then review it, fix inaccuracies (hopefully shouldnt have been any in the first place), and give new accurate script to REALLY run, also the trident tool took EONS to make, its okay given its depth, but can we have more of an indication towards the work it is getting done?
+
+174. also, god manager menu, when i went to another world, i couldnt create a specific god for it, it recognized it was different when i tried to summon a god from another world to this one and it refused, but why can i even see them yk
+
+175. re-update prompts.txt, and then also prompts.md with a just wall of text, word count, no numbered list
+
+176. how do you make prompts.txt, could you make one for c:\trunk2016's projects lol

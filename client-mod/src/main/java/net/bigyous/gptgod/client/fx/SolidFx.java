@@ -39,6 +39,13 @@ public final class SolidFx {
     static final RenderType MATTER = RenderType.create("gptgod_solid_mesh",
             RenderSetup.builder(MATTER_PIPELINE).setOitPipelines(RenderPipelines.OIT_DEBUG_QUADS).createRenderSetup());
 
+    /** A wash of colour over blocks: blended, tested against depth but not written to it, so it never hides what is drawn after. */
+    static final RenderPipeline WASH_PIPELINE = RenderPipelines.register(RenderPipeline.builder(RenderPipelines.LIGHTNING_SNIPPET)
+            .withLocation(GodClientMod.id("pipeline/block_wash")).withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
+            .withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, false)).withCull(false).build());
+    static final RenderType WASH = RenderType.create("gptgod_block_wash",
+            RenderSetup.builder(WASH_PIPELINE).setOitPipelines(RenderPipelines.OIT_DEBUG_QUADS).createRenderSetup());
+
     private static final class Live {
         FxSolid spec;
         FieldParticle.Anchor anchor;
@@ -91,6 +98,8 @@ public final class SolidFx {
         for (Live l : live) {
             // Light is kept fainter when the viewer turned bloom down, like the other light geometry.
             double strength = l.spec.light ? 0.4 + 0.6 * GodClientMod.config.bloom : 1;
+            Viewer.fill(vars, l.anchor.x + l.spec.offset[0] * l.scale, l.anchor.y + l.spec.offset[1] * l.scale,
+                    l.anchor.z + l.spec.offset[2] * l.scale, l.scale);
             float[] d = l.spec.build(l.age + partial, l.seed, l.scale, strength, vars);
             if (d.length == 0) continue;
             pose.pushPose();

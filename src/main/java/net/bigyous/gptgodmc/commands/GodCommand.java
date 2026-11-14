@@ -268,6 +268,7 @@ public final class GodCommand implements TabExecutor {
                     Arrays.copyOfRange(args, 1, args.length));
             case "reload" -> {
                 GPTGOD.get().reloadConfig();
+                GodSettings.keepModeWord(GPTGOD.get().getConfig());
                 GodClient.close();
                 Realm.reloadFlags();
                 for (Realm r : Realm.all()) {
@@ -427,15 +428,22 @@ public final class GodCommand implements TabExecutor {
             }
         }
         Realm made;
+        // Standing in a world no god rules: the new god is made for that world, not beside the gods of another.
+        org.bukkit.World unruled = sender instanceof org.bukkit.entity.Player pl && Realm.of(pl.getWorld()) == null
+                ? pl.getWorld() : null;
         try {
-            made = Realm.create(Realm.current(), name, archetype == null ? "random" : archetype, power,
-                    sender.getName());
+            made = unruled != null
+                    ? Realm.found(unruled, name, archetype == null ? "random" : archetype, power, sender.getName())
+                    : Realm.create(Realm.current(), name, archetype == null ? "random" : archetype, power,
+                            sender.getName());
         } catch (IllegalArgumentException e) {
             msg(sender, e.getMessage());
             return null;
         }
-        Journal.add(Journal.Kind.INFO, "A new god was created beside this one: " + made.id + " (by " + sender.getName()
-                + ")");
+        if (unruled != null) msg(sender, "This world (" + unruled.getName() + ") had no god: the new one rules it.");
+        Journal.add(Journal.Kind.INFO, unruled != null ? "A god was created to rule " + unruled.getName() + ": " + made.id
+                + " (by " + sender.getName() + ")" : "A new god was created beside this one: " + made.id + " (by "
+                + sender.getName() + ")");
         God.refreshPresence();
         net.bigyous.gptgodmc.god.TabList.refreshAll();
         msg(sender, "A new god comes into being: " + (name == null ? "it will name itself" : name) + " (@" + made.id
@@ -691,7 +699,9 @@ public final class GodCommand implements TabExecutor {
             return;
         }
         try {
-            Edicts.Edict e = Edicts.issue(text, sender, null);
+            // From the debug bridge the report goes where the console's does: the server log and the journal.
+            Edicts.Edict e = Edicts.issue(text, sender,
+                    net.bigyous.gptgodmc.bridge.DebugBridge.isConsole(sender) ? "debug bridge" : null);
             msg(sender, "Command #" + e.number + " delivered: the god must carry it out." + Edicts.readiness());
         } catch (IllegalArgumentException e) {
             msg(sender, e.getMessage());
@@ -749,7 +759,7 @@ public final class GodCommand implements TabExecutor {
 
     /** Token counts and costs never appear in game, not even to operators: console and usage.csv only. */
     private void usage(CommandSender s) {
-        if (!(s instanceof ConsoleCommandSender)) {
+        if (!(s instanceof ConsoleCommandSender) && !net.bigyous.gptgodmc.bridge.DebugBridge.isConsole(s)) {
             msg(s, "Token counts and costs are kept out of the game. Type \"gptgod usage\" in the server console, "
                     + "or read plugins/gptgodmc/usage.csv.");
             return;

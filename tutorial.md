@@ -205,9 +205,10 @@ reveal its true form, give one-click or typed binding commands, and switch featu
 its chosen, or anything between), plant a note or a deed it will believe, and erase or wipe what
 it remembers about them. Only operators can open it.
 
-> **Another plugin already uses `/god`?** (EssentialsX does.) The console then says
-> `Another plugin owns /god; use /gptgod (or gptgodmc:god) for this plugin.` Use **`/gptgod`**
-> everywhere this guide says `/god`.
+> **Another plugin already uses `/god`?** (EssentialsX and WorldGuard do.) GPTGOD takes `/god` back
+> once all plugins have loaded, and the console says where the other plugin's command went
+> (Essentials' god mode: `/egod`). To leave `/god` to the other plugin instead, set
+> `operator.claim-god-command: false` and use **`/gptgod`** everywhere this guide says `/god`.
 
 ## 9. Choose a personality
 
@@ -470,7 +471,7 @@ To start completely fresh, `/god forget` wipes its memory, and `/god rebirth` cr
 | `Patience. Your last prayer still echoes.` | Prayers are limited to one every 5 seconds per player. |
 | `Only operators may command the god.` | Run `op YourName` in the console (or grant `gptgodmc.admin`). |
 | `Your command #n (…) went unfulfilled after … thought(s); it has been dropped.` | The god did not close it within `operator.command-retries` thoughts. Check `/god journal`, word it differently, or check whether that power is turned off in the config. |
-| `/god` opens another plugin's command, or console says `Another plugin owns /god` | Use `/gptgod …` instead. |
+| `/god` opens another plugin's command (EssentialsX god mode, WorldGuard) | The plugin takes `/god` back once all plugins have loaded (`operator.claim-god-command: true`, the default), so restart once. If you turned that off, use `/gptgod …`. Essentials' god mode stays at `/egod`. |
 | `For safety, set the key from the server console` | `setkey` only works in the console, not in game. |
 | `Simple Voice Chat is not installed` | Install it (step 11), or ignore it if you don't want voice. |
 | `Could not hook into Simple Voice Chat; voice features are off.` | Your Simple Voice Chat version doesn't match; update it to the latest for 26.3. |

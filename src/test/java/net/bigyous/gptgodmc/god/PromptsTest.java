@@ -43,6 +43,12 @@ class PromptsTest {
         Files.writeString(Path.of("build/test-renders/system-prompt-sample.txt"), prompt, StandardCharsets.UTF_8);
 
         assertTrue(prompt.startsWith("You are Thyvoru, the Easygoing Canopy, the god of this Minecraft world."));
+        // Rules that came out of a live test: a god that only whispered, spoke in one motif, claimed acts it had
+        // not done and took "watching" for a goal.
+        for (String rule : new String[] { "Choose who hears you.", "Speak like a living mind, not a motif.",
+                "Mortals see only what your powers do.", "never a goal", "locate (the nearest village" }) {
+            assertEquals(1, count(prompt, rule), rule);
+        }
         assertEquals(1, count(prompt, p.nature), "the nature appears once");
         assertEquals(1, count(prompt, "once slept through an entire war"), "the history appears once");
         assertEquals(1, count(prompt, "growing plants"), "likes appear once");

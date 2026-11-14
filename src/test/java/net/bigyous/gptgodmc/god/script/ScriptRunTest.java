@@ -84,6 +84,11 @@ class ScriptRunTest {
         }
 
         @Override
+        public List<String> powers() {
+            return List.of("heal", "look", "script");
+        }
+
+        @Override
         public void sleep(int ticks) throws InterruptedException {
             slept += ticks;
         }
@@ -347,6 +352,25 @@ class ScriptRunTest {
         assertEquals(8, host.visits.get(1).get(0).args().size());
         assertTrue(r.spent().contains("13 blocks"), r.spent());
         assertTrue(r.spent().contains("10 ticks waited"), r.spent());
+    }
+
+    @Test
+    void aScriptCanSearchTheWebAndActOnTheAnswer() {
+        FakeHost host = new FakeHost();
+        ScriptRun.Result r = run("""
+                var found = web.search('a lullaby tune', 'the opening notes');
+                log(found.text);
+                var page = web.read('https://example.org/tune');
+                power('compose_song', {title: 'Hush', melody: 'C4 E4 G4', note: page.text});
+                log(powers().join(','));
+                """, host);
+        assertTrue(r.ok(), r.error());
+        assertEquals(List.of("search_web", "search_web", "compose_song"), host.powers);
+        assertEquals(Map.of("query", "a lullaby tune", "focus", "the opening notes"), host.powerArgs.get(0));
+        assertEquals(Map.of("url", "https://example.org/tune"), host.powerArgs.get(1));
+        assertEquals("used search_web", host.powerArgs.get(2).get("note"), "one power's result feeds the next");
+        // powers() never offers what a script may not use
+        assertEquals("used search_web\nheal,look", r.log().trim());
     }
 
     @Test

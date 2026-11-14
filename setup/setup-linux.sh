@@ -1302,7 +1302,7 @@ if [ -n "$geyser_jar" ]; then
     fi
 fi
 # Other plugins
-for f in "$PLUGINS_DIR"/EssentialsX*.jar; do [ -f "$f" ] && { check INFO "EssentialsX" "found: it has its own /god (god mode)" "If /god opens Essentials' god mode, use /gptgod instead."; break; }; done
+for f in "$PLUGINS_DIR"/EssentialsX*.jar; do [ -f "$f" ] && { check INFO "EssentialsX" "found: it has its own /god (god mode)" "GPTGOD takes /god back at start; Essentials' god mode moves to /egod."; break; }; done
 for f in "$PLUGINS_DIR"/LuckPerms*.jar; do [ -f "$f" ] && { check INFO "LuckPerms" "found" "Let a non-op admin command the god:  lp user <name> permission set gptgodmc.admin true"; break; }; done
 # Firewall (only shown; changing it needs root, so you run these yourself)
 ports_tcp="$game_port $pack_port"; ports_udp="$voice_port"; [ -n "$geyser_jar" ] && ports_udp="$ports_udp $geyser_port"

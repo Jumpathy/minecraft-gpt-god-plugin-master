@@ -199,10 +199,19 @@ public final class DemigodWings {
      * degrees), relative to an entity standing at the player's feet with yaw 0.
      */
     public static Transformation transform(Piece p, float yaw) {
+        return transform(p, yaw, 0);
+    }
+
+    /**
+     * The same, for a root that sits {@code lift} blocks above the feet: a root riding the player sits on
+     * the top of their head (their current height), so every piece is moved down by that much.
+     */
+    public static Transformation transform(Piece p, float yaw, float lift) {
         Quaternionf turn = new Quaternionf().rotationY((float) Math.toRadians(-yaw));
         Quaternionf rot = turn.mul(p.rot(), new Quaternionf());
         Vector3f half = new Vector3f(p.size()).mul(0.5f);
         Vector3f corner = turn.transform(new Vector3f(p.center())).sub(rot.transform(half));
+        corner.y -= lift;
         return new Transformation(corner, rot, new Vector3f(p.size()), new Quaternionf());
     }
 

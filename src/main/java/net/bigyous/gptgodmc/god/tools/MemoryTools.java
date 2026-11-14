@@ -160,8 +160,10 @@ final class MemoryTools {
                         MemoryTools::searchAnnals),
                 GodTool.sync("rename_self",
                         "Take a new name for yourself, and optionally a new epithet. Coin something otherworldly "
-                                + "and invented, with the feel of Azaeleus, Vhalmyr or Oruun: never an ordinary "
-                                + "human name, a famous god or character, a mortal's name, or a word like 'God'. "
+                                + "and invented, with the feel of Azaeleus, Vhalmyr or Oruun, or take the name of a "
+                                + "god of ancient myth (Zeus, Freyja, Anubis) if this server allows it: never an "
+                                + "ordinary human name, a figure of a living faith, a famous fictional character, a "
+                                + "mortal's name, or a word like 'God'. "
                                 + "At most once a day. No mortal is told; announce it yourself if you wish.",
                         Schema.object()
                                 .str("name", "Your new name: one word of 2 to 24 letters; an apostrophe or hyphen "

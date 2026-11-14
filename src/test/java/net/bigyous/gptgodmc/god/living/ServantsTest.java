@@ -40,6 +40,63 @@ class ServantsTest {
     }
 
     @Test
+    void servantsHoldUpAgainstTheWorldButNotAgainstMortals() {
+        // Being steered into a wall, a pond or a cactus does no harm; what a mortal can bring to bear still does.
+        for (String cause : List.of("SUFFOCATION", "CRAMMING", "FALL", "DROWNING", "CONTACT", "FLY_INTO_WALL")) {
+            assertTrue(ServantRules.shrugsOff(cause), cause);
+        }
+        for (String cause : List.of("ENTITY_ATTACK", "ENTITY_SWEEP_ATTACK", "PROJECTILE", "ENTITY_EXPLOSION",
+                "BLOCK_EXPLOSION", "FIRE", "FIRE_TICK", "LAVA", "MAGIC", "VOID", "KILL", "LIGHTNING")) {
+            assertTrue(!ServantRules.shrugsOff(cause), cause);
+        }
+        assertTrue(!ServantRules.shrugsOff(null));
+        // Every name above is a real cause, so a renamed constant fails here and not silently in game.
+        for (String cause : List.of("SUFFOCATION", "CRAMMING", "FALL", "DROWNING", "CONTACT", "FLY_INTO_WALL",
+                "HOT_FLOOR")) {
+            assertNotNull(org.bukkit.event.entity.EntityDamageEvent.DamageCause.valueOf(cause));
+        }
+
+        // Creatures do not pick servants as prey, but may answer a blow.
+        assertTrue(!ServantRules.mayHunt("CLOSEST_ENTITY"));
+        assertTrue(!ServantRules.mayHunt("RANDOM_TARGET"));
+        assertTrue(ServantRules.mayHunt("TARGET_ATTACKED_ENTITY"));
+        assertTrue(ServantRules.mayHunt("TARGET_ATTACKED_NEARBY_ENTITY"));
+        assertTrue(ServantRules.mayHunt("CUSTOM"));
+        for (String reason : List.of("CLOSEST_ENTITY", "RANDOM_TARGET", "TARGET_ATTACKED_ENTITY")) {
+            assertNotNull(org.bukkit.event.entity.EntityTargetEvent.TargetReason.valueOf(reason));
+        }
+
+        // A guard stands among monsters; the frail kinds stay frail.
+        assertEquals(0.25, ServantRules.mobHarm(ServantKind.GUARD));
+        assertEquals(1.0, ServantRules.mobHarm(ServantKind.IMP));
+        assertEquals(1.0, ServantRules.mobHarm(ServantKind.PRIEST));
+        for (ServantKind k : ServantKind.values()) {
+            assertTrue(ServantRules.mobHarm(k) > 0 && ServantRules.mobHarm(k) <= 1, k.id + " can still be killed");
+        }
+        // An easy-difficulty zombie (2.5 a blow, once a second) needs over two minutes for a guard.
+        assertTrue(ServantKind.GUARD.health / (2.5 * ServantRules.mobHarm(ServantKind.GUARD)) > 120);
+    }
+
+    @Test
+    void aServantsDeathNamesWhatKilledIt() {
+        assertEquals("slain by Zombie", ServantRules.death(ServantRules.creature("ZOMBIE"), "ENTITY_ATTACK"));
+        assertEquals("slain by Wither Skeleton", ServantRules.death(ServantRules.creature("WITHER_SKELETON"), null));
+        assertEquals("slain by Brakk", ServantRules.death("Brakk", "ENTITY_ATTACK"));
+        assertEquals("slain by Creeper", ServantRules.death("Creeper", "ENTITY_EXPLOSION"));
+        assertEquals("destroyed by an explosion", ServantRules.death(null, "BLOCK_EXPLOSION"));
+        assertEquals("destroyed by an explosion", ServantRules.death(" ", "ENTITY_EXPLOSION"));
+        assertEquals("crushed inside a wall", ServantRules.death(null, "SUFFOCATION"));
+        assertEquals("unmade by a command (/kill)", ServantRules.death(null, "KILL"));
+        assertEquals("destroyed by sonic boom", ServantRules.death(null, "SONIC_BOOM"));
+        assertEquals("slain by something unseen", ServantRules.death(null, null));
+        // No cause is ever told as the old "slain by something".
+        for (var cause : org.bukkit.event.entity.EntityDamageEvent.DamageCause.values()) {
+            String told = ServantRules.death(null, cause.name());
+            assertTrue(!told.isBlank() && !told.contains("something") && !told.contains("_"), cause + ": " + told);
+        }
+    }
+
+    @Test
     void rigsKeepTheirShapeAndOrder() {
         for (ServantKind k : ServantKind.values()) {
             List<ServantRig.Piece> a = ServantRig.pieces(k, 0, false), b = ServantRig.pieces(k, 37, true);

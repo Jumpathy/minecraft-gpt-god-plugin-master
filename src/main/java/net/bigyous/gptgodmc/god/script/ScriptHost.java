@@ -42,6 +42,11 @@ public interface ScriptHost {
     /** Uses one of the god's own powers, exactly as the god would. Gives {ok, text}. */
     Map<String, Object> power(String name, Map<String, Object> args) throws ScriptRefusal;
 
+    /** The names of the powers power() can use, sorted. */
+    default List<String> powers() {
+        return List.of();
+    }
+
     /** Lets this many server ticks pass. */
     void sleep(int ticks) throws InterruptedException;
 }

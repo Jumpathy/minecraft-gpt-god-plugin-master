@@ -32,6 +32,8 @@ public final class SceneRunner {
         final FieldParticle.Anchor anchor = new FieldParticle.Anchor();
         /** How many particles of each field layer have been made so far. */
         final java.util.Map<Scene.Layer, Integer> made = new java.util.IdentityHashMap<>();
+        /** This player's watch on each of its triggers. */
+        final java.util.Map<Scene.Layer, FxTrigger.Watch> watches = new java.util.IdentityHashMap<>();
         final long seed;
 
         Running(Scene s, double x, double y, double z) {
@@ -46,7 +48,11 @@ public final class SceneRunner {
 
     private final List<Running> running = new ArrayList<>();
     private final SolidFx solids = new SolidFx();
+    private final ReskinFx reskins = new ReskinFx();
     private float skyR, skyG, skyB, skyStrength;
+    private final double[] vars = new double[FxExpr.VARS];
+    /** Scenes that triggers set off this tick, started once the running ones have been advanced. */
+    private final List<Scene> fired = new ArrayList<>();
 
     public int count() {
         return running.size();
@@ -78,6 +84,7 @@ public final class SceneRunner {
         running.forEach(r -> r.anchor.gone = true);
         running.clear();
         solids.clear();
+        reskins.clear();
         skyStrength = 0;
     }
 
@@ -92,7 +99,9 @@ public final class SceneRunner {
 
     public void tick(Minecraft mc) {
         ClientLevel level = mc.level;
+        Viewer.update(mc);
         solids.tick();
+        reskins.tick(level);
         if (level == null || running.isEmpty()) {
             running.forEach(r -> r.anchor.gone = true);
             running.clear();
@@ -135,6 +144,28 @@ public final class SceneRunner {
                             mc.particleEngine.add(new FieldParticle(level, f.spec(), r.anchor, i, count, r.seed, s.scale(), t));
                         }
                         r.made.put(layer, made + n);
+                    }
+                    case Scene.Trigger g -> {
+                        if (t > g.duration()) continue;
+                        FxTrigger spec = g.spec();
+                        Viewer.fill(vars, r.x + spec.offset[0] * s.scale(), r.y + spec.offset[1] * s.scale(),
+                                r.z + spec.offset[2] * s.scale(), s.scale());
+                        if (!r.watches.computeIfAbsent(layer, k -> new FxTrigger.Watch()).tick(spec, t, 1, vars)) continue;
+                        if (!spec.then.isEmpty()) {
+                            com.google.gson.JsonObject o = new com.google.gson.JsonObject();
+                            com.google.gson.JsonArray at = new com.google.gson.JsonArray();
+                            at.add(r.x);
+                            at.add(r.y);
+                            at.add(r.z);
+                            o.add("at", at);
+                            o.addProperty("scale", s.scale());
+                            o.add("layers", spec.then);
+                            fired.add(Scene.decode(o));
+                        }
+                        GodClientMod.triggered(spec.key);
+                    }
+                    case Scene.Reskin reskin -> {
+                        if (t == 0) reskins.add(reskin.spec(), r.anchor, s.scale());
                     }
                     case Scene.Solid solid -> {
                         if (t == 0) solids.add(solid.spec(), r.anchor, s.scale(), r.seed);
@@ -217,6 +248,11 @@ public final class SceneRunner {
                     it.remove();
                 }
             }
+        }
+        if (!fired.isEmpty()) {
+            List<Scene> start = new ArrayList<>(fired);
+            fired.clear();
+            start.forEach(this::play);
         }
         if (ss > 0) {
             skyR = sr / ss;

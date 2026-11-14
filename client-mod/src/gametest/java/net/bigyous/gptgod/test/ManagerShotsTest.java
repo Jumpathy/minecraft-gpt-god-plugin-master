@@ -79,6 +79,13 @@ public class ManagerShotsTest implements FabricClientGameTest {
             });
             shot(ctx, "manager-17-config-error");
 
+            // A slain god: its page offers to revive it.
+            ctx.runOnClient(mc -> {
+                m.go(GuiModel.OVERVIEW, "morth");
+                GuiClient.act("ov", "morth", "revive", null);
+            });
+            shot(ctx, "manager-21-revive");
+
             // The same screen on a large GUI scale (480 x 270 GUI pixels): everything must still fit.
             scale(ctx, 4);
             for (String[] page : new String[][] { { GuiModel.COMMANDS, "18-commands-scale4" },

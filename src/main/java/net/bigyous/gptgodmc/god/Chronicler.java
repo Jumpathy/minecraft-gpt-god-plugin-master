@@ -66,14 +66,17 @@ public final class Chronicler {
                 "name" (one invented, otherworldly name of 2 to 4 syllables that fits its personality, with the \
                 feel of names like %s, but not one of those. Letters only, at most one apostrophe or hyphen, \
                 at most 14 letters, easy to type in chat. Never an ordinary human name, never a god from a real \
-                religion or mythology, never a famous fictional character, never a plain word like "God" or "Lord"),
+                religion or mythology, never a famous fictional character, never a plain word like "God" or "Lord"%s),
                 "epithet" (a short title that fits its personality, e.g. "the Violet Watcher", "Lord of Naps"),
                 "temperament" (2-3 sentences in its own spirit that ADD to the description above instead of \
                 repeating it: a piece of its history, a habit or quirk, and a signature way it shows favor or \
                 displeasure. Do not restate what kind of god it is, what it values or what it despises; the god \
                 already knows those).
                 """.formatted(p.nature, p.speech == null || p.speech.isBlank() ? "its own way" : p.speech,
-                String.join(", ", p.likes), String.join(", ", p.dislikes), String.join(", ", GodNames.EXAMPLES));
+                String.join(", ", p.likes), String.join(", ", p.dislikes), String.join(", ", GodNames.EXAMPLES),
+                GodNames.mythAllowed() ? ". Exception: if the description above makes it a god of ancient myth "
+                        + "(Greek, Roman, Norse, Egyptian), it bears that god's own name, like Zeus, Athena or Odin"
+                        : "");
         String text = model.complete(prompt, 800, "inventing a persona");
         if (text == null) {
             return null;

@@ -24,7 +24,7 @@ import com.google.gson.JsonObject;
  * with its blade lit, a book open, an eye unlidded), for relics that change. Pure.
  */
 public record Sprite(int w, int h, char[][] cells, Map<Character, Ink> legend, char[][] accents, Light light,
-        Outline outline, char[][] altCells, char[][] altAccents) {
+        Outline outline, char[][] altCells, char[][] altAccents, JsonArray shape, JsonArray altShape) {
 
     /** Smallest and largest canvases. Items are square; a spirit may be taller than wide. */
     public static final int MIN = 8, MAX_W = 32, MAX_H = 32;
@@ -88,7 +88,8 @@ public record Sprite(int w, int h, char[][] cells, Map<Character, Ink> legend, c
 
     /** The second form as a sprite of its own (same canvas, legend, light and outline), or null when there is none. */
     public Sprite alt() {
-        return altCells == null ? null : new Sprite(w, h, altCells, legend, altAccents, light, outline, null, null);
+        return altCells == null ? null
+                : new Sprite(w, h, altCells, legend, altAccents, light, outline, null, null, altShape, null);
     }
 
     // ---- Reading one ---------------------------------------------------------------------------------
@@ -113,8 +114,12 @@ public record Sprite(int w, int h, char[][] cells, Map<Character, Ink> legend, c
         char[][] accents = marks(o, "accents", w, h);
         char[][] altCells = letters(o, "alt_rows", w, h, legend, false);
         char[][] altAccents = altCells == null ? null : marks(o, "alt_accents", w, h);
+        // A special relic's true shape (see RelicShape) rides along as written; it is checked where it is used.
+        JsonArray shape = has(o, "shape") && o.get("shape").isJsonArray() ? o.getAsJsonArray("shape").deepCopy() : null;
+        JsonArray altShape = altCells != null && has(o, "alt_shape") && o.get("alt_shape").isJsonArray()
+                ? o.getAsJsonArray("alt_shape").deepCopy() : null;
         return new Sprite(w, h, cells, legend, accents, light(text(o, "light")), outline(text(o, "outline")), altCells,
-                altAccents);
+                altAccents, shape, altShape);
     }
 
     private static boolean has(JsonObject o, String key) {
@@ -300,6 +305,8 @@ public record Sprite(int w, int h, char[][] cells, Map<Character, Ink> legend, c
         if (altAccents != null) o.add("alt_accents", rows(altAccents));
         if (light != Light.TOP_LEFT) o.addProperty("light", light.name().toLowerCase(Locale.ROOT).replace('_', '-'));
         if (outline != Outline.SOFT) o.addProperty("outline", outline.name().toLowerCase(Locale.ROOT));
+        if (shape != null) o.add("shape", shape.deepCopy());
+        if (altShape != null) o.add("alt_shape", altShape.deepCopy());
         return o;
     }
 

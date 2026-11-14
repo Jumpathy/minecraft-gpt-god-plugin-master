@@ -61,6 +61,9 @@ public final class ScriptApi {
             new Fn("players.push", 4, Kind.DO, "players.push(name, vx, vy, vz)"),
             new Fn("players.teleport", 4, Kind.DO, "players.teleport(name, x, y, z)"),
             new Fn("power", 1, Kind.ENGINE, "power(name, args)"),
+            new Fn("web.search", 1, Kind.ENGINE, "web.search(query, focus)"),
+            new Fn("web.read", 1, Kind.ENGINE, "web.read(url, focus)"),
+            new Fn("powers", 0, Kind.ENGINE, "powers()"),
             new Fn("command", 1, Kind.ASK, "command(text)"),
             new Fn("wait", 1, Kind.ENGINE, "wait(ticks)"),
             new Fn("log", 0, Kind.ENGINE, "log(value)"),
@@ -96,14 +99,18 @@ public final class ScriptApi {
             + "players.list(), players.get(name) give {name,x,y,z,yaw,pitch,look:{x,y,z},health,food,held,sneaking}. "
             + "players.effect(name,effect,seconds[,level]), players.title(name,title[,subtitle]), players.tell(name,text), "
             + "players.push(name,vx,vy,vz), players.teleport(name,x,y,z); name may be 'all'.\n"
-            + "power(name,args) uses any other power of yours and gives {ok,text}; command(text) runs one raw command "
-            + "and gives {ok,text}.\n"
+            + "power(name,args) uses any other power of yours, with the same arguments you would give it, and gives "
+            + "{ok,text,image}: read its text and feed it into the next power (image true: you are shown the last picture a "
+            + "power made, such as look or map, when the script ends). powers() lists their names. command(text) runs one "
+            + "raw command and gives {ok,text}. web.search(query[,focus]) searches the web, web.read(url[,focus]) reads one "
+            + "page; each gives {ok,text} (an answer with sources) and is one power use. Chain them, e.g. search a tune, "
+            + "work its notes out in code, then power('compose_song', {title, melody, give_to}).\n"
             + "wait(ticks) (20 = 1 s; calls made between two waits happen in the same tick). log(value): the log is "
             + "what comes back to you. args: the arguments you passed.\n"
             + "on(event[,filter],fn) gives an id: 'enter' with filter {x,y,z,r} (a mortal steps within r blocks), 'hit', "
             + "'break', 'chat'; filter {player} narrows it; fn gets {player,x,y,z,...}. every(ticks,fn) repeats. off(id) "
             + "ends one. Handlers keep running after the last line, for a bounded time.\n"
-            + "Plain JavaScript: no imports, files, network, timers or async. A mistake comes back with its line, so "
+            + "Plain JavaScript: no imports, files, timers or async, and no network but web.search and web.read. A mistake comes back with its line, so "
             + "fix it and run it again. Example:\n"
             + "var c = world.at('vessel');\n"
             + "for (var i = 0; i < 30; i++) {\n"

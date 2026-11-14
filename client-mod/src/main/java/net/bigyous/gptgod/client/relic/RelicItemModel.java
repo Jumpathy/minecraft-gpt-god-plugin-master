@@ -2,6 +2,7 @@ package net.bigyous.gptgod.client.relic;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 import org.joml.Vector3f;
@@ -40,6 +41,9 @@ import net.minecraft.world.item.ItemStack;
  * night, its sides by the way they face. The sides take the colours the painter gave them
  * (RelicArt.walls), when it gave any. How the item sits in each place is borrowed from a vanilla item: a
  * stick for blades and staffs (item/handheld), paper for the rest (item/generated).
+ *
+ * A relic with a true shape (RelicArt.shape) is drawn as that shape everywhere but in inventories, which keep
+ * the picture: {@link RelicShapeRenderer}, held and placed by the same borrowed transforms.
  */
 final class RelicItemModel implements ItemModel {
     private static final Identifier HANDHELD = Identifier.withDefaultNamespace("stick");
@@ -54,10 +58,13 @@ final class RelicItemModel implements ItemModel {
     private final Relics.Sheet sheet;
     private final Supplier<Vector3fc[]> extents;
     private final ItemQuads[] frames;
+    /** The true shape's renderer, built once with the model, or null for a relic drawn from its picture alone. */
+    private final @Nullable RelicShapeRenderer shape;
     /** The atlas sprite the frames were built with: every quad has to name one, though the picture comes from our texture. */
     private TextureAtlasSprite builtWith;
 
-    RelicItemModel(RelicArt art, Identifier texture, @Nullable Identifier wallsTexture, Relics.Sheet sheet) {
+    /** @param tiles the true shape's material tiles, by name, as the textures they were registered as */
+    RelicItemModel(RelicArt art, Identifier texture, @Nullable Identifier wallsTexture, Relics.Sheet sheet, Map<String, Identifier> tiles) {
         this.art = art;
         this.texture = texture;
         this.wallsTexture = wallsTexture;
@@ -69,6 +76,7 @@ final class RelicItemModel implements ItemModel {
             corners[i] = new Vector3f(b[(i & 1) == 0 ? 0 : 3], b[(i & 2) == 0 ? 1 : 4], b[(i & 4) == 0 ? 2 : 5]);
         }
         this.extents = () -> corners;
+        this.shape = art.shape() == null ? null : new RelicShapeRenderer(art.shape(), tiles);
     }
 
     @Override
@@ -76,15 +84,25 @@ final class RelicItemModel implements ItemModel {
             @Nullable ClientLevel level, @Nullable ItemOwner owner, int seed) {
         output.appendModelIdentityElement(this);
         int frame = art.frameAt(sheet.age());
+        boolean shaped = shape != null && displayContext != ItemDisplayContext.GUI;
         Borrowed place;
         ItemQuads quads;
         try {
             place = Borrowed.from(art.kind().handheld() ? HANDHELD : GENERATED, item, resolver, displayContext, level, owner, seed);
-            quads = quads(frame, place.particle());
+            quads = shaped ? null : quads(frame, place.particle());
         } catch (RuntimeException e) {
             return; // a relic must never take the game down with it: it is simply not drawn
         }
         ItemStackRenderState.LayerRenderState layer = output.newLayer();
+        if (shaped) {
+            // The true shape, held and placed as the picture would be; it stands still.
+            layer.setExtents(shape.extents());
+            layer.setUsesBlockLight(place.blockLight());
+            if (place.particle() != null) layer.setParticleMaterial(place.particle());
+            layer.setItemTransform(place.transform());
+            layer.setupSpecialModel(shape, null);
+            return;
+        }
         if (item.hasFoil()) {
             layer.setFoilType(ItemStackRenderState.FoilType.STANDARD);
             output.setAnimated();

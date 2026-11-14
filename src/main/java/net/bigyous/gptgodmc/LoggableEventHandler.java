@@ -179,6 +179,11 @@ public class LoggableEventHandler implements Listener {
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onBookEdit(org.bukkit.event.player.PlayerEditBookEvent event) {
+        EventLogger.log(event.getPlayer().getWorld(), () -> new net.bigyous.gptgodmc.loggables.BookLoggable(event));
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onExplosion(BlockExplodeEvent event) {
         EventLogger.log(event.getBlock().getWorld(), () -> new ExplosionLoggable(event));
     }

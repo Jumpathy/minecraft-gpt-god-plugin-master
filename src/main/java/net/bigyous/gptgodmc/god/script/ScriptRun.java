@@ -452,6 +452,24 @@ public final class ScriptRun {
                 if (ScriptValues.has(a, 4)) p.put("fire", ScriptValues.flag(a, 4));
                 return power("explode", p);
             }
+            case "web.search" -> {
+                Map<String, Object> p = new LinkedHashMap<>();
+                p.put("query", ScriptValues.text(a, 0, "query"));
+                if (ScriptValues.has(a, 1)) p.put("focus", ScriptValues.text(a, 1, "focus"));
+                return power("search_web", p);
+            }
+            case "web.read" -> {
+                Map<String, Object> p = new LinkedHashMap<>();
+                p.put("url", ScriptValues.text(a, 0, "url"));
+                if (ScriptValues.has(a, 1)) p.put("focus", ScriptValues.text(a, 1, "focus"));
+                return power("search_web", p);
+            }
+            case "powers" -> {
+                budget.hostCall();
+                List<Object> names = new ArrayList<>(host.powers());
+                names.removeAll(ScriptApi.NOT_POWERS);
+                return names;
+            }
             case "power" -> {
                 Object given = a.size() > 1 ? a.get(1) : null;
                 if (given != null && !(given instanceof Map)) throw new ScriptRefusal("args must be an object, like {player: 'Steve'}");

@@ -109,6 +109,8 @@ public final class GPTGOD extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new net.bigyous.gptgodmc.god.Sky(), this);
         getServer().getPluginManager().registerEvents(new net.bigyous.gptgodmc.god.DeedWatch(), this);
         net.bigyous.gptgodmc.god.Senses.start();
+        net.bigyous.gptgodmc.god.AvatarWatch.enable(this);
+        getServer().getPluginManager().registerEvents(new net.bigyous.gptgodmc.god.DeathGuard(), this);
         net.bigyous.gptgodmc.god.DeedWatch.start();
         net.bigyous.gptgodmc.god.DemigodPowers.start();
         getServer().getPluginManager().registerEvents(new TabList(), this);
@@ -152,13 +154,8 @@ public final class GPTGOD extends JavaPlugin {
         net.bigyous.gptgodmc.god.vessel.VesselPackHost.start();
         net.bigyous.gptgodmc.client.ModLink.enable(this);
         banner();
-        // EssentialsX and others also define /god; tell the operator which label reaches us.
-        Bukkit.getScheduler().runTask(this, () -> {
-            org.bukkit.command.Command owner = Bukkit.getCommandMap().getCommand("god");
-            if (owner != null && owner != getCommand("god")) {
-                LOGGER.warn("Another plugin owns /god; use /gptgod (or gptgodmc:god) for this plugin.");
-            }
-        });
+        // EssentialsX and WorldGuard also define /god: take it back once every plugin has loaded.
+        net.bigyous.gptgodmc.commands.GodLabel.enable(this);
 
         if (!Bukkit.getOnlinePlayers().isEmpty()) {
             Bukkit.getOnlinePlayers().forEach(QuestBoard::show);
@@ -183,6 +180,7 @@ public final class GPTGOD extends JavaPlugin {
         net.bigyous.gptgodmc.god.Rites.finishAll();
         VoiceModule.shutdown();
         net.bigyous.gptgodmc.god.Godslayer.disable();
+        net.bigyous.gptgodmc.god.AvatarWatch.disable();
         net.bigyous.gptgodmc.god.DemigodRig.stop();
         net.bigyous.gptgodmc.god.living.Living.disable();
         net.bigyous.gptgodmc.god.worlds.GodWorlds.disable();

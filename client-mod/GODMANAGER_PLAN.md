@@ -206,3 +206,13 @@ Not done:
   (immediate mode), rather than one class per page and widget as first planned.
 
 Try it without a server: `/godfx manager` opens the screen on sample data in any world.
+
+## Added 2026-11-10: revive
+
+A slain god's Overview shows one button, **Revive**. Action `revive` (no chest-menu equivalent; it is
+`/god revive` with a rite): `god/ReviveRite` tears a rift open four blocks in front of the operator
+(pale jagged edges, a dark violet heart, motes drawn in) to a rising charge for about three seconds, then
+bursts (boom, gateway, thunder; flash, shake and pulse for mod players). At the burst the god is revived
+by `Godslayer.revive` and, where bodies are on, its vessel is sent to step out where the rift was.
+Particles and sounds only. Not yet seen in game: `previews/rite-revive.png` shows the rift's shape over
+time, `previews/client-mod/manager/21-revive.png` the button.

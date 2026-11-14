@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -16,9 +18,11 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import net.bigyous.gptgod.client.fx.FxSolid;
+
 /**
  * Decodes the plugin's relic messages (JSON on gptgod:main): "relic" carries one relic's art as a PNG
- * strip (with, if the plugin likes, a lit layer laid over it, a depth map and painted walls), "relic_gone" says to
+ * strip (with, if the plugin likes, a lit layer laid over it, a depth map, painted walls and a true shape), "relic_gone" says to
  * forget it. Pure. Never throws: a relic message that makes no sense becomes
  * {@link Bad} and is dropped, so a broken or hostile server cannot crash the client or make it hold huge
  * pictures.
@@ -103,9 +107,29 @@ public final class RelicProtocol {
                 wallFrames = walls == null ? 0 : height / (2 * h);
             }
         }
-        return RelicArt.of(id, rev == null ? 0 : rev, name == null || name.isBlank() ? id : name.trim(),
+        RelicArt art = RelicArt.of(id, rev == null ? 0 : rev, name == null || name.isBlank() ? id : name.trim(),
                 RelicArt.Kind.of(str(o, "kind", null, 16)), w, h, frames, ticks == null ? 4 : ticks, base, lit,
                 bytes(str(o, "depth", null, MAX_BYTES)), walls, wallFrames);
+        // And so is the true shape: one that cannot be drawn leaves the relic its picture's form.
+        return art == null || !o.has("shape") ? art : art.withShape(RelicShape.build(o.get("shape"), w, tiles(o.get("textures"))));
+    }
+
+    /**
+     * The material tiles a true shape's parts wear: {name: base64 PNG}, each exactly RelicShape.TILE square, at
+     * most RelicShape.MAX_PARTS of them, names as a scene's texture names are. A tile that cannot be read is left
+     * out (its parts are drawn in their colour alone); anything else is no tiles at all.
+     */
+    static Map<String, int[]> tiles(JsonElement textures) {
+        Map<String, int[]> out = new LinkedHashMap<>();
+        if (textures == null || !textures.isJsonObject() || textures.getAsJsonObject().size() > RelicShape.MAX_PARTS) return out;
+        for (Map.Entry<String, JsonElement> e : textures.getAsJsonObject().entrySet()) {
+            if (!e.getKey().matches(FxSolid.TEXTURE_NAME) || !e.getValue().isJsonPrimitive()) continue;
+            String data = e.getValue().getAsString();
+            if (data.length() > 16 * 1024) continue;
+            int[] tile = png(data, RelicShape.TILE, RelicShape.TILE);
+            if (tile != null) out.put(e.getKey(), tile);
+        }
+        return out;
     }
 
     /** An optional field's bytes as sent. Whether they fit the picture is for others to say; what is not base64 is nothing. */

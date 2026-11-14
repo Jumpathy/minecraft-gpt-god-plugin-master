@@ -62,22 +62,39 @@ public final class FxShow {
             if (p.getLocation().distanceSquared(at) > range * range) continue;
             (ModLink.has(p, ModSessions.FX) ? full : plain).add(p);
         }
+        int length = FxScenes.length(layers);
         if (!full.isEmpty()) {
             // Painted textures the scene uses go out first, to the viewers whose mod has not got them yet.
             var message = FxScenes.message(id, new double[] { at.getX(), at.getY(), at.getZ() },
-                    follow == null ? -1 : follow.getEntityId(), scale, loop, FxPaint.bind(realm, layers, full));
+                    follow == null ? -1 : follow.getEntityId(), scale, loop,
+                    FxPaint.bind(realm, FxTriggers.arm(realm, layers, full, length, loop), full));
             for (Player p : full) ModLink.send(p, ModSessions.FX, message);
         }
-        int length = FxScenes.length(layers);
+        // Triggers are watched by a mod player's own game; for the others, from here.
+        FxTriggers.Plain triggers = FxTriggers.Plain.of(realm, layers, plain);
         List<FxScenes.Cue> cues = FxScenes.cues(layers);
         Random rnd = new Random();
         String handle = id == null ? "" : id;
+        // Blocks that look like other blocks for a while (reskin layers): shown and put right from here.
+        FxReskinShow reskins = FxReskinShow.of(layers, full, plain);
+        // Seals are flat surfaces in the world itself: every mortal sees the same ones, mod or no mod.
+        FxSealShow seals = FxSealShow.of(layers, at, follow, scale, only, loop && id != null && !id.isBlank());
         BukkitRunnable task = new BukkitRunnable() {
             int tick;
 
             @Override
+            public synchronized void cancel() throws IllegalStateException {
+                if (reskins != null) reskins.end();
+                if (seals != null) seals.end();
+                super.cancel();
+            }
+
+            @Override
             public void run() {
                 Location here = follow != null && follow.isValid() ? follow.getLocation() : at;
+                if (reskins != null) reskins.tick(tick, here, scale);
+                if (seals != null) seals.tick();
+                if (triggers != null) triggers.tick(tick, 2, here, scale);
                 for (FxScenes.Cue c : cues) {
                     if (c.tick() != tick && c.tick() != tick + 1) continue;
                     Sound sound = sound(c.key());

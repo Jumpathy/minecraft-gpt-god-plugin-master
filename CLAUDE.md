@@ -99,6 +99,13 @@ gradle.properties and are expanded into plugin.yml by processResources. Simple V
   decide by its nature and its past choices. The same prompt says survival is no offense: `Senses.hunger` /
   `hurt` / `need` put "(hungry)", "(badly hurt)" after a mortal's health and food, and `DeedWatch` words a
   needy mortal's animal kills as "most likely for food" without waking the god.
+- **god/Avatars + AvatarWatch** — how mortals look (`awareness.avatars`): `AvatarWatch` fetches each skin once from
+  textures.minecraft.net (only that host, 64 KB max, background thread), `Avatars` (pure) reads it with no model call:
+  hair, a hood or mask, the top and trousers by colour name, an unhuman face, a cape, and bare skin found by comparing
+  torso and legs with the face's own colour (`Bare`: chest, legs, underwear, NAKED); the skin colour itself is never
+  named. Armor covers it. Perception adds "looks: ..." to each mortal's line; a changed look or a naked mortal is told
+  to the god as a non-waking event (avatars.json keeps each mortal's last skin). How it takes it is its own choice
+  (`Prompts.system`). `AvatarsTest`; `AvatarsPreviewTest` draws build/test-renders/avatars.png.
 - **god/Reminiscence** — "## A memory surfaces" (`awareness.memories`): on quiet thoughts only
   (`Reminiscence.quiet`), at most once per `awareness.memory-gap-minutes`, the server picks one old memory
   that fits the moment with no model call: an older deed of a mortal who is here, a deed some whole days ago
@@ -239,7 +246,19 @@ gradle.properties and are expanded into plugin.yml by processResources. Simple V
   Relics are lit like any item on both paths: no `light_emission`, no full-bright, no halo, light painted
   in a material included (the user: a relic that shone with no shadows looked pasted onto the world; glow
   only as a deliberate power effect). `RelicPack` writes `<id>` and `<id>__walls` textures, the solid model,
-  a flat `<id>__icon`, and an item definition that selects the icon for `display_context` gui. Plain relics stay the painting
+  a flat `<id>__icon`, and an item definition that selects the icon for `display_context` gui.
+  A special relic may also carry a true shape (`Sprite.shape`/`altShape`, "shape"/"alt_shape" in its sprite
+  JSON): parts in the scene-solid language (`god/fx/FxSolid`: lathe, tube, prism, ball, box, quads) in sixteenths
+  of the picture's square; `RelicShape` (pure) checks and normalizes it (still, matter, blocky unless a part says
+  `"round": true`, max 12 parts / 1600 faces, inside the square), builds it (`TICK`, size 1/16, -0.5 shift) and draws
+  front + three-quarter views for the artist's proof (a bad shape fails the attempt) and the forge's picture.
+  Every part is made of a `material` (legend words; else its first colour; iron) and wears that material's 16x16
+  repeating pixel tile (`RelicTiles`: wood grain, brushed metal, gem facets... from the material's ramp), named
+  `m_<material>` in its `texture`; `RelicShape.texel` lays it from the part's unplaced frame, texels the size of the
+  picture's own (canvas/16 per sixteenth), quads on the picture's grid (`RelicShape.model(normalized, canvas)`).
+  `ModRelics` sends it as `shape` per form with `textures` (name -> base64 PNG); the client mod lays the same u, v
+  and draws it instead of the voxel mesh outside the GUI.
+  The pack and inventory icons keep the picture. `Samples.SCYTHE` (Gravecall) is the example; `RelicShapeTest`. Plain relics stay the painting
   at even thickness; the artist sculpts, and draws two forms, only when the commission says the relic is
   special (`Atelier.Brief.special/twoForms`). `Atelier` is the
   artist: a separate conversation on its own model and effort (`creations.model`, default
@@ -288,6 +307,30 @@ gradle.properties and are expanded into plugin.yml by processResources. Simple V
 - **Web search** — `GodBrain.tools()` adds Anthropic's `web_search_20260209` server tool after the god's
   powers when `brain.web-search` is on (not with a custom base-url); `pause_turn` replies are sent back
   to continue, searches are journaled and billed at $0.01 each in the usage line.
+  The `search_web` power (`tools/WebTools`, last in `ToolRegistry`) is the same search as a result the god can
+  chain: one request to the memory model (haiku when the provider is not anthropic; needs an Anthropic key) with
+  the search tool (plus web fetch when given `url`), answer capped at `WebTools.MAX_ANSWER`. Scripts call it as
+  `web.search(query[, focus])`, `web.read(url[, focus])` or `power('search_web', …)` (one power use each), so a
+  program can search and then act on the answer. Chaining in scripts: `power()` returns `{ok, text, image}` with
+  up to `ScriptWorld.MAX_RESULT` (2000) characters, `powers()` lists the usable names, and the last picture a power
+  made (look, map...) is attached to the script's own result so the god sees it.
+- **Words and acts agree** — `Prompts.system` says decide, then answer, then act. `god/Coherence` (pure, one per thought in
+  `GodBrain.carryOut`) remembers what the god said to whom (whisper, vessel_say "Heard by"); the first later power whose
+  arguments name one of those mortals gets its own words quoted back in its result, so it can own a contradiction
+  ("eat something" then `heal`). `CoherenceTest`.
+- **What a live test taught (2026-11-13, harness/out/session-*)** — rules in `Prompts.system`, checked by `PromptsTest`:
+  "Choose who hears you" (open questions get open answers: announce / vessel_say, whisper for private matters),
+  "Speak like a living mind, not a motif" (no line after line from the same few images, no quoting its own history as
+  catchphrases), "Mortals see only what your powers do" (never claim an act no power did this turn), and a goal is a
+  thing made or changed in the world ("never a goal": watching, counting, judging). `judge` shows the judged mortal a
+  sign of which way their favor moved, never why (`Signs.favorLine`). `revive` on a mortal who already respawned says
+  it was not the god's doing. `take_item` counts slots by kind (`BlessingTools.takeFrom`, the held slot first): a
+  used, enchanted or renamed item was "not there" for the exact-stack removal it used before.
+- **The `locate` power** (`tools/LocateTools`, last in `ToolRegistry`, async) — the nearest structure or biome from a
+  mortal, the vessel or a point, as direction, distance and coordinates; words are matched leniently against the
+  server's registries ("village" searches every village kind, at most 8 kinds, 6 s in all, each search its own
+  `Sync.call`). The structure radius counts cells of the structure's own placement grid, not chunks (16 = thousands
+  of blocks for villages, a few hundred for mineshafts). `LocateToolsTest`.
 - **Finishing commands** — if a reply ends while a one-shot binding command is still open, `GodBrain`
   appends a user note asking it to finish in the same thought (at most twice); `Edicts.NUDGE_MS` is
   15 s; `God.showWorking` puts "… is working on your command #N" in the issuer's action bar while it
@@ -337,6 +380,43 @@ gradle.properties and are expanded into plugin.yml by processResources. Simple V
   frame, 48 pictures), `SolidFx` draws painted solids with `RenderTypes.entityTranslucent`/`eyes`, `FieldParticle`
   uses the picture as its sprite; demo `idol` uses the two samples `texture-veins/sigil.json` that `FxPaintTest`
   writes (it also draws build/test-renders/fx-textures.png). Players without the mod see plain colour.
+  Reskins: the `reskin` layer (`fx/FxReskin`, the fourth file shared word for word with the mod) makes some blocks
+  round a place look like something else for a while; the world never changes. Which: `blocks` (kinds; none = any
+  solid block), inside a disc (`height`) or `shape` sphere of `radius` (a formula of t and p, at most 16, so it can
+  creep), and of those the `density` share, picked per block by `FxExpr.hash` of its coordinates so every viewer and
+  the server agree. As what: `as` another block (`god/FxReskinShow`, started from `FxShow.play`: `sendBlockChange`
+  to viewers, only to a block as solid as the real one, the truth sent again when the layer ends or the scene is
+  cancelled; if a texture or colour is given too, only players without the mod get the `as` block), a painted
+  `texture`, or a `color` wash with `strength` (mod: `ReskinFx`, a skin over the open faces of the chosen solid
+  blocks, lit with the world's light; rescanned as its reach changes and every 20 ticks). Demo `blight`.
+  `FxReskinTest` covers the picking; the mod's `FormulaTest.reskinsDecode` the decoding.
+  What only a watcher's own game can work out (still data, never code): formulas may read the viewer, `d`, `look`,
+  `speed`, `ex ey ez` (`FxExpr.viewer`, filled by the mod's `Viewer` per layer place; `FxExpr.nobody` on the server,
+  and a reskin's radius never sees them, so every viewer and the server agree on its blocks). A field is `free`
+  when it gives any of `ax ay az vx vy vz drag bounce life`: its particles then keep their motion (`FxField.birth`/
+  `step`/`look`, state per particle in `FieldParticle`, blocks through `Viewer.Blocks`; names `px py pz vx vy vz a k`);
+  the dust sketch shows only where they are born. The `trigger` layer (`fx/FxTrigger`, the fifth file shared word for
+  word): `when` (a formula), `hold`, `again`, `then` (up to 8 layers, checked as a scene by `FxFormulas.then`; no
+  trigger, texture or style token inside), `tell`, `wake`. The mod's `SceneRunner` watches it per player, plays `then`
+  at once and reports `{"t":"trigger","key"}` on gptgod:main; `god/FxTriggers` keys each trigger per showing
+  (`arm`, from `FxShow.play`), believes a client only for a trigger it was shown, in time and no oftener than
+  `again`, watches it itself for players without the mod (`Plain`, every 2 ticks) and logs "<name> <tell>" to the
+  casting god (waking it only with `wake`). Size is a particle's width in blocks (the mod halves it for the quad);
+  every field particle shimmers on its own clock. Demo `wake`; `FxLiveTest`; the mod's
+  `FormulaTest.triggersAndFreeParticlesDecode`.
+- **god/FxSeal + FxSealShow** — the `seal` scene layer: flat emblems of light (magic circles, glyphs) that are real
+  surfaces in the world, not particles, and need neither the mod nor the pack. `FxSeal` (pure; server only, not shared
+  with the mod, whose scene parser skips the unknown type) is the language and geometry: plane ground | upright | facing
+  (or tilt + yaw), radius, spin, appear/fade, a `scale` formula, and up to 16 parts (ring with dashes/arc, polygon, star,
+  spokes, curve from `rho` or `x`/`y` `FxExpr` formulas, runes in the enchanting-table / illager / plain font, marks,
+  motes drifting up; each with colour, width, glow halo, own spin, delay, copies + orbit). `frame(age)` returns every
+  Line/Glyph/Mote with counts that never change, so each keeps its entity; `check` refuses above `MAX_PIECES` (500).
+  `FxSealShow` (from `FxShow.play`, ended in its `cancel`) draws each stroke as a TextDisplay holding one space: its
+  background is a flat full-bright quad (5 x 10 text pixels, see the constants) stretched by the transformation; a
+  text display shows only its front, so tilted seals get a back copy of strokes and letters (not halos). Poses go out
+  every `STEP` (4) ticks with interpolation, only for pieces that changed; a seal that follows a mortal rides them through
+  a root display; non-persistent, at most `MAX_ALIVE` (1800) on the server (`refusal` in `FxTools.show`). `FxSealTest`
+  draws build/test-renders/fx-seals.png. Not yet seen in a live game.
 - **god/hooks/** — the WorldEdit hook: the `worldedit` power (`tools/WorldEditTools`), always registered, working
   only when the WorldEdit or FastAsyncWorldEdit plugin is enabled (softdepend; `worldedit.enabled`,
   `worldedit.max-blocks` 20000). `WorldEditHook` names no WorldEdit class and loads `WorldEditBridge` (all
@@ -358,7 +438,10 @@ gradle.properties and are expanded into plugin.yml by processResources. Simple V
   gold at the heart), raised 6000 blocks a tick; the mortal is put in adventure mode and returned to their own
   place and mode when they reach the gold or after `labyrinth.max-minutes` (20) at most; death returns them to
   the start, pearls and chorus fruit are refused, sentences persist in labyrinth.json, and the god is told how
-  each ends (a `GenericEventLoggable` to the casting realm). Tools (`tools/DimensionTools`, last in
+  each ends (a `GenericEventLoggable` to the casting realm). Who is held and for how long is told in the
+  perception ("## Your labyrinth", `Labyrinths.perceive`), never in the power's description: minutes counting
+  down there rewrote the whole ~65k-token prompt cache on every thought ($0.17 each in a live test). Keep
+  anything that changes by the minute out of live tool descriptions. Tools (`tools/DimensionTools`, last in
   `ToolRegistry`): `labyrinth` (cast, release) and `make_world` (create, send, list, unmake). `MazeTest` draws
   build/test-renders/labyrinth.png. The god's other powers still act only in its own realm's world.
 - **god/script/ + the `script` power** — programs the god writes itself (`scripts:` in config.yml, on by default;
@@ -391,6 +474,22 @@ gradle.properties and are expanded into plugin.yml by processResources. Simple V
   step may be `script`. Its index in the tool description is sorted by name so it stays cache-stable.
   Relics run saved scripts too (`tools/RelicScripts`, see god/art/): keep `ScriptTools.enabled`/`limits`,
   `ScriptWorld(label)` and `ScriptLibrary.find`/`merged`/`used` as they are, or update it with them.
+- **The god's own relics in hand** — `god/art/Armory` (relics a god keeps for itself, `god/relics/armory.json`
+  god id -> relic ids, max 8, only its own or the samples; `weapon(relic, awake)` -> `VesselHeld.Weapon`: grip and
+  point from the art (`ends`), length by kind, plain vanilla stand-in by kind and name words), `vessel/VesselHeld`
+  (the right hand: an ItemDisplay of the relic for viewers with the pack or the mod and one of the stand-in for
+  the rest, placed every tick from the RIGHT_ARM frame by `transform` (grip in the fist, `POINT` ahead and a
+  little down in arm space, ITEM_FLIP undone); a dust trail from the point while a blow is armed; `arm(blow,
+  ticks)` + an animation's `hit` cue -> `hit(...)` hands the blade's world grip/point to the blow; hooked into
+  `Vessel` like the wings rig: tick, teleport, entities, despawn/clearRefs, showTo, danceCues), `Choreo` cues
+  may say `hit` (`Cue.hit`, `Choreo.strikes`), `Choreo.WEAPON_STYLES` (slash, overhead, thrust, reap, whirl)
+  plus `draw_weapon`, and `god/art/Strikes` (one sequence per god: pursue up to 12 s (follow or goTo), turn,
+  play the animation, land on the hit cue when within `reach` or the blade's segment; damage = the relic's
+  attack stat or its kind's weight x style x body size, + `RelicImbue.strikeEffects` (its on_hit powers that need
+  no mortal bearer), capped `MAX_BLOW`; the god hears each blow as a non-waking event). Tools (last in
+  `ToolRegistry`, `tools/ArmoryTools`): `armory` (draw, sheathe, keep, drop, list) and `strike` (behind the
+  smite gate; style = a weapon animation or the god's own saved animation with a hit cue); forge_relic `keep`.
+  `ArmoryTest`; `WeaponPreviewTest` draws build/test-renders/weapon-*.png (the vessel swinging real relics).
   `ScriptToolsTest` covers the library and the tool. What a script makes it may steer, and nothing else:
   `world.spawn` (direct, same gate/forbidden list/count limit as spawn_entity) and `world.display` (block, item
   or text display entities: non-persistent, removed after `seconds`, at most `scripts.max-display-seconds`,
@@ -413,7 +512,9 @@ gradle.properties and are expanded into plugin.yml by processResources. Simple V
   (`tools/HookTools`, always registered): `ward` (who, raise, lift, list; raise is gated like conjure),
   `land_history` (not a main-thread power; rollback gated like unbuild and needs a player), `disguise` (gated
   like apply_effect, ends by timer). Without the plugin each description is one sentence saying so.
-  `HooksTest` runs with none installed. With WorldGuard installed it owns /god: use /gptgod.
+  `HooksTest` runs with none installed. WorldGuard and EssentialsX also define /god; `commands/GodLabel` takes the
+  bare label back once all plugins have loaded (ServerLoadEvent, first tick, 5 s later; `operator.claim-god-command`,
+  default true), leaving theirs at /worldguard:god and /essentials:god (/egod).
 - **god/vision/** — `Vision` captures ChunkSnapshots + entities on the main thread, `Renderer`
   ray-traces off-thread (perspective, panorama, overhead surface/cave/x-ray) using `Palette` (block
   map colors + overrides); labels use the built-in `PixelFont` (works headless). The minimap (`map` tool,
@@ -423,10 +524,20 @@ gradle.properties and are expanded into plugin.yml by processResources. Simple V
   `MapView` reads the world (`capture` on the main thread, `draw` off it). `vision.auto-minimap`
   (off | when-useful | always) attaches one to the perception: `MapView.auto` in `GodBrain.cycle`, sent with
   `LlmChat.user(text, png)` when `LlmChat.sees()`. `MinimapTest` renders build/test-renders/minimap-*.png.
+  Every block is drawn as a cube in its map color, so a look with a camera (eyes, vessel, orbit) also names
+  what it shows: `Sightings` (pure; `SightingsTest`) casts 128x72 of the picture's rays up to 48 blocks and
+  lists the built kinds they meet (never the land: `Sightings.natural`), nearest first, with count, distance,
+  left/centre/right and "too thin to show" for kinds the palette does not draw (torches); `Vision.named`
+  appends it to the caption with the text of signs in view (read on the server thread, through `Guard.clean`).
+  An orbit whose spot is walled in stays outside instead of putting the camera inside the walls. `see_build`
+  with no placement on record (`BuildView.NoRecord`) answers with the mortal's eyes view, not a refusal.
 - **god/build/** — `Plan` (relative block placements, rotation), `Style` palettes, `Designs`
   (procedural buildings), `Blueprints` (vanilla structures/templates, user schematics in
   `plugins/gptgodmc/schematics/`, Sponge `.schem` via `Nbt`), `Builder` (places N blocks per tick,
-  refuses to overlap player structures, keeps undo data).
+  refuses to overlap player structures, keeps undo data). `Site.settle` (called by the `build` power for
+  designs that stand beside their target) searches the footprint for built blocks that are on no record; with
+  3 or more it moves the site (further from the target, then to either side; `Site.shifts`, `SiteTest`) and
+  the result says so, or refuses when nowhere near is free; `over: true` builds on the spot anyway.
 - **god/vessel/** — the god's body. `VesselModel` is a pure-math rig with player-skin proportions
   (units are skin pixels; bones for torso, head, arms, legs, cape) plus target poses built from a
   `Motion` (walk cycle, levitation, flight lean, breathing, head look, mood posture, and timed
@@ -526,7 +637,9 @@ gradle.properties and are expanded into plugin.yml by processResources. Simple V
   code; ports and restart-only settings are read-only), `gui/Feedback` (replies that would go to chat are
   returned in the action's result or shown in the open screen), `god/Costs` (spend per god in 10 s buckets
   for 24 h; the screen's Costs page, hidden by `client-mod.show-costs: false`), `vessel/VesselHeads` (16x16
-  head face per look). Mod: `client-mod/.../gui/` (`GuiProtocol`, `GuiModel` pure; `Ui` immediate-mode
+  head face per look). A slain god's Overview offers Revive (action `revive`): `god/ReviveRite` opens a
+  particle rift in front of the operator for ~3 s with a rising hum, then calls `Godslayer.revive` and sends
+  the vessel to step out of it (`ReviveRiteTest` renders build/test-renders/rite-revive.png). Mod: `client-mod/.../gui/` (`GuiProtocol`, `GuiModel` pure; `Ui` immediate-mode
   widgets; `ManagerScreen` + `GodPages`, `MortalsPage`, `ServerPages`). Golden files `gui-*.json` /
   `req-*.json` in client-mod/src/test/resources/protocol are checked by `ModGuiTest` (rewrite with env
   `GUI_FIXTURES_WRITE=1`) and `GuiTest`, and ship in the mod jar as sample data (`/godfx manager`).
@@ -574,7 +687,12 @@ Create a loggable extending `BaseLoggable`, return the text from `getLog()` (nul
 - `/god tool <power> <json>` runs a power without Claude; `/god view …` saves a render.
 - `bridge.enabled: true` + `harness/` for end-to-end tests: an MCP server (`god-harness`) that runs a
   Paper 26.3 sandbox, deploys the jar, joins mineflayer bots, drives the bridge and takes screenshots
-  with a real client (Windows, Node 22+; see harness/README.md).
+  with a real client (Windows, Node 22+; see harness/README.md). The tools live in one daemon
+  (`harness/src/daemon.js`, port 8790; `node harness/call.js <tool> key=value` from a shell, the MCP entry
+  forwards to it; sandbox folder from `harness/.env`). Live-god runs: `player_*` are real 26.3 clients with
+  Fabric and the client mod, driven in-process through the mod's puppet port (`client-mod/.../client/puppet/`,
+  inert unless the JVM property `gptgod.puppet.port` is set); `budget_set` caps API spend and pauses the god
+  at the cap; `session_start` / `session_report` write a merged timeline of players and god to `harness/out/`.
 
 ## Constraints
 

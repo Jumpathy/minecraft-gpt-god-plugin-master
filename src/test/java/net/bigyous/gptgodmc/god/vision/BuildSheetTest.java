@@ -262,6 +262,28 @@ class BuildSheetTest {
                 Minimap.tokens(h.getWidth(), h.getHeight()));
     }
 
+    /** Words spelled on the ground in dirt, as a mortal would: what the god is shown when it is woken for them. */
+    @Test
+    void previewOfWordsWrittenInBlocks() throws IOException {
+        RendererTest.MapVoxels v = new RendererTest.MapVoxels(63, 80);
+        String[] rows = { "I HATE", "VAEL" };
+        Set<Long> blocks = new HashSet<>();
+        for (int r = 0; r < rows.length; r++) {
+            BufferedImage text = new BufferedImage(PixelFont.width(rows[r], 1) + 2, 9, BufferedImage.TYPE_INT_RGB);
+            PixelFont.draw(text, rows[r], 1, 1, 0xFFFFFF, 1);
+            for (int x = 0; x < text.getWidth(); x++) {
+                for (int y = 0; y < 9; y++) {
+                    if ((text.getRGB(x, y) & 0xFFFFFF) == 0xFFFFFF) put(v, blocks, x, 64, r * 9 + y, Material.COARSE_DIRT);
+                }
+            }
+        }
+        Bounds b = Bounds.of(blocks);
+        assertTrue(net.bigyous.gptgodmc.god.Writings.mayBeWriting(b.width(), b.length(), b.height(), blocks.size()),
+                b + " with " + blocks.size() + " blocks reads as writing");
+        RendererTest.save(BuildSheet.render(v, RendererTest.palette, blocks,
+                new BuildSheet.About("What Ashwyn is building now", "Ashwyn", "AT 17 64 8"), 256), "build-writing");
+    }
+
     private static long pixels(BufferedImage img) {
         long sum = 0;
         for (int y = 0; y < img.getHeight(); y += 3) {

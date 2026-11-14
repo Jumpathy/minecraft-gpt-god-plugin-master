@@ -64,6 +64,8 @@ public final class GodBrain {
     private final Realm realm;
     private final ExecutorService mind;
     private final AtomicBoolean thinking = new AtomicBoolean(false);
+    /** What it said to whom in the current thought, so its acts are checked against its words. */
+    private Coherence coherence = new Coherence();
     private volatile long backoffUntil = 0;
     private volatile String lastError = null;
     private volatile long lastThoughtEnded = 0;
@@ -161,6 +163,7 @@ public final class GodBrain {
         List<String> out = new java.util.ArrayList<>(d.events());
         d.prayers().forEach(p -> out.add("prayer: " + p));
         d.directives().forEach(p -> out.add("[operator] " + p));
+        d.speech().forEach(p -> out.add("said: " + p));
         return out;
     }
 
@@ -237,6 +240,7 @@ public final class GodBrain {
                 firstUser);
 
         Memory.CycleRecord record = new Memory.CycleRecord();
+        coherence = new Coherence();
         record.at = System.currentTimeMillis();
         record.trigger = trigger;
         record.perceived = snap.digest();
@@ -617,7 +621,14 @@ public final class GodBrain {
             reply.firstActAt = System.currentTimeMillis();
         }
         record.acts.add(outcome.act());
-        reply.results.add(new ToolAnswer(call.id(), call.name(), outcome.result()));
+        ToolResult result = outcome.result();
+        // An act on a mortal it spoke to in this thought quotes its own words back, once.
+        String note = coherence.after(call.name(), input, result.text(), result.isError());
+        if (note != null) {
+            result = result.hasImage() ? ToolResult.image(result.text() + note, result.png())
+                    : ToolResult.ok(result.text() + note);
+        }
+        reply.results.add(new ToolAnswer(call.id(), call.name(), result));
     }
 
     /**

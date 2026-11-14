@@ -178,6 +178,13 @@ public final class ModGuiActions {
                 }
                 return chest(p, Kind.PERSONA, a);
             }
+            case "revive" -> {
+                if (!net.bigyous.gptgodmc.god.Godslayer.isSlain(realm)) {
+                    return Outcome.fail(null, realm.displayName() + " is not dead.");
+                }
+                Feedback.take(p, net.bigyous.gptgodmc.god.ReviveRite.begin(realm, p));
+                return Outcome.OK;
+            }
             case "remove_god" -> {
                 GodCommand.remove(p, new String[] { "remove", realm.id, "confirm" });
                 return Realm.byId(realm.id) == null ? Outcome.OK : Outcome.fail(null, null);

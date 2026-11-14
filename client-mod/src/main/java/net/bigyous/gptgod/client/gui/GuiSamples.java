@@ -58,6 +58,7 @@ public final class GuiSamples {
                         ? ok(id, "Saved to config.yml.")
                         : fail(id, args.get("key"), "Must be between 5 and 600 s.");
             }
+            case "revive" -> ok(id, "The veil tears open before you: Morthuun is being called back.");
             case "mortal_open" -> new GuiProtocol.Result(id, true, null, null, null, null, args.get("player"));
             default -> ok(id, "(sample) " + action.replace('_', ' ') + ": done.");
         };
